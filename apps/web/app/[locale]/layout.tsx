@@ -2,9 +2,10 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { notFound } from "next/navigation";
 import "../globals.css";
-import ShellChrome from "@/components/ShellChrome";
 import Footer from "@/components/Footer";
-import { LOCALES, getDict, isLocale } from "@/lib/i18n";
+import ShellChrome from "@/components/ShellChrome";
+import Web3Provider from "@/components/Web3Provider";
+import { getDict, isLocale, LOCALES } from "@/lib/i18n";
 
 const body = Inter({
   subsets: ["latin"],
@@ -51,19 +52,21 @@ export default function LocaleLayout({
         />
       </head>
       <body className="font-body antialiased">
-        {/* Kartu inset: seluruh situs hidup di dalam container membulat ini */}
-        <div className="h-[100dvh] bg-white p-3 sm:p-5">
-          <div className="relative h-full w-full overflow-hidden rounded-[28px] bg-white sm:rounded-[36px]">
-            <div
-              id="scroll-root"
-              className="no-scrollbar absolute inset-0 overflow-y-auto overflow-x-hidden"
-            >
-              {children}
-              <Footer locale={params.locale} dict={dict} />
+        <Web3Provider>
+          {/* Kartu inset: seluruh situs hidup di dalam container membulat ini */}
+          <div className="h-[100dvh] bg-white p-3 sm:p-5">
+            <div className="relative h-full w-full overflow-hidden rounded-[28px] bg-white sm:rounded-[36px]">
+              <div
+                id="scroll-root"
+                className="no-scrollbar absolute inset-0 overflow-y-auto overflow-x-hidden"
+              >
+                {children}
+                <Footer locale={params.locale} dict={dict} />
+              </div>
+              <ShellChrome nav={dict.nav} brand={dict.brand} submitCta={dict.home.cta} />
             </div>
-            <ShellChrome nav={dict.nav} brand={dict.brand} submitCta={dict.home.cta} />
           </div>
-        </div>
+        </Web3Provider>
       </body>
     </html>
   );

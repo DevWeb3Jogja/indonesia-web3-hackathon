@@ -1,8 +1,8 @@
 // Seed .data/submissions.json dengan 10 project mock. `node scripts/seed-mock.mjs`
 // Semua mock pakai edit code IDN-MOCK2026 + email masing-masing.
-import { createHash } from "crypto";
-import fs from "fs";
-import path from "path";
+import { createHash } from "node:crypto";
+import fs from "node:fs";
+import path from "node:path";
 
 const EDIT_CODE = "IDN-MOCK2026";
 const hash = (code, email) =>
@@ -10,7 +10,7 @@ const hash = (code, email) =>
     .update(`${code.trim().toUpperCase()}::${email.trim().toLowerCase()}`)
     .digest("hex");
 
-const addr = (n) => "0x" + n.toString(16).padStart(4, "0").repeat(10);
+const addr = (n) => `0x${n.toString(16).padStart(4, "0").repeat(10)}`;
 
 const mermaid = `
 

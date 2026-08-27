@@ -1,13 +1,13 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import type { Dict } from "@/lib/i18n";
+import { localePath } from "@/lib/locale";
+import type { SubmissionInput } from "@/lib/types";
 import SubmissionForm from "./SubmissionForm";
 import { Panel } from "./ui";
-import { localePath } from "@/lib/locale";
-import type { Dict } from "@/lib/i18n";
-import type { SubmissionInput } from "@/lib/types";
 
 export default function EditFlow({
   id,
@@ -100,8 +100,11 @@ export default function EditFlow({
             <p className="mt-2 text-sm leading-relaxed text-ink/70">{t.gateDesc}</p>
             <form onSubmit={handleVerify} className="mt-6 space-y-4">
               <div>
-                <label className="label-field">{t.editCode}</label>
+                <label className="label-field" htmlFor="edit-code">
+                  {t.editCode}
+                </label>
                 <input
+                  id="edit-code"
                   className="input-field font-mono uppercase tracking-widest"
                   value={editCode}
                   onChange={(e) => setEditCode(e.target.value)}
@@ -110,8 +113,11 @@ export default function EditFlow({
                 />
               </div>
               <div>
-                <label className="label-field">{t.email}</label>
+                <label className="label-field" htmlFor="edit-email">
+                  {t.email}
+                </label>
                 <input
+                  id="edit-email"
                   type="email"
                   className="input-field"
                   value={email}

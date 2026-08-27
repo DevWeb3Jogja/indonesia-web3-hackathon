@@ -1,0 +1,32 @@
+{
+  "name": "backoffice",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -p 3001",
+    "build": "next build",
+    "start": "next start -p 3001",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@iw3h/auth": "workspace:*",
+    "@iw3h/db": "workspace:*",
+    "@libsql/client": "^0.17.4",
+    "@reown/appkit": "^1.8.23",
+    "@reown/appkit-adapter-wagmi": "^1.8.23",
+    "@reown/appkit-siwe": "^1.8.23",
+    "@tanstack/react-query": "^5.102.8",
+    "next": "^14.2.35",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "viem": "^2.55.4",
+    "wagmi": "^2.19.5",
+    "zod": "^3.25.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "typescript": "^5.6.2"
+  }
+}

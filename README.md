@@ -116,3 +116,33 @@ lib/                    db (Sheets + fallback lokal), types, validasi
 - Edit code hanya ditampilkan sekali setelah submit, disimpan sebagai hash
 - Email kontak tim tidak pernah dikirim ke client di endpoint publik
 - Semua input divalidasi dan disanitasi di server
+
+## Arsitektur monorepo
+
+```
+apps/web         — situs publik (Next.js 14, port 3000)
+apps/backoffice  — panel organizer (Next.js 14, port 3001, khusus role admin)
+packages/db      — skema Drizzle + query layer + migrasi (Turso/libsql)
+packages/auth    — SIWE + session iron-session + RBAC (dipakai kedua app)
+db/seed.sql      — seed edisi hackathon (idempotent)
+```
+
+Perintah dari root: `pnpm dev` · `pnpm build` · `pnpm test` · `pnpm typecheck` · `pnpm check` (biome).
+
+### Database (Turso)
+
+- Produksi: `indonesia-web3-hackathon` — hanya kredensial Vercel Production.
+- Dev: `iw3h-dev` — dipakai lokal & preview (lihat `.env.example` tiap app).
+- Ubah skema: edit `packages/db/src/schema.ts` → `pnpm --filter @iw3h/db generate` → `pnpm --filter @iw3h/db migrate` (env menentukan DB target). Jangan ubah DB langsung lewat shell.
+
+### Auth & RBAC
+
+Login = connect wallet + tanda tangan SIWE (modal Reown). Session di cookie httpOnly;
+role (`participant`/`judge`/`admin`) selalu dibaca dari tabel `users` per request.
+Bootstrap admin pertama (sekali saja):
+
+```
+turso db shell iw3h-dev "UPDATE users SET role='admin' WHERE address='0xALAMAT_KAMU'"
+```
+
+(Sign-in dulu di app supaya row user-nya ada; ulangi di DB produksi saat deploy.)

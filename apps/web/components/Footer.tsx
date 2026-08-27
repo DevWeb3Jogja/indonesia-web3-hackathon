@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { REGISTER_URL } from "@/lib/content";
-import { localePath } from "@/lib/locale";
 import type { Dict } from "@/lib/i18n";
+import { localePath } from "@/lib/locale";
 import { ArrowUpRight, Sparkles } from "./ui";
 
 const NAV = [

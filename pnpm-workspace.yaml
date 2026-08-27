@@ -1,2 +1,9 @@
 packages:
   - "apps/*"
+  - "packages/*"
+
+# wagmi v3 (@wagmi/core 3.x / connectors 8.x) masih rusak terhadap viem rilisan
+# (modul tempo). Pin ke keluarga wagmi 2.x sampai Reown adapter resmi support v3.
+overrides:
+  "@wagmi/core": "2.22.1"
+  "@wagmi/connectors": "6.2.0"

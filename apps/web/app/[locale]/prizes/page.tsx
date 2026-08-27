@@ -1,7 +1,7 @@
-import Link from "next/link";
 import type { Metadata } from "next";
+import Link from "next/link";
+import { ArrowUpRight, Panel } from "@/components/ui";
 import { getDict, localePath } from "@/lib/i18n";
-import { Panel, ArrowUpRight } from "@/components/ui";
 
 export function generateMetadata({ params }: { params: { locale: string } }): Metadata {
   return { title: getDict(params.locale).prizes.metaTitle };

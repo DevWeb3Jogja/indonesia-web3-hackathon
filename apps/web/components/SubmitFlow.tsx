@@ -1,13 +1,13 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
-import SubmissionForm from "./SubmissionForm";
-import EligibilityWarning from "./EligibilityWarning";
-import { ArrowUpRight, Panel } from "./ui";
-import { localePath } from "@/lib/locale";
+import { useState } from "react";
 import type { Dict } from "@/lib/i18n";
+import { localePath } from "@/lib/locale";
 import type { SubmissionInput } from "@/lib/types";
+import EligibilityWarning from "./EligibilityWarning";
+import SubmissionForm from "./SubmissionForm";
+import { ArrowUpRight, Panel } from "./ui";
 
 interface Success {
   id: string;
@@ -75,6 +75,7 @@ export default function SubmitFlow({
           </div>
 
           <button
+            type="button"
             onClick={() => {
               navigator.clipboard.writeText(success.editCode);
               setCopied(true);

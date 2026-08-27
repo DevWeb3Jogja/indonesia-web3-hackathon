@@ -11,6 +11,13 @@
     "migrate:sheets": "node scripts/migrate-to-sheets.mjs"
   },
   "dependencies": {
+    "@iw3h/auth": "workspace:*",
+    "@iw3h/db": "workspace:*",
+    "@libsql/client": "^0.17.4",
+    "@reown/appkit": "^1.8.23",
+    "@reown/appkit-adapter-wagmi": "^1.8.23",
+    "@reown/appkit-siwe": "^1.8.23",
+    "@tanstack/react-query": "^5.102.8",
     "google-auth-library": "^9.14.1",
     "google-spreadsheet": "^4.1.4",
     "mermaid": "^10.9.1",
@@ -19,7 +26,10 @@
     "react": "18.3.1",
     "react-dom": "18.3.1",
     "react-markdown": "^9.0.1",
-    "remark-gfm": "^4.0.0"
+    "remark-gfm": "^4.0.0",
+    "viem": "^2.56.0",
+    "wagmi": "^2.19.5",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@types/node": "^20",

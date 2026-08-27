@@ -1,10 +1,10 @@
-import Link from "next/link";
 import Image from "next/image";
+import Link from "next/link";
+import EligibilityWarning from "@/components/EligibilityWarning";
+import { ArrowUpRight, ChamferBorder, Sparkles } from "@/components/ui";
 import { ASSETS } from "@/lib/assets";
 import { REGISTER_URL } from "@/lib/content";
 import { getDict, localePath } from "@/lib/i18n";
-import { ArrowUpRight, ChamferBorder, Sparkles } from "@/components/ui";
-import EligibilityWarning from "@/components/EligibilityWarning";
 
 /** Bagian presentasi stat card yang bukan konten: gambar, bentuk, posisi teks. */
 const STAT_STYLE = [

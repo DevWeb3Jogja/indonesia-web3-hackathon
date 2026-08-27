@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import MarkdownRenderer from "./MarkdownRenderer";
 import type { Dict } from "@/lib/i18n";
+import MarkdownRenderer from "./MarkdownRenderer";
 
 interface Props {
   value: string;

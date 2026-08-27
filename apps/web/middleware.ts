@@ -1,5 +1,5 @@
-import { NextResponse, type NextRequest } from "next/server";
-import { LOCALES, DEFAULT_LOCALE } from "@/lib/locale";
+import { type NextRequest, NextResponse } from "next/server";
+import { DEFAULT_LOCALE, LOCALES } from "@/lib/locale";
 
 /** Ambil locale dari header Accept-Language, jatuh ke default kalau tak cocok. */
 function preferredLocale(req: NextRequest): string {

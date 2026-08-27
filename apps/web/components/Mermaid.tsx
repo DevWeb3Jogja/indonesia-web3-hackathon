@@ -55,7 +55,7 @@ export default function Mermaid({
 
   if (failed) {
     return (
-      <pre className="!border !border-red-300" aria-label={errorLabel}>
+      <pre className="!border !border-red-300" role="img" aria-label={errorLabel}>
         <code>{chart}</code>
       </pre>
     );

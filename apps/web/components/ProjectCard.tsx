@@ -1,7 +1,7 @@
 import Link from "next/link";
+import { localePath } from "@/lib/locale";
 import type { Submission } from "@/lib/types";
 import { trackLabel } from "@/lib/types";
-import { localePath } from "@/lib/locale";
 import { ArrowUpRight, Panel } from "./ui";
 
 export default function ProjectCard({

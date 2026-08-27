@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 import { getSubmission, toPublic, updateSubmission } from "@/lib/db";
-import { hashEditCode, sanitizeInput, validateSubmission } from "@/lib/utils";
 import type { SubmissionInput } from "@/lib/types";
+import { hashEditCode, sanitizeInput, validateSubmission } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
