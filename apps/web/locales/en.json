@@ -1,0 +1,364 @@
+{
+  "meta": {
+    "localeName": "English",
+    "title": "Indonesia Web3 Hackathon 2026 | #WhereBuildersBuild",
+    "description": "Indonesia's largest Web3 hackathon. $5,000 prize pool. Tracks: AI Agents, Finance & Commerce, Consumer Apps. Co-hosted by Binance Academy, BNB Chain and Coinvestasi. Mentored by Dev Web3 Jogja.",
+    "ogDescription": "$5,000 prize pool. Free to enter, open to everyone. #WhereBuildersBuild"
+  },
+  "brand": {
+    "line1": "indonesia web3",
+    "line2": "hackathon 2026"
+  },
+  "nav": {
+    "home": "Home",
+    "projects": "Projects",
+    "prizes": "Prizes",
+    "schedule": "Schedule",
+    "faq": "FAQ",
+    "submit": "Submit",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "switchLanguage": "Switch language",
+    "scrollHint": "Scroll to discover"
+  },
+  "home": {
+    "eyebrow": "$5,000 prize pool",
+    "title1": "Indonesia Web3",
+    "title2": "Hackathon",
+    "subtitle": "Built on BNB Chain, from Indonesia to the world",
+    "cta": "Send in your project",
+    "ctaRegister": "Register via Luma",
+    "submissions": {
+      "bracket": "[submissions]",
+      "title": "submissions",
+      "note": "The submission portal is open 1 to 30 September 2026. A single project may enter more than one track.",
+      "warningLabel": "Read this first",
+      "warning": "Your submission only counts if your team is registered on Luma. Register first, then submit.",
+      "warningCta": "Register on Luma"
+    },
+    "tracks": [
+      {
+        "title": "AI Agents",
+        "sub": "autonomous agents & AI x DeFi onchain"
+      },
+      {
+        "title": "Finance & Commerce",
+        "sub": "DeFi, payments and RWA for Indonesia"
+      },
+      {
+        "title": "Consumer Apps",
+        "sub": "social, gaming and loyalty with seamless UX"
+      }
+    ],
+    "prizeCards": [
+      {
+        "title": "Grand Prize $1,000",
+        "sub": "best overall, across every track"
+      },
+      {
+        "title": "1st to 3rd place",
+        "sub": "$600 / $400 / $300 in each track"
+      },
+      {
+        "title": "Community Choice",
+        "sub": "$100 chosen by fellow builders"
+      }
+    ],
+    "about": {
+      "title1": "About the",
+      "title2": "organisers",
+      "p1": "Indonesia Web3 Hackathon is a national competition built around #WhereBuildersBuild, co-hosted by Binance Academy, BNB Chain and Coinvestasi, and mentored by the Dev Web3 Jogja community.",
+      "p2": "The mission is simple: give every Indonesian builder a stage to turn their idea into a product that genuinely runs onchain.",
+      "link": "Register via Luma",
+      "mapAlt": "The Indonesian archipelago rendered as prismatic glass shards"
+    },
+    "stats": [
+      {
+        "value": "$5,000",
+        "desc": "prize pool contested across three competition tracks"
+      },
+      {
+        "value": "11 teams",
+        "desc": "winners: nine track podium places plus two cross-track awards"
+      },
+      {
+        "value": "4 months",
+        "desc": "July to October 2026, from the first workshop through to Demo Day"
+      }
+    ]
+  },
+  "prizes": {
+    "metaTitle": "Prizes | Indonesia Web3 Hackathon 2026",
+    "eyebrow": "Prize pool",
+    "title1": "$5,000",
+    "title2": "on the line",
+    "lead": "Eleven winning teams. Every track has its own podium, plus two cross-track awards.",
+    "grandPrize": "Grand Prize",
+    "grandPrizeDesc": "Best Overall, across every track. One team with the most convincing execution of the entire field.",
+    "communityChoice": "Community Choice",
+    "communityChoiceDesc": "The community's pick, across every track. The project other builders love most.",
+    "track": "Track",
+    "places": ["1st place", "2nd place", "3rd place"],
+    "recapTitle": "Full breakdown",
+    "colCategory": "Category",
+    "colPosition": "Position",
+    "colTeams": "Teams",
+    "colPrize": "Prize",
+    "rowGrandPrize": "Best Overall, across every track",
+    "rowCommunityChoice": "Community pick",
+    "total": "Total",
+    "cta": "Go claim it"
+  },
+  "schedule": {
+    "metaTitle": "Schedule | Indonesia Web3 Hackathon 2026",
+    "eyebrow": "Schedule",
+    "title1": "July through",
+    "title2": "October 2026",
+    "lead": "Every session runs online except Demo Day. Submissions close 30 September 2026, 23:59 WIB.",
+    "register": "Register",
+    "submit": "Submit",
+    "deadlineNote": "Submissions close",
+    "deadlineDate": "30 September 2026, 23:59 WIB",
+    "deadlineTail": ". You can keep editing your entry until the deadline using your edit code.",
+    "submitNow": "Submit now",
+    "timeline": [
+      {
+        "key": "registration",
+        "date": "1 July 2026",
+        "title": "Registration Open",
+        "desc": "Registration opens via Luma. Free and open to everyone."
+      },
+      {
+        "key": "workshop",
+        "date": "5 July - 30 August 2026",
+        "title": "Online Workshop & Mentoring Session",
+        "desc": "A workshop and mentoring series with Dev Web3 Jogja and ecosystem partners."
+      },
+      {
+        "key": "submission-open",
+        "date": "1 September 2026",
+        "title": "Submission Opens",
+        "desc": "The submission portal opens. Send in your project right here."
+      },
+      {
+        "key": "submission-close",
+        "date": "30 September 2026",
+        "title": "Submission Deadline",
+        "desc": "Last call to submit and edit. Make sure every piece of your entry is complete."
+      },
+      {
+        "key": "finalist",
+        "date": "14 October 2026",
+        "title": "Finalist Announcement",
+        "desc": "Finalists announced for each track."
+      },
+      {
+        "key": "demo-day",
+        "date": "31 October 2026",
+        "title": "Demo Day",
+        "desc": "Finalists present live to the judges. Winners announced."
+      }
+    ]
+  },
+  "faq": {
+    "metaTitle": "FAQ | Indonesia Web3 Hackathon 2026",
+    "eyebrow": "FAQ",
+    "title1": "Questions,",
+    "title2": "answered",
+    "lead": "The things entrants ask most. Still stuck? Reach the organisers through the event page.",
+    "submitCta": "Submit project",
+    "eventPage": "Event page",
+    "items": [
+      {
+        "q": "What is the Indonesia Web3 Hackathon?",
+        "a": "A national Web3 hackathon built around #WhereBuildersBuild, co-hosted by Binance Academy, BNB Chain and Coinvestasi, and mentored by Dev Web3 Jogja. A $5,000 total prize pool across 3 tracks: AI Agents, Finance & Commerce, and Consumer Apps."
+      },
+      {
+        "q": "Who can enter?",
+        "a": "Open to everyone, free of charge. Students, professionals or hobbyists. You can enter solo or as a team (2 to 5 people recommended)."
+      },
+      {
+        "q": "How do I register?",
+        "a": "Register through the Luma page at bit.ly/IndonesiaWeb3Hackathon. After that, submit your project through the Submit tab on this site once the submission window opens (1 September 2026)."
+      },
+      {
+        "q": "Does the project have to deploy on BNB Chain?",
+        "a": "Yes. Your project must have a smart contract deployed on BNB Smart Chain or opBNB (mainnet or testnet). You will be asked for a contract address that resolves on BscScan during submission."
+      },
+      {
+        "q": "What do I need to prepare for submission?",
+        "a": "Team and project name, your chosen tracks, contract address, problem statement, solution, project detail (markdown and mermaid diagrams supported), a public GitHub repo link, a demo video (YouTube, 5 minutes max recommended), team member details, and any supporting links such as docs or project socials."
+      },
+      {
+        "q": "Can I edit my submission after sending it?",
+        "a": "Yes, for as long as the submission window is open (before 30 September 2026). You receive an edit code the first time you submit. Keep it, then use it together with your team contact email to unlock edit mode."
+      },
+      {
+        "q": "How is judging done?",
+        "a": "Broadly on innovation and originality, technical execution, impact potential and business viability, user experience, and the quality of your presentation and demo. The detailed rubric is shared with registered entrants."
+      },
+      {
+        "q": "Can I enter an existing project?",
+        "a": "The project must be built during the hackathon period. You may use open source libraries, templates or tooling, but the core product has to be original and new."
+      },
+      {
+        "q": "What are the prizes per track?",
+        "a": "Each track: 1st place $600, 2nd place $400, 3rd place $300. Plus a $1,000 Best Overall Grand Prize and a $100 Community Choice across tracks. $5,000 total for 11 winners."
+      },
+      {
+        "q": "Where can I ask more questions?",
+        "a": "Join the Dev Web3 Jogja community or contact the organisers through the channels listed on the Luma page."
+      }
+    ]
+  },
+  "projects": {
+    "metaTitle": "Projects | Indonesia Web3 Hackathon 2026",
+    "eyebrow": "Projects",
+    "title1": "Projects",
+    "title2": "submitted",
+    "lead": "Work from the builders of Indonesia Web3 Hackathon 2026, all of it live on BNB Chain.",
+    "all": "All",
+    "searchPlaceholder": "Search projects or teams...",
+    "searchLabel": "Search projects or teams",
+    "loadError": "Could not load projects. Try refreshing the page.",
+    "emptyEyebrow": "Nothing yet",
+    "emptyTitle": "No projects yet",
+    "emptyDesc": "Be the first team to submit.",
+    "noResultEyebrow": "No results",
+    "noResultTitle": "Nothing found",
+    "noResultDesc": "Try changing the filter or your search terms.",
+    "submitCta": "Submit project",
+    "count": "projects registered",
+    "by": "by"
+  },
+  "projectDetail": {
+    "back": "← All projects",
+    "edit": "Edit submission",
+    "contract": "Contract on BscScan",
+    "github": "GitHub Repo",
+    "liveDemo": "Live Demo",
+    "link": "Link",
+    "network": "Network",
+    "videoDemo": "Demo video",
+    "watchVideo": "Watch demo video",
+    "problem": "Problem",
+    "solution": "Solution",
+    "detail": "Project detail",
+    "team": "Team",
+    "social": "Social",
+    "submitted": "Submitted",
+    "lastEdit": "Last edit",
+    "by": "by"
+  },
+  "submit": {
+    "metaTitle": "Submit | Indonesia Web3 Hackathon 2026",
+    "eyebrow": "Submission portal",
+    "title1": "Submit",
+    "title2": "project",
+    "lead": "Deadline 30 September 2026, 23:59 WIB. You can edit your submission any time before the deadline using your edit code.",
+    "warningLabel": "Eligibility requirement",
+    "warning": "Make sure your team is registered on Luma before sending your submission. Entries from unregistered teams will not be judged.",
+    "warningCta": "Register on Luma now",
+    "successEyebrow": "Submission received",
+    "successTitle1": "Project submitted",
+    "successTitle2": "successfully",
+    "successLeadBefore": "Save the ",
+    "successLeadStrong": "edit code",
+    "successLeadAfter": " below. It is shown only once and is needed, together with your team contact email, to edit your submission.",
+    "editCodeLabel": "Edit code",
+    "copy": "Copy edit code",
+    "copied": "✓ Copied",
+    "viewProject": "View your project",
+    "allProjects": "All projects",
+    "failed": "Submission failed"
+  },
+  "edit": {
+    "savedEyebrow": "Saved",
+    "savedTitle": "Changes saved",
+    "savedDesc": "Redirecting to the project page...",
+    "gateEyebrow": "Restricted",
+    "gateTitle": "Edit submission",
+    "gateDesc": "Enter the edit code you received when submitting, plus your team contact email.",
+    "editCode": "Edit code",
+    "editCodePlaceholder": "IDN-XXXXXXXX",
+    "email": "Team contact email",
+    "emailPlaceholder": "team@email.com",
+    "verifying": "Verifying...",
+    "unlock": "Unlock edit mode",
+    "lostCode": "Lost your edit code? Contact the organisers through the community channels.",
+    "backToProject": "← Back to project",
+    "eyebrow": "Edit mode",
+    "title1": "Edit",
+    "title2": "submission",
+    "lead": "Changes are written straight to the database once you hit save.",
+    "verifyFailed": "Verification failed",
+    "saveFailed": "Could not save"
+  },
+  "form": {
+    "section1": "Project Info",
+    "section2": "Onchain",
+    "section3": "Problem & Solution",
+    "section4": "Repository & Demo",
+    "section5": "Team Info",
+    "projectName": "Project Name *",
+    "projectNamePlaceholder": "e.g. RupiahPay",
+    "teamName": "Team Name *",
+    "teamNamePlaceholder": "e.g. Garuda Builders",
+    "tagline": "Tagline (one sentence)",
+    "taglinePlaceholder": "e.g. Stablecoin payment rails for Indonesian small business",
+    "tracks": "Track * (more than one allowed)",
+    "logo": "Project Logo (URL, optional)",
+    "logoPlaceholder": "https://... (logo image link)",
+    "contract": "Contract Address *",
+    "contractHint": "Automatically linked to BscScan based on the network.",
+    "network": "Network *",
+    "problem": "Problem Statement *",
+    "problemPlaceholder": "What problem are you solving? Why does it matter?",
+    "solution": "Solution *",
+    "solutionPlaceholder": "How does your project solve it?",
+    "description": "Project Detail * (markdown, mermaid diagrams supported)",
+    "descriptionPlaceholder": "Write your project detail in markdown...",
+    "github": "GitHub Repo * (public)",
+    "demoVideo": "Demo Video * (YouTube recommended, will be embedded)",
+    "demoUrl": "Live Demo / dApp URL (optional)",
+    "extraLinks": "Other Links (project socials, docs, pitch deck, etc.)",
+    "addLink": "Add link",
+    "linkLabelPlaceholder": "Label (e.g. Docs)",
+    "removeLink": "Remove link",
+    "noExtraLinks": "No extra links yet. Optional, but judges appreciate a project with docs.",
+    "members": "Team Members * (max 10)",
+    "addMember": "Add member",
+    "memberNamePlaceholder": "Member name",
+    "memberRolePlaceholder": "Role (e.g. Smart Contract Dev)",
+    "memberSocialPlaceholder": "Social link (X/LinkedIn/TG)",
+    "removeMember": "Remove member",
+    "email": "Team Contact Email *",
+    "emailLocked": "(locked, used to authenticate edits)",
+    "emailHint": "This email is paired with your edit code to edit the submission later. It is never shown publicly.",
+    "saving": "Saving...",
+    "submitCreate": "Submit project",
+    "submitEdit": "Save changes",
+    "write": "Write",
+    "preview": "Preview",
+    "markdownHint": "Markdown + mermaid",
+    "previewEmpty": "Nothing to preview yet.",
+    "mermaidError": "Invalid mermaid diagram",
+    "descriptionTemplate": "## Overview\n\nBriefly describe your project here.\n\n## Key Features\n\n- Feature 1\n- Feature 2\n- Feature 3\n\n## Architecture\n\n```mermaid\nflowchart LR\n  User --> Frontend --> SmartContract[Smart Contract on BNB Chain]\n  SmartContract --> BscScan\n```\n\n## Tech Stack\n\n| Layer | Technology |\n|-------|-----------|\n| Smart Contract | Solidity |\n| Frontend | Next.js |\n\n## Running It\n\n1. Clone the repo\n2. `npm install`\n3. `npm run dev`\n"
+  },
+  "footer": {
+    "tagline": "#WhereBuildersBuild. Co-hosted by Binance Academy, BNB Chain and Coinvestasi. Mentored by Dev Web3 Jogja. Built on BNB Chain.",
+    "navHeading": "Navigation",
+    "eventHeading": "Event",
+    "register": "Register via Luma",
+    "bnbHackathons": "BNB Chain Hackathons",
+    "community": "Dev Web3 Jogja community",
+    "copyright": "Indonesia Web3 Hackathon 2026",
+    "builtOn": "Web3 x AI · Built on BNB Chain"
+  },
+  "notFound": {
+    "eyebrow": "Error 404",
+    "title": "Page not found",
+    "desc": "Maybe the project hasn't been submitted yet, or the link is wrong.",
+    "cta": "Back to home"
+  }
+}
