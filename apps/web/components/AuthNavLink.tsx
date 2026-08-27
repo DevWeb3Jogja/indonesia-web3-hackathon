@@ -5,25 +5,37 @@ import Link from "next/link";
 import { localePath } from "@/lib/locale";
 import { projectId } from "@/lib/web3";
 
-/** Link ke /profile — hanya muncul saat wallet tersambung. */
-export default function ProfileNavLink({
+/** Link nav yang hanya muncul saat wallet tersambung (mis. Profile, Tim). */
+export default function AuthNavLink({
   locale,
+  href,
   label,
   className = "",
 }: {
   locale: string;
+  href: string;
   label: string;
   className?: string;
 }) {
   if (!projectId) return null;
-  return <Inner locale={locale} label={label} className={className} />;
+  return <Inner locale={locale} href={href} label={label} className={className} />;
 }
 
-function Inner({ locale, label, className }: { locale: string; label: string; className: string }) {
+function Inner({
+  locale,
+  href,
+  label,
+  className,
+}: {
+  locale: string;
+  href: string;
+  label: string;
+  className: string;
+}) {
   const { isConnected } = useAppKitAccount();
   if (!isConnected) return null;
   return (
-    <Link href={localePath(locale, "/profile")} className={className}>
+    <Link href={localePath(locale, href)} className={className}>
       {label}
     </Link>
   );

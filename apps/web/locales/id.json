@@ -20,7 +20,8 @@
     "closeMenu": "Tutup menu",
     "switchLanguage": "Ganti bahasa",
     "scrollHint": "Scroll untuk menjelajah",
-    "profile": "Profil"
+    "profile": "Profil",
+    "team": "Tim"
   },
   "home": {
     "eyebrow": "Prize pool $5,000",
@@ -391,6 +392,40 @@
     "saved": "Profil tersimpan.",
     "errorGeneric": "Gagal menyimpan. Coba lagi.",
     "errorValidation": "Ada isian yang belum valid — cek lagi format email/URL.",
+    "errorRate": "Terlalu sering. Tunggu sebentar."
+  },
+  "team": {
+    "metaTitle": "Tim",
+    "eyebrow": "Tim Kamu",
+    "title1": "Tim",
+    "title2": "Hackathon",
+    "lead": "Bentuk tim atau gabung pakai kode undangan. Leader tim yang nanti submit project.",
+    "signInTitle": "Sign in dulu",
+    "signInDesc": "Hubungkan wallet dan tanda tangani pesan untuk mengelola tim.",
+    "loading": "Memuat tim…",
+    "closed": "Pembentukan tim untuk edisi ini sedang ditutup.",
+    "createTitle": "Buat tim baru",
+    "nameLabel": "Nama tim",
+    "namePlaceholder": "cth. Rocket Devs",
+    "createCta": "Buat Tim",
+    "joinTitle": "Gabung tim",
+    "codeLabel": "Kode undangan",
+    "codePlaceholder": "8 karakter",
+    "joinCta": "Gabung",
+    "or": "atau",
+    "myTeamTitle": "Tim kamu",
+    "inviteLabel": "Kode undangan",
+    "inviteHint": "Bagikan kode ini ke anggota tim.",
+    "copy": "Salin",
+    "copied": "Tersalin!",
+    "membersLabel": "Anggota",
+    "leaderBadge": "Leader",
+    "memberBadge": "Anggota",
+    "youBadge": "Kamu",
+    "leaveCta": "Keluar dari tim",
+    "leaveLeaderNote": "Kamu leader — kalau keluar, leader dialihkan ke anggota terlama.",
+    "full": "Tim sudah penuh (maks 5).",
+    "errorGeneric": "Gagal memproses. Coba lagi.",
     "errorRate": "Terlalu sering. Tunggu sebentar."
   }
 }
