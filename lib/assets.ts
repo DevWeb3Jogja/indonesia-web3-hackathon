@@ -19,5 +19,5 @@ export const ASSETS = {
   statSessions: proxy("hf_20260514_152238_24ec8db4-d728-4739-bb30-e985533e9637.png"),
   // Satu-satunya aset lokal yang tersisa. Aslinya emas; digeser ke teal lewat
   // CSS filter saat dipakai, supaya tidak menabrak palet.
-  nusantara: "/nusantara-polos.png",
+  nusantara: "/nusantara.png",
 } as const;
