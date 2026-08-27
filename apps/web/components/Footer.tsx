@@ -2,7 +2,7 @@ import Link from "next/link";
 import { REGISTER_URL } from "@/lib/content";
 import type { Dict } from "@/lib/i18n";
 import { localePath } from "@/lib/locale";
-import { ArrowUpRight, Sparkles } from "./ui";
+import { ArrowUpRight, BrandMark } from "./ui";
 
 const NAV = [
   { path: "/", key: "home" },
@@ -26,7 +26,7 @@ export default function Footer({ locale, dict }: { locale: string; dict: Dict })
         <div className="grid gap-10 border-t border-teal/15 pt-10 md:grid-cols-[1.5fr_1fr_1fr]">
           <div>
             <div className="flex items-center gap-2 text-ink">
-              <Sparkles className="h-6 w-6" />
+              <BrandMark className="h-7 w-7" />
               <span className="leading-none">
                 <span className="block text-[15px] font-semibold tracking-tight">
                   {dict.brand.line1}
