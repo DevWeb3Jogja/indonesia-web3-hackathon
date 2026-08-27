@@ -78,7 +78,7 @@ describe("skema (integration)", () => {
       `INSERT INTO teams (id, hackathon_id, name, invite_code, leader_address) VALUES ('t', 'h', 'T', 'code', '${ADDR}')`
     );
     await db.run(
-      `INSERT INTO projects (id, hackathon_id, team_id, name) VALUES ('p', 'h', 't', 'P')`
+      `INSERT INTO projects (id, hackathon_id, team_id, submitter_address, name) VALUES ('p', 'h', 't', '${ADDR}', 'P')`
     );
     await db.run(`INSERT INTO criteria (id, hackathon_id, name) VALUES ('c', 'h', 'C')`);
     await expect(
