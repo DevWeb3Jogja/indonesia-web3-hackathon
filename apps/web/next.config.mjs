@@ -6,6 +6,9 @@ const csp = [
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://db.onlinewebfonts.com",
   "font-src 'self' data: https://fonts.gstatic.com https://db.onlinewebfonts.com",
   "img-src * data: blob:",
+  // Video hero & submissions di-hotlink dari CDN (lihat lib/assets.ts). Tanpa
+  // media-src, <video> jatuh ke default-src 'self' dan diblokir.
+  "media-src 'self' https: blob:",
   "connect-src 'self' https: wss:",
   "frame-src https://verify.walletconnect.com https://verify.walletconnect.org https://secure.walletconnect.com https://secure.reown.com",
   "frame-ancestors 'none'",
