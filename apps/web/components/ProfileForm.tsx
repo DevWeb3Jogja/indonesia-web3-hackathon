@@ -37,7 +37,26 @@ function toPayload(f: FormState) {
   );
 }
 
+/**
+ * Guard projectId SEBELUM memanggil hook AppKit — tanpa project ID createAppKit
+ * tidak diinisialisasi (Web3Provider), jadi useAppKit() akan throw. Penting saat
+ * prerender SSG di CI yang env-nya kosong.
+ */
 export default function ProfileForm({ t }: { t: T }) {
+  if (!projectId) {
+    return (
+      <Panel className="mx-auto max-w-md" clip="chamfer-lg">
+        <div className="p-8 text-center">
+          <h2 className="section-title">{t.signInTitle}</h2>
+          <p className="mt-3 text-sm leading-relaxed text-ink/70">{t.signInDesc}</p>
+        </div>
+      </Panel>
+    );
+  }
+  return <Inner t={t} />;
+}
+
+function Inner({ t }: { t: T }) {
   const { isConnected } = useAppKitAccount();
   const { open } = useAppKit();
 
@@ -70,7 +89,6 @@ export default function ProfileForm({ t }: { t: T }) {
   }, []);
 
   useEffect(() => {
-    if (!projectId) return;
     load();
   }, [load]);
 
@@ -103,7 +121,7 @@ export default function ProfileForm({ t }: { t: T }) {
   }
 
   // Belum connect / SIWE belum jalan → gerbang sign-in.
-  if (!projectId || !isConnected || status === "unauth") {
+  if (!isConnected || status === "unauth") {
     return (
       <Panel className="mx-auto max-w-md" clip="chamfer-lg">
         <div className="p-8 text-center">
