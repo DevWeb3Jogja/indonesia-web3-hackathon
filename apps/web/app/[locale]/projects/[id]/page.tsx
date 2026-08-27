@@ -1,11 +1,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getSubmission, toPublic } from "@/lib/db";
-import { explorerUrl, trackLabel, NETWORKS } from "@/lib/types";
-import { getDict, localePath } from "@/lib/i18n";
 import MarkdownRenderer from "@/components/MarkdownRenderer";
-import YouTubeEmbed from "@/components/YouTubeEmbed";
 import { ArrowUpRight, Panel } from "@/components/ui";
+import YouTubeEmbed from "@/components/YouTubeEmbed";
+import { getSubmission, toPublic } from "@/lib/db";
+import { getDict, localePath } from "@/lib/i18n";
+import { explorerUrl, NETWORKS, trackLabel } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
@@ -177,8 +177,8 @@ export default async function ProjectDetailPage({
                   {t.team} · {p.teamName}
                 </p>
                 <ul className="mt-5 space-y-4">
-                  {p.teamMembers.map((m, i) => (
-                    <li key={i} className="flex items-start gap-3">
+                  {p.teamMembers.map((m) => (
+                    <li key={`${m.name}-${m.social}`} className="flex items-start gap-3">
                       <span className="chamfer-sm flex h-9 w-9 shrink-0 items-center justify-center bg-teal/10 font-firs text-sm font-semibold text-teal">
                         {m.name.charAt(0).toUpperCase()}
                       </span>

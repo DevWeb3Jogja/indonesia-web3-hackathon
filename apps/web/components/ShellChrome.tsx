@@ -3,9 +3,10 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { ArrowUpRight, Sparkles } from "./ui";
-import { LOCALES, localePath, splitPath } from "@/lib/locale";
 import type { Dict } from "@/lib/i18n";
+import { LOCALES, localePath, splitPath } from "@/lib/locale";
+import ConnectWalletButton from "./ConnectWalletButton";
+import { ArrowUpRight, Sparkles } from "./ui";
 
 /** Urutan nav; label diambil dari kamus. */
 const NAV = [
@@ -24,6 +25,7 @@ function navIndex(path: string): number | null {
 
 /** Ingat pilihan bahasa supaya kunjungan berikutnya ke "/" langsung benar. */
 function rememberLocale(locale: string) {
+  // biome-ignore lint/suspicious/noDocumentCookie: cookie preferensi bahasa sederhana, Cookie Store API belum merata
   document.cookie = `NEXT_LOCALE=${locale};path=/;max-age=31536000;samesite=lax`;
 }
 
@@ -39,6 +41,7 @@ function LocaleSwitch({
   className?: string;
 }) {
   return (
+    // biome-ignore lint/a11y/useSemanticElements: grup link bahasa, fieldset hanya untuk form
     <div className={`flex items-center gap-1 ${className}`} role="group" aria-label={label}>
       {LOCALES.map((l) => {
         const active = l === locale;
@@ -84,7 +87,7 @@ export default function ShellChrome({
   useEffect(() => {
     document.getElementById("scroll-root")?.scrollTo({ top: 0 });
     setOpen(false);
-  }, [pathname]);
+  }, []);
 
   return (
     <>
@@ -125,8 +128,9 @@ export default function ShellChrome({
         </div>
       </nav>
 
-      {/* ---------- Switcher bahasa, pojok kanan atas (desktop) ---------- */}
-      <div className="absolute right-0 top-0 z-40 hidden rounded-bl-[24px] bg-white py-3 pl-4 pr-4 md:block">
+      {/* ---------- Connect wallet + switcher bahasa, pojok kanan atas (desktop) ---------- */}
+      <div className="absolute right-0 top-0 z-40 hidden items-center gap-3 rounded-bl-[24px] bg-white py-3 pl-4 pr-4 md:flex">
+        <ConnectWalletButton className="chamfer-sm bg-teal px-3 py-1.5 text-[11px] font-medium uppercase tracking-[0.14em] text-white transition hover:brightness-125" />
         <LocaleSwitch locale={locale} path={path} label={t.switchLanguage} />
       </div>
 
@@ -143,6 +147,7 @@ export default function ShellChrome({
           </span>
         </Link>
         <button
+          type="button"
           onClick={() => setOpen((v) => !v)}
           aria-label={open ? t.closeMenu : t.openMenu}
           aria-expanded={open}
@@ -183,6 +188,9 @@ export default function ShellChrome({
               </Link>
             ))}
           </nav>
+          <div className="mt-8">
+            <ConnectWalletButton className="btn-ink w-full" />
+          </div>
           <div className="mt-10 flex items-center justify-between gap-4">
             <Link
               href={localePath(locale, "/submit")}

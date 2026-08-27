@@ -1,0 +1,93 @@
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  color: #154359;
+  background: #f0f5f7;
+  line-height: 1.6;
+}
+main {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 40px 24px;
+}
+h1 {
+  font-size: 22px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+h2 {
+  font-size: 15px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #066377;
+  margin-top: 36px;
+}
+table {
+  border-collapse: collapse;
+  width: 100%;
+  background: #fff;
+  font-size: 13px;
+}
+th {
+  text-align: left;
+  padding: 8px 12px;
+  border-bottom: 2px solid #066377;
+  color: #066377;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+td {
+  padding: 8px 12px;
+  border-bottom: 1px solid #d5e2e8;
+  font-variant-numeric: tabular-nums;
+}
+.stats {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.stat {
+  background: #fff;
+  padding: 16px 20px;
+  min-width: 140px;
+}
+.stat b {
+  display: block;
+  font-size: 28px;
+}
+.stat span {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #5b7684;
+}
+.gate {
+  text-align: center;
+  padding-top: 15vh;
+}
+button {
+  background: #066377;
+  color: #fff;
+  border: 0;
+  padding: 12px 24px;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+}
+button:hover {
+  filter: brightness(1.2);
+}
+button:focus-visible {
+  outline: 2px solid #154359;
+  outline-offset: 2px;
+}
+code {
+  background: #e2ecf0;
+  padding: 1px 5px;
+  font-size: 12px;
+}

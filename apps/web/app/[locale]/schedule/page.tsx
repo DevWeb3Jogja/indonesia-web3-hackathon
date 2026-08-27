@@ -1,8 +1,8 @@
-import Link from "next/link";
 import type { Metadata } from "next";
+import Link from "next/link";
+import { ArrowUpRight, Panel } from "@/components/ui";
 import { REGISTER_URL } from "@/lib/content";
 import { getDict, localePath } from "@/lib/i18n";
-import { ArrowUpRight, Panel } from "@/components/ui";
 
 export function generateMetadata({ params }: { params: { locale: string } }): Metadata {
   return { title: getDict(params.locale).schedule.metaTitle };

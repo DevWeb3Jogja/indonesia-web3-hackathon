@@ -7,10 +7,10 @@
 // Pemetaan kolom di bawah SENGAJA mencerminkan submissionToRow() di lib/db.ts.
 // Kalau HEADERS di sana berubah, sesuaikan juga di sini.
 
-import fs from "fs";
-import path from "path";
-import { GoogleSpreadsheet } from "google-spreadsheet";
+import fs from "node:fs";
+import path from "node:path";
 import { JWT } from "google-auth-library";
+import { GoogleSpreadsheet } from "google-spreadsheet";
 
 const OK = "[32m✓[0m";
 const NO = "[31m✗[0m";

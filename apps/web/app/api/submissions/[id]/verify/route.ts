@@ -1,5 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
+import { clientIp } from "@iw3h/auth";
+import { rateLimit } from "@iw3h/db";
+import { type NextRequest, NextResponse } from "next/server";
 import { getSubmission } from "@/lib/db";
+import { db } from "@/lib/turso";
 import { hashEditCode } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -7,6 +10,12 @@ export const dynamic = "force-dynamic";
 /** Verifikasi edit code + email; kalau valid, kirim data lengkap untuk form edit */
 export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
   try {
+    // Cek editCode+email = gerbang brute-force — batasi per IP+submission.
+    const limit = await rateLimit(db, `edit-verify:${clientIp(req)}:${params.id}`, 10, 300);
+    if (!limit.ok) {
+      return NextResponse.json({ error: "Terlalu banyak percobaan" }, { status: 429 });
+    }
+
     const { editCode, email } = (await req.json()) as {
       editCode: string;
       email: string;

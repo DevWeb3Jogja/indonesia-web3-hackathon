@@ -1,0 +1,26 @@
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec biome ci .
+      - run: pnpm test
+      - run: pnpm typecheck
+      - run: pnpm build
+        env:
+          # Placeholder supaya build tidak butuh secret sungguhan; runtime tetap validasi via zod.
+          TURSO_DATABASE_URL: "file:ci.db"
+          SESSION_SECRET: "ci-secret-placeholder-panjang-32-karakter!!"

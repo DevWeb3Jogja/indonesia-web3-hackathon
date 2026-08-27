@@ -1,11 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import type { Dict } from "@/lib/i18n";
+import type { ExtraLink, NetworkId, SubmissionInput, TeamMember, TrackId } from "@/lib/types";
+import { NETWORKS, TRACKS } from "@/lib/types";
 import MarkdownEditor from "./MarkdownEditor";
 import { Panel, Plus } from "./ui";
-import { TRACKS, NETWORKS } from "@/lib/types";
-import type { Dict } from "@/lib/i18n";
-import type { SubmissionInput, TeamMember, ExtraLink, NetworkId, TrackId } from "@/lib/types";
 
 /** Nilai awal form; template markdown-nya ikut bahasa aktif. */
 export function emptyInput(t: Dict["form"]): SubmissionInput {
@@ -141,8 +141,11 @@ export default function SubmissionForm({
       <Section n="1" title={t.section1}>
         <div className="grid gap-5 md:grid-cols-2">
           <div>
-            <label className="label-field">{t.projectName}</label>
+            <label className="label-field" htmlFor="projectName">
+              {t.projectName}
+            </label>
             <input
+              id="projectName"
               className="input-field"
               value={data.projectName}
               onChange={(e) => set("projectName", e.target.value)}
@@ -151,8 +154,11 @@ export default function SubmissionForm({
             />
           </div>
           <div>
-            <label className="label-field">{t.teamName}</label>
+            <label className="label-field" htmlFor="teamName">
+              {t.teamName}
+            </label>
             <input
+              id="teamName"
               className="input-field"
               value={data.teamName}
               onChange={(e) => set("teamName", e.target.value)}
@@ -162,8 +168,11 @@ export default function SubmissionForm({
           </div>
         </div>
         <div>
-          <label className="label-field">{t.tagline}</label>
+          <label className="label-field" htmlFor="tagline">
+            {t.tagline}
+          </label>
           <input
+            id="tagline"
             className="input-field"
             value={data.tagline}
             onChange={(e) => set("tagline", e.target.value)}
@@ -171,7 +180,7 @@ export default function SubmissionForm({
           />
         </div>
         <div>
-          <label className="label-field">{t.tracks}</label>
+          <p className="label-field">{t.tracks}</p>
           <div className="grid gap-3 sm:grid-cols-3">
             {TRACKS.map((tr) => (
               <label
@@ -197,8 +206,11 @@ export default function SubmissionForm({
           </div>
         </div>
         <div>
-          <label className="label-field">{t.logo}</label>
+          <label className="label-field" htmlFor="logo">
+            {t.logo}
+          </label>
           <input
+            id="logo"
             className="input-field"
             value={data.logoUrl}
             onChange={(e) => set("logoUrl", e.target.value)}
@@ -211,8 +223,11 @@ export default function SubmissionForm({
       <Section n="2" title={t.section2}>
         <div className="grid gap-5 md:grid-cols-[1fr_240px]">
           <div>
-            <label className="label-field">{t.contract}</label>
+            <label className="label-field" htmlFor="contract">
+              {t.contract}
+            </label>
             <input
+              id="contract"
               className="input-field font-mono"
               value={data.contractAddress}
               onChange={(e) => set("contractAddress", e.target.value)}
@@ -222,8 +237,11 @@ export default function SubmissionForm({
             <p className="mt-1.5 text-xs text-ink/55">{t.contractHint}</p>
           </div>
           <div>
-            <label className="label-field">{t.network}</label>
+            <label className="label-field" htmlFor="network">
+              {t.network}
+            </label>
             <select
+              id="network"
               className="input-field"
               value={data.network}
               onChange={(e) => set("network", e.target.value as NetworkId)}
@@ -241,8 +259,11 @@ export default function SubmissionForm({
       {/* 3. Cerita project */}
       <Section n="3" title={t.section3}>
         <div>
-          <label className="label-field">{t.problem}</label>
+          <label className="label-field" htmlFor="problem">
+            {t.problem}
+          </label>
           <textarea
+            id="problem"
             className="input-field resize-y"
             rows={4}
             value={data.problemStatement}
@@ -252,8 +273,11 @@ export default function SubmissionForm({
           />
         </div>
         <div>
-          <label className="label-field">{t.solution}</label>
+          <label className="label-field" htmlFor="solution">
+            {t.solution}
+          </label>
           <textarea
+            id="solution"
             className="input-field resize-y"
             rows={4}
             value={data.solution}
@@ -263,7 +287,7 @@ export default function SubmissionForm({
           />
         </div>
         <div>
-          <label className="label-field">{t.description}</label>
+          <p className="label-field">{t.description}</p>
           <MarkdownEditor value={data.description} onChange={(v) => set("description", v)} t={t} />
         </div>
       </Section>
@@ -272,8 +296,11 @@ export default function SubmissionForm({
       <Section n="4" title={t.section4}>
         <div className="grid gap-5 md:grid-cols-2">
           <div>
-            <label className="label-field">{t.github}</label>
+            <label className="label-field" htmlFor="github">
+              {t.github}
+            </label>
             <input
+              id="github"
               className="input-field"
               value={data.githubUrl}
               onChange={(e) => set("githubUrl", e.target.value)}
@@ -282,8 +309,11 @@ export default function SubmissionForm({
             />
           </div>
           <div>
-            <label className="label-field">{t.demoVideo}</label>
+            <label className="label-field" htmlFor="demoVideo">
+              {t.demoVideo}
+            </label>
             <input
+              id="demoVideo"
               className="input-field"
               value={data.demoVideoUrl}
               onChange={(e) => set("demoVideoUrl", e.target.value)}
@@ -293,8 +323,11 @@ export default function SubmissionForm({
           </div>
         </div>
         <div>
-          <label className="label-field">{t.demoUrl}</label>
+          <label className="label-field" htmlFor="demoUrl">
+            {t.demoUrl}
+          </label>
           <input
+            id="demoUrl"
             className="input-field"
             value={data.demoUrl}
             onChange={(e) => set("demoUrl", e.target.value)}
@@ -303,7 +336,7 @@ export default function SubmissionForm({
         </div>
         <div>
           <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-            <label className="label-field !mb-0">{t.extraLinks}</label>
+            <p className="label-field !mb-0">{t.extraLinks}</p>
             <AddButton
               label={t.addLink}
               onClick={() => set("extraLinks", [...data.extraLinks, { label: "", url: "" }])}
@@ -311,6 +344,7 @@ export default function SubmissionForm({
           </div>
           <div className="space-y-3">
             {data.extraLinks.map((l, i) => (
+              // biome-ignore lint/suspicious/noArrayIndexKey: input terkontrol, nilai dari array — aman saat hapus/reorder
               <div key={i} className="flex gap-3">
                 <input
                   className="input-field !w-44"
@@ -346,7 +380,7 @@ export default function SubmissionForm({
       <Section n="5" title={t.section5}>
         <div>
           <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-            <label className="label-field !mb-0">{t.members}</label>
+            <p className="label-field !mb-0">{t.members}</p>
             <AddButton
               label={t.addMember}
               disabled={data.teamMembers.length >= 10}
@@ -357,6 +391,7 @@ export default function SubmissionForm({
           </div>
           <div className="space-y-3">
             {data.teamMembers.map((m, i) => (
+              // biome-ignore lint/suspicious/noArrayIndexKey: input terkontrol, nilai dari array — aman saat hapus/reorder
               <div key={i} className="flex flex-col gap-3 sm:flex-row">
                 <input
                   className="input-field"
@@ -392,10 +427,11 @@ export default function SubmissionForm({
           </div>
         </div>
         <div>
-          <label className="label-field">
+          <label className="label-field" htmlFor="email">
             {t.email} {emailLocked && t.emailLocked}
           </label>
           <input
+            id="email"
             type="email"
             className="input-field disabled:opacity-60"
             value={data.email}

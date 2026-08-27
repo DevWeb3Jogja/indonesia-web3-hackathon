@@ -47,7 +47,7 @@
   "linter": {
     "enabled": true,
     "rules": {
-      "recommended": true,
+      "preset": "recommended",
       "correctness": {
         "noUnusedImports": "error",
         "noUnusedVariables": "warn",
@@ -65,8 +65,8 @@
         "useImportType": "error",
         "useNodejsImportProtocol": "error"
       },
-      "a11y": {
-        "recommended": true
+      "performance": {
+        "noImgElement": "off"
       }
     }
   },
@@ -85,6 +85,16 @@
         "rules": {
           "suspicious": {
             "noConsole": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["**/*.css"],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noUnknownAtRules": "off"
           }
         }
       }

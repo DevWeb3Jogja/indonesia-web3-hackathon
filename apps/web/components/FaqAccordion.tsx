@@ -17,6 +17,7 @@ export default function FaqAccordion({ items }: { items: Item[] }) {
         {items.map((item, i) => (
           <div key={item.q} className="border-b border-teal/12 last:border-b-0">
             <button
+              type="button"
               onClick={() => setOpen(open === i ? null : i)}
               aria-expanded={open === i}
               className="flex w-full items-center gap-5 px-6 py-5 text-left transition hover:bg-haze"

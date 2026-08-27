@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
-import crypto from "crypto";
+import crypto from "node:crypto";
+import { type NextRequest, NextResponse } from "next/server";
 import { listSubmissions } from "@/lib/db";
-import { explorerUrl, trackLabel, NETWORKS } from "@/lib/types";
 import type { StoredSubmission } from "@/lib/types";
+import { explorerUrl, NETWORKS, trackLabel } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
@@ -108,7 +108,7 @@ export async function GET(req: NextRequest) {
     // BOM ditulis sebagai escape, bukan karakter literal: U+FEFF tak terlihat
     // di editor dan gampang hilang saat file disunting.
     const BOM = "\uFEFF";
-    const csv = BOM + [COLUMNS.join(","), ...all.map(toRow)].join("\r\n") + "\r\n";
+    const csv = `${BOM + [COLUMNS.join(","), ...all.map(toRow)].join("\r\n")}\r\n`;
 
     const date = new Date().toISOString().slice(0, 10);
     return new NextResponse(csv, {

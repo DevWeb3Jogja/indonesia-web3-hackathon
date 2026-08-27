@@ -1,5 +1,5 @@
-import id from "@/locales/id.json";
 import en from "@/locales/en.json";
+import id from "@/locales/id.json";
 import type { Locale } from "./locale";
 
 export * from "./locale";

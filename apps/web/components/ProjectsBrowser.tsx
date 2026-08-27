@@ -1,13 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
+import type { Dict } from "@/lib/i18n";
+import { localePath } from "@/lib/locale";
+import type { Submission } from "@/lib/types";
+import { TRACKS } from "@/lib/types";
 import ProjectCard from "./ProjectCard";
 import { ArrowUpRight, Panel } from "./ui";
-import { TRACKS } from "@/lib/types";
-import type { Submission } from "@/lib/types";
-import { localePath } from "@/lib/locale";
-import type { Dict } from "@/lib/i18n";
 
 export default function ProjectsBrowser({ locale, t }: { locale: string; t: Dict["projects"] }) {
   const [items, setItems] = useState<Submission[] | null>(null);
@@ -43,6 +43,7 @@ export default function ProjectsBrowser({ locale, t }: { locale: string; t: Dict
         <div className="flex flex-wrap gap-2">
           {[{ id: "all", label: t.all }, ...TRACKS].map((tr) => (
             <button
+              type="button"
               key={tr.id}
               onClick={() => setTrack(tr.id)}
               className={`chamfer-sm px-4 py-2 text-[10px] font-medium uppercase tracking-[0.14em] transition ${
@@ -69,6 +70,7 @@ export default function ProjectsBrowser({ locale, t }: { locale: string; t: Dict
         ) : items === null ? (
           <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
             {Array.from({ length: 6 }).map((_, i) => (
+              // biome-ignore lint/suspicious/noArrayIndexKey: skeleton statis, tidak pernah reorder
               <div key={i} className="chamfer-lg h-52 animate-pulse bg-white/70" />
             ))}
           </div>
