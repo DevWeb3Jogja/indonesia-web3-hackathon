@@ -17,15 +17,24 @@ export function generateStaticParams() {
   return LOCALES.map((locale) => ({ locale }));
 }
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://indonesia-web3-hackathon.vercel.app";
+
 export function generateMetadata({ params }: { params: { locale: string } }): Metadata {
   const t = getDict(params.locale).meta;
   return {
-    title: t.title,
+    metadataBase: new URL(SITE_URL),
+    // Judul sub-halaman ("Prizes") otomatis jadi "Prizes | Indonesia Web3 Hackathon 2026".
+    // Separator pipe, bukan dash. Home pakai `default`.
+    title: {
+      default: t.title,
+      template: "%s | Indonesia Web3 Hackathon 2026",
+    },
     description: t.description,
     openGraph: {
       title: "Indonesia Web3 Hackathon 2026",
       description: t.ogDescription,
       type: "website",
+      siteName: "Indonesia Web3 Hackathon 2026",
     },
     alternates: {
       languages: Object.fromEntries(LOCALES.map((l) => [l, `/${l}`])),
@@ -55,6 +64,10 @@ export default function LocaleLayout({
   return (
     <html lang={params.locale} className={body.variable}>
       <head>
+        {/* Preconnect ke host aset/font pihak ketiga — hemat ~300ms handshake (Lighthouse). */}
+        <link rel="preconnect" href="https://db.onlinewebfonts.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://d8j0ntlcm91z4.cloudfront.net" />
+        <link rel="preconnect" href="https://images.higgs.ai" />
         <link
           rel="stylesheet"
           href="https://db.onlinewebfonts.com/c/69f2576e7ca287875bf8d089130e292c?family=TT+Firs+Neue"
