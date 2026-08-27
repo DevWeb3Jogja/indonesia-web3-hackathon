@@ -1,0 +1,293 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --ink: #154359;
+  --teal: #066377;
+  --mist: #f0f0f0;
+  --haze: #f0f5f7;
+  --stroke: rgba(6, 99, 119, 0.25);
+  --stroke-soft: rgba(6, 99, 119, 0.14);
+}
+
+html,
+body {
+  font-family: var(--font-body), "Inter", system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  background: #ffffff;
+  color: var(--ink);
+}
+
+::selection {
+  background: rgba(75, 189, 240, 0.28);
+}
+
+/* =====================================================================
+   UTILITIES — harus di @layer utilities supaya bisa dipakai oleh @apply
+   ===================================================================== */
+
+@layer utilities {
+  .font-firs {
+    font-family: "TT Firs Neue", var(--font-body), "Inter", system-ui, sans-serif;
+  }
+
+  .no-scrollbar {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* ---------- Chamfer: sudut terpotong diagonal, satuan px ---------- */
+
+  .chamfer {
+    clip-path: polygon(
+      10px 0,
+      100% 0,
+      100% calc(100% - 10px),
+      calc(100% - 10px) 100%,
+      0 100%,
+      0 10px
+    );
+  }
+  .chamfer-sm {
+    clip-path: polygon(
+      8px 0,
+      100% 0,
+      100% calc(100% - 8px),
+      calc(100% - 8px) 100%,
+      0 100%,
+      0 8px
+    );
+  }
+  .chamfer-lg {
+    clip-path: polygon(
+      20px 0,
+      100% 0,
+      100% calc(100% - 20px),
+      calc(100% - 20px) 100%,
+      0 100%,
+      0 20px
+    );
+  }
+
+  /* Stat card: chamfer asimetris, satu varian per kartu */
+  .clip-stat-a {
+    clip-path: polygon(
+      64px 0,
+      calc(100% - 14px) 0,
+      calc(100% - 4px) 4px,
+      100% 14px,
+      100% calc(100% - 14px),
+      calc(100% - 4px) calc(100% - 4px),
+      calc(100% - 14px) 100%,
+      14px 100%,
+      4px calc(100% - 4px),
+      0 calc(100% - 14px),
+      0 64px
+    );
+  }
+  .clip-stat-b {
+    clip-path: polygon(
+      0 14px,
+      4px 4px,
+      14px 0,
+      calc(100% - 64px) 0,
+      100% 64px,
+      100% calc(100% - 14px),
+      calc(100% - 4px) calc(100% - 4px),
+      calc(100% - 14px) 100%,
+      64px 100%,
+      0 calc(100% - 64px)
+    );
+  }
+  .clip-stat-c {
+    clip-path: polygon(
+      0 14px,
+      4px 4px,
+      14px 0,
+      calc(100% - 64px) 0,
+      100% 64px,
+      100% calc(100% - 64px),
+      calc(100% - 64px) 100%,
+      14px 100%,
+      4px calc(100% - 4px),
+      0 calc(100% - 14px)
+    );
+  }
+
+  /* Garis rambut 1px untuk elemen ber-clip-path (border biasa ikut terpotong) */
+  .hairline {
+    background-color: var(--stroke);
+    padding: 1px;
+  }
+  .hairline-soft {
+    background-color: var(--stroke-soft);
+    padding: 1px;
+  }
+
+  .grad-text {
+    background: linear-gradient(294deg, #185b7b 20%, #4bbdf0);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* Fade bawah section, menyatu ke section berikutnya */
+  .fade-haze {
+    background: linear-gradient(
+      to bottom,
+      rgba(240, 245, 247, 0) 0%,
+      rgba(240, 245, 247, 0.7) 60%,
+      #f0f5f7 100%
+    );
+  }
+}
+
+/* =====================================================================
+   COMPONENTS
+   ===================================================================== */
+
+@layer components {
+  .eyebrow {
+    @apply text-[11px] font-medium uppercase tracking-[0.3em] text-teal/80 sm:text-xs;
+  }
+
+  /* Pembungkus halaman konten. pt- besar supaya lolos dari nav pill overlay. */
+  .page-wrap {
+    @apply mx-auto max-w-7xl px-6 pb-20 pt-28 sm:px-10 sm:pt-32;
+  }
+
+  .page-title {
+    @apply font-firs text-[36px] font-semibold uppercase leading-[0.95] tracking-tight text-ink sm:text-[48px] lg:text-[54px];
+  }
+
+  .section-title {
+    @apply font-firs text-[28px] font-semibold uppercase leading-[1] tracking-tight text-ink sm:text-[36px];
+  }
+
+  .btn-teal {
+    @apply chamfer inline-flex items-center justify-center gap-2 bg-teal px-5 py-3 text-[11px] font-medium uppercase tracking-[0.14em] text-white transition duration-200 hover:brightness-125 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:brightness-100;
+  }
+
+  .btn-ink {
+    @apply chamfer inline-flex items-center justify-center gap-2 bg-ink px-5 py-3 text-[11px] font-medium uppercase tracking-[0.14em] text-white transition duration-200 hover:brightness-125 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  /* Outline: bungkus dengan .hairline supaya garis tepinya tidak ikut ter-clip */
+  .btn-outline {
+    @apply chamfer inline-flex items-center justify-center gap-2 bg-white px-5 py-3 text-[11px] font-medium uppercase tracking-[0.14em] text-ink transition duration-200 hover:bg-haze;
+  }
+
+  .input-field {
+    @apply w-full rounded-none border border-teal/25 bg-white px-4 py-3 text-[15px] text-ink outline-none transition placeholder:text-ink/35 focus:border-teal focus:ring-1 focus:ring-teal/30;
+  }
+
+  .label-field {
+    @apply mb-1.5 block text-[11px] font-medium uppercase tracking-[0.14em] text-teal/80;
+  }
+
+  .tag {
+    @apply inline-flex items-center border border-teal/25 px-3 py-1 text-[10px] font-medium uppercase tracking-[0.14em] text-teal;
+  }
+
+  .link-chip {
+    @apply inline-flex items-center gap-2 border border-teal/25 px-4 py-2 text-sm font-medium text-ink transition hover:border-teal hover:bg-white;
+  }
+}
+
+/* =====================================================================
+   Markdown prose (terang)
+   ===================================================================== */
+
+.md-body {
+  @apply leading-[1.7] text-ink/90;
+  word-wrap: break-word;
+}
+.md-body h1 {
+  @apply mb-4 mt-8 border-b border-teal/20 pb-2 font-firs text-2xl font-semibold uppercase tracking-tight text-ink;
+}
+.md-body h2 {
+  @apply mb-3 mt-8 font-firs text-xl font-semibold uppercase tracking-tight text-ink;
+}
+.md-body h3 {
+  @apply mb-2 mt-6 font-firs text-lg font-semibold text-ink;
+}
+.md-body h4 {
+  @apply mb-2 mt-4 font-semibold text-ink;
+}
+.md-body p {
+  @apply mb-4;
+}
+.md-body a {
+  @apply text-teal underline underline-offset-2 hover:opacity-70;
+}
+.md-body ul {
+  @apply mb-4 list-disc space-y-1 pl-6;
+}
+.md-body ol {
+  @apply mb-4 list-decimal space-y-1 pl-6;
+}
+.md-body blockquote {
+  @apply mb-4 border-l-2 border-teal/60 bg-haze px-4 py-2 italic text-ink/70;
+}
+.md-body code {
+  @apply bg-haze px-1.5 py-0.5 font-mono text-sm text-teal;
+}
+.md-body pre {
+  @apply chamfer-sm mb-4 overflow-x-auto bg-haze p-4;
+}
+.md-body pre code {
+  @apply bg-transparent p-0 text-ink;
+}
+.md-body table {
+  @apply mb-4 w-full border-collapse text-sm;
+}
+.md-body th {
+  @apply border border-teal/20 bg-haze px-3 py-2 text-left font-semibold;
+}
+.md-body td {
+  @apply border border-teal/20 px-3 py-2;
+}
+.md-body img {
+  @apply chamfer-sm my-4 max-w-full;
+}
+.md-body hr {
+  @apply my-6 border-teal/20;
+}
+.md-body .mermaid-diagram {
+  @apply chamfer-sm my-6 flex justify-center overflow-x-auto border border-teal/20 bg-white p-4;
+}
+.md-body .mermaid-diagram svg {
+  max-width: 100%;
+  height: auto;
+}
+
+/* =====================================================================
+   Motion
+   ===================================================================== */
+
+@media (prefers-reduced-motion: no-preference) {
+  .rise {
+    opacity: 0;
+    transform: translateY(14px);
+    animation: rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+  .rise-1 {
+    animation-delay: 0.08s;
+  }
+  .rise-2 {
+    animation-delay: 0.16s;
+  }
+  .rise-3 {
+    animation-delay: 0.24s;
+  }
+}
+@keyframes rise {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
