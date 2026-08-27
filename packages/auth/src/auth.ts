@@ -5,6 +5,27 @@ import { generateSiweNonce, parseSiweMessage } from "viem/siwe";
 import { z } from "zod";
 import { publicClient, SIWE_CHAIN_IDS } from "./chains";
 
+/**
+ * IP klien untuk rate-limit. `x-forwarded-for` paling kiri BISA di-spoof
+ * (attacker inject header, proxy append IP asli di kanan) — jadi utamakan
+ * header hop-tunggal yang di-set platform, dan ambil elemen paling KANAN
+ * dari XFF (hop tepercaya terakhir) sebagai fallback.
+ * ponytail: cocok untuk Vercel/Cloudflare; sesuaikan urutan header kalau proxy lain.
+ */
+export function clientIp(req: Request): string {
+  const single =
+    req.headers.get("cf-connecting-ip") ??
+    req.headers.get("x-real-ip") ??
+    req.headers.get("x-vercel-forwarded-for");
+  if (single) return single.trim();
+  const xff = req.headers.get("x-forwarded-for");
+  if (xff) {
+    const parts = xff.split(",");
+    return parts[parts.length - 1].trim();
+  }
+  return "unknown";
+}
+
 export interface SessionData {
   address?: string;
   nonce?: string;
@@ -95,8 +116,7 @@ export function createAuth(opts: AuthOptions) {
     /** POST /api/auth/verify — verifikasi SIWE lalu terbitkan session. */
     verify: async (req: Request): Promise<Response> => {
       // Verifikasi signature itu mahal (RPC) — batasi per IP sebelum kerja apa pun.
-      const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
-      const limit = await rateLimit(opts.db, `auth:${ip}`, 10);
+      const limit = await rateLimit(opts.db, `auth:${clientIp(req)}`, 10);
       if (!limit.ok) {
         return Response.json({ error: "Terlalu banyak percobaan" }, { status: 429 });
       }

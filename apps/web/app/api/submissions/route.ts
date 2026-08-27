@@ -1,3 +1,4 @@
+import { clientIp } from "@iw3h/auth";
 import { isContract } from "@iw3h/auth/chains";
 import { rateLimit } from "@iw3h/db";
 import { type NextRequest, NextResponse } from "next/server";
@@ -21,8 +22,7 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
-    const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
-    const limit = await rateLimit(db, `submit:${ip}`, 5, 300);
+    const limit = await rateLimit(db, `submit:${clientIp(req)}`, 5, 300);
     if (!limit.ok) {
       return NextResponse.json(
         { error: "Terlalu banyak percobaan, tunggu beberapa menit" },
