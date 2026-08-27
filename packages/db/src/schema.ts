@@ -102,9 +102,12 @@ export const projects = sqliteTable("projects", {
   hackathonId: text("hackathon_id")
     .notNull()
     .references(() => hackathons.id),
-  teamId: text("team_id")
+  // NULL = submission solo. Kalau diisi, project milik tim.
+  teamId: text("team_id").references(() => teams.id),
+  // Selalu diisi: siapa yang membuat/memiliki project (untuk solo = editor-nya).
+  submitterAddress: text("submitter_address")
     .notNull()
-    .references(() => teams.id),
+    .references(() => users.address),
   name: text("name").notNull(),
   tagline: text("tagline"),
   problemStatement: text("problem_statement"),
