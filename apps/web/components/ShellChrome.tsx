@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import type { Dict } from "@/lib/i18n";
 import { LOCALES, localePath, splitPath } from "@/lib/locale";
 import ConnectWalletButton from "./ConnectWalletButton";
-import { ArrowUpRight, Sparkles } from "./ui";
+import { ArrowUpRight, BrandMark } from "./ui";
 
 /** Urutan nav; label diambil dari kamus. */
 const NAV = [
@@ -140,7 +140,7 @@ export default function ShellChrome({
           href={localePath(locale)}
           className="flex items-center gap-2 rounded-br-[24px] bg-white py-3 pl-4 pr-5 text-ink"
         >
-          <Sparkles className="h-5 w-5" />
+          <BrandMark className="h-6 w-6" />
           <span className="leading-none">
             <span className="block text-[13px] font-semibold tracking-tight">{brand.line1}</span>
             <span className="-mt-0.5 block text-[10px] font-light opacity-80">{brand.line2}</span>

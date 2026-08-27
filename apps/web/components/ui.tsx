@@ -1,25 +1,12 @@
 import type { ReactNode } from "react";
 
-/* ponytail: 2 ikon = 2 SVG inline, nggak perlu install lucide-react */
-
-export function Sparkles({ className = "h-5 w-5" }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={1.5}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-      aria-hidden
-    >
-      <path d="M9.94 6.06 9 3l-.94 3.06L5 7l3.06.94L9 11l.94-3.06L13 7l-3.06-.94Z" />
-      <path d="M18.5 12.5 18 11l-.5 1.5L16 13l1.5.5.5 1.5.5-1.5L20 13l-1.5-.5Z" />
-      <path d="M14.44 17.44 13.5 14.5l-.94 2.94L9.5 18.5l3.06.94.94 2.94.94-2.94 3.06-.94-3.06-1.06Z" />
-    </svg>
-  );
+/** Logo IW3H (BNB Chain) — dipakai sebagai brand mark di nav & footer. */
+export function BrandMark({ className = "h-5 w-5" }: { className?: string }) {
+  // Dekoratif: teks brand ada di sebelahnya, jadi disembunyikan dari screen reader.
+  return <img src="/logo.png" alt="" aria-hidden className={className} />;
 }
+
+/* ponytail: ikon inline sebagai SVG, nggak perlu install lucide-react */
 
 export function ArrowUpRight({ className = "h-3.5 w-3.5" }: { className?: string }) {
   return (

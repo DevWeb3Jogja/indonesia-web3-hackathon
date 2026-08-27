@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import EligibilityWarning from "@/components/EligibilityWarning";
-import { ArrowUpRight, ChamferBorder, Sparkles } from "@/components/ui";
+import { ArrowUpRight, BrandMark, ChamferBorder } from "@/components/ui";
 import { ASSETS } from "@/lib/assets";
 import { REGISTER_URL } from "@/lib/content";
 import { getDict, localePath } from "@/lib/i18n";
@@ -90,7 +90,7 @@ export default function HomePage({ params }: { params: { locale: string } }) {
         {/* Top bar — desktop saja. Pojok kanan atas milik switcher bahasa di ShellChrome. */}
         <div className="relative z-20 hidden px-4 pt-5 sm:px-10 sm:pt-8 md:block">
           <Link href={p("/")} className="inline-flex items-center gap-2 text-white">
-            <Sparkles className="h-5 w-5 sm:h-6 sm:w-6" />
+            <BrandMark className="h-6 w-6 sm:h-7 sm:w-7" />
             <span className="leading-none">
               <span className="block text-sm font-semibold tracking-tight sm:text-[15px]">
                 {dict.brand.line1}
