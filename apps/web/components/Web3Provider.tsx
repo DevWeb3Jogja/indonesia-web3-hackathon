@@ -23,6 +23,8 @@ if (projectId) {
     themeVariables: {
       "--w3m-accent": "#066377",
     },
+    // Matikan analytics AppKit — hilangkan "Analytics SDK: Failed to fetch" & tidak kirim telemetri.
+    features: { analytics: false },
     siweConfig,
   });
 } else if (typeof window !== "undefined") {

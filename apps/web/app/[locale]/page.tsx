@@ -7,10 +7,16 @@ import { REGISTER_URL } from "@/lib/content";
 import { getDict, localePath } from "@/lib/i18n";
 
 /** Bagian presentasi stat card yang bukan konten: gambar, bentuk, posisi teks. */
+// text di-bound kiri+kanan (inset-x-6) supaya deskripsi tidak meluber keluar kartu.
 const STAT_STYLE = [
-  { image: ASSETS.statPrize, clip: "clip-stat-a", offset: "", text: "left-6 right-6 bottom-6" },
-  { image: ASSETS.statBuilders, clip: "clip-stat-b", offset: "lg:mt-24", text: "left-6 bottom-20" },
-  { image: ASSETS.statSessions, clip: "clip-stat-c", offset: "", text: "left-6 right-28 bottom-6" },
+  { image: ASSETS.statPrize, clip: "clip-stat-a", offset: "", text: "inset-x-6 bottom-6" },
+  {
+    image: ASSETS.statBuilders,
+    clip: "clip-stat-b",
+    offset: "lg:mt-24",
+    text: "inset-x-6 bottom-12",
+  },
+  { image: ASSETS.statSessions, clip: "clip-stat-c", offset: "", text: "inset-x-6 bottom-6" },
 ];
 
 function NominationCard({ title, sub, href }: { title: string; sub: string; href: string }) {
@@ -55,7 +61,7 @@ function StatCard({
         <p className="grad-text font-firs text-[36px] font-semibold uppercase leading-none sm:text-[52px]">
           {value}
         </p>
-        <p className="mt-3 max-w-[66%] text-sm leading-[1.4] text-ink">{desc}</p>
+        <p className="mt-3 max-w-[92%] text-sm leading-[1.4] text-ink">{desc}</p>
       </div>
     </div>
   );
