@@ -1,7 +1,7 @@
 import fs from "node:fs";
+import path from "node:path";
 import { JWT } from "google-auth-library";
 import { GoogleSpreadsheet, type GoogleSpreadsheetWorksheet } from "google-spreadsheet";
-import path from "node:path";
 import type { StoredSubmission, Submission } from "./types";
 
 const HEADERS = [
