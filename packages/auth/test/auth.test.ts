@@ -72,6 +72,7 @@ async function signIn(auth: ReturnType<typeof createAuth>, chainId = 56, tamper 
   return auth.handlers.verify(
     new Request("http://x/api/auth/verify", {
       method: "POST",
+      headers: { host: "localhost:3000" },
       body: JSON.stringify({ message, signature }),
     })
   );
@@ -136,7 +137,8 @@ describe("SIWE auth (integration)", () => {
     });
     const signature = await account.signMessage({ message });
     const body = JSON.stringify({ message, signature });
-    const req = () => new Request("http://x", { method: "POST", body });
+    const req = () =>
+      new Request("http://x", { method: "POST", headers: { host: "localhost:3000" }, body });
     expect((await auth.handlers.verify(req())).status).toBe(200);
     expect((await auth.handlers.verify(req())).status).toBe(422);
   });

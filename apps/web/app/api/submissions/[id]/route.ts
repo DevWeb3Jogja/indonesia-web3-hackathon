@@ -1,5 +1,8 @@
+import { clientIp } from "@iw3h/auth";
+import { rateLimit } from "@iw3h/db";
 import { type NextRequest, NextResponse } from "next/server";
 import { getSubmission, toPublic, updateSubmission } from "@/lib/db";
+import { db } from "@/lib/turso";
 import type { SubmissionInput } from "@/lib/types";
 import { hashEditCode, sanitizeInput, validateSubmission } from "@/lib/utils";
 
@@ -18,6 +21,11 @@ interface PutBody extends SubmissionInput {
 
 export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
   try {
+    const limit = await rateLimit(db, `edit-put:${clientIp(req)}:${params.id}`, 10, 300);
+    if (!limit.ok) {
+      return NextResponse.json({ error: "Terlalu banyak percobaan" }, { status: 429 });
+    }
+
     const body = (await req.json()) as PutBody;
     const existing = await getSubmission(params.id);
     if (!existing) return NextResponse.json({ error: "Tidak ditemukan" }, { status: 404 });

@@ -50,7 +50,8 @@ export interface AuthOptions {
   db: Db;
   /** () => cookies() dari next/headers — dioper supaya paket ini bebas dependensi Next. */
   cookies: () => CookieStore | Promise<CookieStore>;
-  password: string;
+  /** String atau thunk — thunk menunda baca env sampai request, bukan saat import. */
+  password: string | (() => string);
   cookieName: string;
   /** Override untuk test; default verifikasi on-chain (EOA + smart account/ERC-6492). */
   verifySiwe?: (args: VerifySiweArgs) => Promise<boolean>;
@@ -71,7 +72,7 @@ export function createAuth(opts: AuthOptions) {
   async function getSession() {
     return getIronSession<SessionData>(await opts.cookies(), {
       cookieName: opts.cookieName,
-      password: opts.password,
+      password: typeof opts.password === "function" ? opts.password() : opts.password,
       cookieOptions: {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
@@ -132,11 +133,24 @@ export function createAuth(opts: AuthOptions) {
       if (!siwe.address || !isAddress(siwe.address) || !siwe.chainId || !siwe.nonce) {
         return Response.json({ error: "Pesan SIWE tidak valid" }, { status: 400 });
       }
-      // Domain binding: pesan harus ditandatangani untuk host kita, bukan situs lain
-      // yang menyuruh user menandatangani pesan SIWE milik kita (phishing relay).
-      const host = req.headers.get("x-forwarded-host") ?? req.headers.get("host");
-      if (host && siwe.domain !== host) {
-        return Response.json({ error: "Domain pesan tidak cocok" }, { status: 422 });
+      // Domain binding: pesan harus ditandatangani untuk domain kita, bukan situs lain
+      // yang me-relay pesan SIWE milik kita (phishing). Sumber kebenaran = allowlist
+      // dari env (AUTH_ALLOWED_DOMAINS), BUKAN header request yang bisa dipalsukan.
+      // Fallback ke host header hanya kalau allowlist tak diset (dev), dan tetap reject
+      // saat host tak diketahui (fail-closed) — bukan skip.
+      const allowed = (process.env.AUTH_ALLOWED_DOMAINS ?? "")
+        .split(",")
+        .map((d) => d.trim())
+        .filter(Boolean);
+      if (allowed.length > 0) {
+        if (!siwe.domain || !allowed.includes(siwe.domain)) {
+          return Response.json({ error: "Domain pesan tidak diizinkan" }, { status: 422 });
+        }
+      } else {
+        const host = req.headers.get("host");
+        if (!host || siwe.domain !== host) {
+          return Response.json({ error: "Domain pesan tidak cocok" }, { status: 422 });
+        }
       }
       if (!SIWE_CHAIN_IDS.includes(siwe.chainId)) {
         return Response.json({ error: "Chain tidak didukung" }, { status: 400 });

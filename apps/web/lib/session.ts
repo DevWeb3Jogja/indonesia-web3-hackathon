@@ -5,7 +5,7 @@ import { db } from "@/lib/turso";
 export const auth = createAuth({
   db,
   cookies: () => cookies(),
-  password: serverEnv().SESSION_SECRET,
+  password: () => serverEnv().SESSION_SECRET,
   cookieName: "iw3h_session",
 });
 
