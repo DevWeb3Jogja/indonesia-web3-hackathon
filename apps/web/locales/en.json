@@ -19,7 +19,8 @@
     "openMenu": "Open menu",
     "closeMenu": "Close menu",
     "switchLanguage": "Switch language",
-    "scrollHint": "Scroll to discover"
+    "scrollHint": "Scroll to discover",
+    "profile": "Profile"
   },
   "home": {
     "eyebrow": "$5,000 prize pool",
@@ -360,5 +361,36 @@
     "title": "Page not found",
     "desc": "Maybe the project hasn't been submitted yet, or the link is wrong.",
     "cta": "Back to home"
+  },
+  "profile": {
+    "metaTitle": "Profile",
+    "eyebrow": "Builder Account",
+    "title1": "Your",
+    "title2": "Profile",
+    "lead": "Complete your builder profile. This shows up on your team and project pages.",
+    "walletLabel": "Wallet",
+    "roleLabel": "Role",
+    "signInTitle": "Sign in first",
+    "signInDesc": "Connect your wallet and sign the message to manage your profile.",
+    "loading": "Loading profile…",
+    "usernameLabel": "Username",
+    "usernamePlaceholder": "e.g. satoshi",
+    "usernameHint": "Letters, numbers, - and _ (3–32 chars).",
+    "emailLabel": "Email",
+    "emailPlaceholder": "you@email.com",
+    "avatarLabel": "Avatar URL",
+    "avatarPlaceholder": "https://… (image link)",
+    "bioLabel": "Bio",
+    "bioPlaceholder": "Tell us a bit about yourself…",
+    "githubLabel": "GitHub",
+    "githubPlaceholder": "https://github.com/username",
+    "twitterLabel": "X / Twitter",
+    "twitterPlaceholder": "https://x.com/username",
+    "save": "Save Profile",
+    "saving": "Saving…",
+    "saved": "Profile saved.",
+    "errorGeneric": "Failed to save. Try again.",
+    "errorValidation": "Some fields aren't valid — check email/URL formats.",
+    "errorRate": "Too many requests. Wait a moment."
   }
 }

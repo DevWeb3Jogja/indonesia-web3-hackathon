@@ -19,7 +19,8 @@
     "openMenu": "Buka menu",
     "closeMenu": "Tutup menu",
     "switchLanguage": "Ganti bahasa",
-    "scrollHint": "Scroll untuk menjelajah"
+    "scrollHint": "Scroll untuk menjelajah",
+    "profile": "Profil"
   },
   "home": {
     "eyebrow": "Prize pool $5,000",
@@ -360,5 +361,36 @@
     "title": "Halaman tidak ditemukan",
     "desc": "Mungkin project-nya belum disubmit, atau link-nya salah.",
     "cta": "Kembali ke beranda"
+  },
+  "profile": {
+    "metaTitle": "Profil",
+    "eyebrow": "Akun Builder",
+    "title1": "Profil",
+    "title2": "Kamu",
+    "lead": "Lengkapi profil builder kamu. Data ini tampil di tim dan halaman project.",
+    "walletLabel": "Wallet",
+    "roleLabel": "Role",
+    "signInTitle": "Sign in dulu",
+    "signInDesc": "Hubungkan wallet dan tanda tangani pesan untuk mengelola profil kamu.",
+    "loading": "Memuat profil…",
+    "usernameLabel": "Username",
+    "usernamePlaceholder": "cth. satoshi",
+    "usernameHint": "Huruf, angka, - dan _ (3–32 karakter).",
+    "emailLabel": "Email",
+    "emailPlaceholder": "kamu@email.com",
+    "avatarLabel": "URL Avatar",
+    "avatarPlaceholder": "https://… (link gambar)",
+    "bioLabel": "Bio",
+    "bioPlaceholder": "Ceritakan singkat tentang kamu…",
+    "githubLabel": "GitHub",
+    "githubPlaceholder": "https://github.com/username",
+    "twitterLabel": "X / Twitter",
+    "twitterPlaceholder": "https://x.com/username",
+    "save": "Simpan Profil",
+    "saving": "Menyimpan…",
+    "saved": "Profil tersimpan.",
+    "errorGeneric": "Gagal menyimpan. Coba lagi.",
+    "errorValidation": "Ada isian yang belum valid — cek lagi format email/URL.",
+    "errorRate": "Terlalu sering. Tunggu sebentar."
   }
 }
