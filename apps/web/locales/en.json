@@ -20,7 +20,8 @@
     "closeMenu": "Close menu",
     "switchLanguage": "Switch language",
     "scrollHint": "Scroll to discover",
-    "profile": "Profile"
+    "profile": "Profile",
+    "team": "Team"
   },
   "home": {
     "eyebrow": "$5,000 prize pool",
@@ -391,6 +392,40 @@
     "saved": "Profile saved.",
     "errorGeneric": "Failed to save. Try again.",
     "errorValidation": "Some fields aren't valid — check email/URL formats.",
+    "errorRate": "Too many requests. Wait a moment."
+  },
+  "team": {
+    "metaTitle": "Team",
+    "eyebrow": "Your Team",
+    "title1": "Hackathon",
+    "title2": "Team",
+    "lead": "Form a team or join with an invite code. The team leader submits the project.",
+    "signInTitle": "Sign in first",
+    "signInDesc": "Connect your wallet and sign the message to manage your team.",
+    "loading": "Loading team…",
+    "closed": "Team formation for this edition is currently closed.",
+    "createTitle": "Create a team",
+    "nameLabel": "Team name",
+    "namePlaceholder": "e.g. Rocket Devs",
+    "createCta": "Create Team",
+    "joinTitle": "Join a team",
+    "codeLabel": "Invite code",
+    "codePlaceholder": "8 characters",
+    "joinCta": "Join",
+    "or": "or",
+    "myTeamTitle": "Your team",
+    "inviteLabel": "Invite code",
+    "inviteHint": "Share this code with your teammates.",
+    "copy": "Copy",
+    "copied": "Copied!",
+    "membersLabel": "Members",
+    "leaderBadge": "Leader",
+    "memberBadge": "Member",
+    "youBadge": "You",
+    "leaveCta": "Leave team",
+    "leaveLeaderNote": "You're the leader — leaving transfers leadership to the earliest member.",
+    "full": "Team is full (max 5).",
+    "errorGeneric": "Something went wrong. Try again.",
     "errorRate": "Too many requests. Wait a moment."
   }
 }

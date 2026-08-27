@@ -5,8 +5,8 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import type { Dict } from "@/lib/i18n";
 import { LOCALES, localePath, splitPath } from "@/lib/locale";
+import AuthNavLink from "./AuthNavLink";
 import ConnectWalletButton from "./ConnectWalletButton";
-import ProfileNavLink from "./ProfileNavLink";
 import { ArrowUpRight, BrandMark } from "./ui";
 
 /** Urutan nav; label diambil dari kamus. */
@@ -133,8 +133,15 @@ export default function ShellChrome({
 
       {/* ---------- Connect wallet + switcher bahasa, pojok kanan atas (desktop) ---------- */}
       <div className="absolute right-0 top-0 z-40 hidden items-center gap-3 rounded-bl-[24px] bg-white py-3 pl-4 pr-4 md:flex">
-        <ProfileNavLink
+        <AuthNavLink
           locale={locale}
+          href="/team"
+          label={t.team}
+          className="text-[11px] font-medium uppercase tracking-[0.14em] text-neutral-800 transition hover:text-teal"
+        />
+        <AuthNavLink
+          locale={locale}
+          href="/profile"
           label={t.profile}
           className="text-[11px] font-medium uppercase tracking-[0.14em] text-neutral-800 transition hover:text-teal"
         />
@@ -198,7 +205,18 @@ export default function ShellChrome({
           </nav>
           <div className="mt-8 flex flex-col gap-3">
             <ConnectWalletButton className="btn-ink w-full" />
-            <ProfileNavLink locale={locale} label={t.profile} className="btn-outline w-full" />
+            <AuthNavLink
+              locale={locale}
+              href="/team"
+              label={t.team}
+              className="btn-outline w-full"
+            />
+            <AuthNavLink
+              locale={locale}
+              href="/profile"
+              label={t.profile}
+              className="btn-outline w-full"
+            />
           </div>
           <div className="mt-10 flex items-center justify-between gap-4">
             <Link
