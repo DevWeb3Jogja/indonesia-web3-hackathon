@@ -2,7 +2,7 @@
 
 Website submission untuk Indonesia Web3 Hackathon (#WhereBuildersBuild). Full Next.js (frontend + backend), database Google Sheets.
 
-## Fitur
+## Fitur fiturnya
 
 - Landing page, Prizes, Schedule, FAQ, Projects gallery
 - Submit project: nama tim/project, track (checklist), contract address (auto-link ke BscScan sesuai network), problem statement, solution, project detail (markdown + diagram mermaid, ada tab Write/Preview), GitHub repo, video demo (YouTube auto-embed), info tim + sosmed, link tambahan (docs, sosmed project, dll)
