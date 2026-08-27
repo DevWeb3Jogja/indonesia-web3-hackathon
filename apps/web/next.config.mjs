@@ -10,7 +10,8 @@ const csp = [
   // media-src, <video> jatuh ke default-src 'self' dan diblokir.
   "media-src 'self' https: blob:",
   "connect-src 'self' https: wss:",
-  "frame-src https://verify.walletconnect.com https://verify.walletconnect.org https://secure.walletconnect.com https://secure.reown.com",
+  // Wallet (Reown/WalletConnect) + embed video demo project (YouTube).
+  "frame-src https://verify.walletconnect.com https://verify.walletconnect.org https://secure.walletconnect.com https://secure.reown.com https://www.youtube.com https://www.youtube-nocookie.com",
   "frame-ancestors 'none'",
   "base-uri 'self'",
   "form-action 'self'",
