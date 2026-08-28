@@ -4,11 +4,15 @@ import { ArrowUpRight, Panel } from "@/components/ui";
 import { REGISTER_URL } from "@/lib/content";
 import { getDict, localePath } from "@/lib/i18n";
 
-export function generateMetadata({ params }: { params: { locale: string } }): Metadata {
+export async function generateMetadata(props: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const params = await props.params;
   return { title: getDict(params.locale).schedule.metaTitle };
 }
 
-export default function SchedulePage({ params }: { params: { locale: string } }) {
+export default async function SchedulePage(props: { params: Promise<{ locale: string }> }) {
+  const params = await props.params;
   const t = getDict(params.locale).schedule;
 
   return (

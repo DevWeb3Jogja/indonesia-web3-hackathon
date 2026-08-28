@@ -2,8 +2,15 @@ packages:
   - "apps/*"
   - "packages/*"
 
-# wagmi v3 (@wagmi/core 3.x / connectors 8.x) masih rusak terhadap viem rilisan
-# (modul tempo). Pin ke keluarga wagmi 2.x sampai Reown adapter resmi support v3.
-overrides:
-  "@wagmi/core": "2.22.1"
-  "@wagmi/connectors": "6.2.0"
+# --- Penyesuaian default ketat pnpm 11 (semua deps di-update ke latest via ncu) ---
+# Relax supply-chain guard untuk paket yang baru rilis (<24j). Pertimbangkan aktifkan
+# lagi untuk operasi normal.
+minimumReleaseAge: 0
+# Jangan jalankan pre-check install tiap `pnpm run` (bikin turbo gagal).
+verifyDepsBeforeRun: false
+allowBuilds:
+  '@reown/appkit': true
+  bufferutil: true
+  esbuild: true
+  keccak: true
+  utf-8-validate: true

@@ -2,11 +2,15 @@ import type { Metadata } from "next";
 import ProjectSubmit from "@/components/ProjectSubmit";
 import { getDict } from "@/lib/i18n";
 
-export function generateMetadata({ params }: { params: { locale: string } }): Metadata {
+export async function generateMetadata(props: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const params = await props.params;
   return { title: getDict(params.locale).submit.metaTitle };
 }
 
-export default function SubmitPage({ params }: { params: { locale: string } }) {
+export default async function SubmitPage(props: { params: Promise<{ locale: string }> }) {
+  const params = await props.params;
   const dict = getDict(params.locale);
   const t = dict.submit;
 

@@ -19,7 +19,10 @@ export function generateStaticParams() {
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://indonesia-web3-hackathon.vercel.app";
 
-export function generateMetadata({ params }: { params: { locale: string } }): Metadata {
+export async function generateMetadata(props: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const params = await props.params;
   const t = getDict(params.locale).meta;
   return {
     metadataBase: new URL(SITE_URL),
@@ -51,13 +54,14 @@ export function generateMetadata({ params }: { params: { locale: string } }): Me
   };
 }
 
-export default function LocaleLayout({
-  children,
-  params,
-}: {
+export default async function LocaleLayout(props: {
   children: React.ReactNode;
-  params: { locale: string };
+  params: Promise<{ locale: string }>;
 }) {
+  const params = await props.params;
+
+  const { children } = props;
+
   if (!isLocale(params.locale)) notFound();
   const dict = getDict(params.locale);
 

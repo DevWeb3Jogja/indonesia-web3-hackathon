@@ -15,15 +15,15 @@
   },
   "dependencies": {
     "@iw3h/db": "workspace:*",
-    "iron-session": "^8.0.0",
-    "viem": "^2.55.4",
-    "zod": "^3.25.0"
+    "iron-session": "^8.0.4",
+    "viem": "^2.56.0",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@libsql/client": "^0.17.4",
-    "@types/node": "^20.19.43",
-    "drizzle-orm": "^0.44.7",
-    "typescript": "^5.6.2",
-    "vitest": "^3.0.0"
+    "@types/node": "^26.4.0",
+    "drizzle-orm": "^0.45.2",
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.11"
   }
 }

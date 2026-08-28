@@ -28,11 +28,10 @@ function parseLinks(raw: string | null | undefined): ExtraLink[] {
 
 const short = (a: string) => `${a.slice(0, 6)}…${a.slice(-4)}`;
 
-export default async function ProjectDetailPage({
-  params,
-}: {
-  params: { id: string; locale: string };
+export default async function ProjectDetailPage(props: {
+  params: Promise<{ id: string; locale: string }>;
 }) {
+  const params = await props.params;
   const p = await getProjectById(db, params.id);
   if (p?.status !== "submitted") notFound();
 

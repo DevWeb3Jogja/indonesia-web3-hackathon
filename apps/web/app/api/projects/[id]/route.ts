@@ -17,7 +17,8 @@ import type { NetworkId } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
-export async function PUT(req: Request, { params }: { params: { id: string } }) {
+export async function PUT(req: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const auth = await requireAuth();
   if (auth instanceof Response) return auth;
 

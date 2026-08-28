@@ -30,31 +30,30 @@ const securityHeaders = [
 const nextConfig = {
   reactStrictMode: true,
   transpilePackages: ["@iw3h/db", "@iw3h/auth"],
-  experimental: {
-    // Native binding — jangan dibundel webpack, require di runtime.
-    serverComponentsExternalPackages: ["@libsql/client", "libsql"],
-  },
+  // Next 16: pindah dari experimental.serverComponentsExternalPackages.
+  // libsql punya native binding — jangan dibundel.
+  serverExternalPackages: ["@libsql/client", "libsql"],
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },
+  // Next 16 default Turbopack, tapi kita pakai --webpack (script) karena config
+  // webpack di bawah menangani stub @x402/* + externals libsql yang Turbopack
+  // belum tangani mulus. Migrasi ke Turbopack = follow-up (dev jauh lebih cepat).
   webpack: (config, { isServer }) => {
     if (isServer) {
-      // Belt & braces di atas serverComponentsExternalPackages: libsql punya
-      // binding native yang tidak boleh dibundel.
       config.externals.push("@libsql/client", "libsql");
     }
-    // @x402/* = optional peer deps @coinbase/cdp-sdk (fitur payment, tidak dipakai).
-    // Tanpa alias ini webpack gagal resolve saat bundling connector coinbase bawaan wagmi.
+    // @x402/* = optional peer deps @coinbase/cdp-sdk (payment, tidak dipakai).
     config.resolve.alias = {
       ...config.resolve.alias,
       "@x402/core": false,
+      "@x402/core/client": false,
       "@x402/evm": false,
+      "@x402/evm/exact/client": false,
+      "@x402/evm/upto/client": false,
       "@x402/extensions": false,
       "@x402/svm": false,
     };
-    // Warning benign dari library wallet (pino/@walletconnect pakai dynamic require;
-    // ox/viem modul "tempo"; @metamask/sdk nyari async-storage React Native).
-    // Bukan error — disenyapkan supaya output build bersih & masalah nyata kelihatan.
     config.ignoreWarnings = [
       ...(config.ignoreWarnings ?? []),
       { message: /Critical dependency: the request of a dependency is an expression/ },
