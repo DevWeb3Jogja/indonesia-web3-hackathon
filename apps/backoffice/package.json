@@ -6,7 +6,8 @@
     "dev": "next dev --webpack -p 3001",
     "build": "next build --webpack",
     "start": "next start -p 3001",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test": "vitest run"
   },
   "dependencies": {
     "@iw3h/auth": "workspace:*",
@@ -27,6 +28,8 @@
     "@types/node": "^26",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "typescript": "^5.9.3"
+    "drizzle-orm": "^0.45.2",
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.11"
   }
 }
