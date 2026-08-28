@@ -2,6 +2,7 @@ import {
   canScore,
   getCurrentHackathon,
   getJudgeScores,
+  getJudgeTracks,
   listCriteria,
   listSubmittedProjects,
 } from "@iw3h/db";
@@ -19,11 +20,18 @@ export async function GET() {
   if (!hackathon)
     return NextResponse.json({ criteria: [], projects: [], scores: {}, canScore: false });
 
-  const [criteria, projects, myScores] = await Promise.all([
+  const [criteria, allProjects, myScores, judgeTracks] = await Promise.all([
     listCriteria(db, hackathon.id),
     listSubmittedProjects(db, hackathon.id),
     getJudgeScores(db, hackathon.id, auth.address),
+    getJudgeTracks(db, hackathon.id, auth.address),
   ]);
+
+  // Juri hanya menilai track yang di-assign; tanpa assignment = boleh semua.
+  const projects =
+    judgeTracks.length === 0
+      ? allProjects
+      : allProjects.filter((p) => p.trackIds.some((id) => judgeTracks.includes(id)));
 
   // { [projectId]: { [criterionId]: {score, comment} } }
   const scores: Record<string, Record<string, { score: number; comment: string | null }>> = {};

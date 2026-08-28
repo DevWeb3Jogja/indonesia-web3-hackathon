@@ -37,7 +37,7 @@ export async function PUT(req: Request) {
   }
 
   const project = await getProjectById(db, parsed.data.projectId);
-  if (!project || project.status !== "submitted" || project.hackathonId !== hackathon.id) {
+  if (project?.status !== "submitted" || project.hackathonId !== hackathon.id) {
     return NextResponse.json({ error: "Project tidak valid" }, { status: 404 });
   }
 

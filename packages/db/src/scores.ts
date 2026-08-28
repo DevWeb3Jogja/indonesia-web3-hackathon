@@ -1,7 +1,57 @@
 import { randomBytes } from "node:crypto";
 import { and, asc, desc, eq, sql } from "drizzle-orm";
 import type { Db } from "./client";
-import { criteria, prizes, projects, scores, winners } from "./schema";
+import { criteria, judgeTracks, prizes, projects, scores, tracks, winners } from "./schema";
+
+export async function listTracks(db: Db, hackathonId: string) {
+  return db
+    .select()
+    .from(tracks)
+    .where(eq(tracks.hackathonId, hackathonId))
+    .orderBy(asc(tracks.sort));
+}
+
+/** Track yang di-assign ke seorang juri (kosong = boleh menilai semua). */
+export async function getJudgeTracks(
+  db: Db,
+  hackathonId: string,
+  judgeAddress: string
+): Promise<string[]> {
+  const rows = await db
+    .select({ trackId: judgeTracks.trackId })
+    .from(judgeTracks)
+    .where(
+      and(eq(judgeTracks.hackathonId, hackathonId), eq(judgeTracks.judgeAddress, judgeAddress))
+    );
+  return rows.map((r) => r.trackId);
+}
+
+/** Ganti seluruh assignment track seorang juri. */
+export async function setJudgeTracks(
+  db: Db,
+  hackathonId: string,
+  judgeAddress: string,
+  trackIds: string[]
+): Promise<void> {
+  await db
+    .delete(judgeTracks)
+    .where(
+      and(eq(judgeTracks.hackathonId, hackathonId), eq(judgeTracks.judgeAddress, judgeAddress))
+    );
+  for (const trackId of trackIds) {
+    await db
+      .insert(judgeTracks)
+      .values({ hackathonId, judgeAddress, trackId })
+      .onConflictDoNothing();
+  }
+}
+
+export async function listJudgeAssignments(db: Db, hackathonId: string) {
+  return db
+    .select({ judgeAddress: judgeTracks.judgeAddress, trackId: judgeTracks.trackId })
+    .from(judgeTracks)
+    .where(eq(judgeTracks.hackathonId, hackathonId));
+}
 
 export async function listCriteria(db: Db, hackathonId: string) {
   return db
