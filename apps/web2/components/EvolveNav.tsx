@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -55,7 +56,7 @@ export default function EvolveNav({ nav, logo }: { nav: Dict["nav"]; logo: strin
     <header className="ev-navbar">
       <div className="ev-navbar-inner">
         <Link className="ev-logo" href={to("/")} aria-label="Home">
-          <img src={logo} alt="" width={46} height={46} />
+          <Image src={logo} alt="" width={34} height={34} className="object-contain" />
         </Link>
 
         <nav className="ev-nav" aria-label="Primary">

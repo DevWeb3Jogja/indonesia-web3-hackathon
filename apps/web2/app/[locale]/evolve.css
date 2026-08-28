@@ -18,7 +18,7 @@
   z-index: 40;
   display: flex;
   justify-content: center;
-  padding: clamp(14px, 2vh, 22px) clamp(12px, 3vw, 28px);
+  padding: 16px clamp(12px, 3vw, 28px);
 }
 .ev-navbar-inner {
   display: flex;
@@ -41,8 +41,6 @@
   transform: scale(1.04);
 }
 .ev-logo img {
-  width: 78%;
-  height: 78%;
   object-fit: contain;
 }
 .ev-nav {
@@ -153,9 +151,12 @@
 }
 
 /* ---------- hero (home) ---------- */
+/* Tarik hero ke atas menembus navbar (tinggi 80px) supaya video mengisi
+   penuh di belakang nav yang mengambang — persis evolve. */
 .ev-hero-section {
   position: relative;
-  min-height: calc(100dvh - 84px);
+  margin-top: -80px;
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
   overflow: hidden;
