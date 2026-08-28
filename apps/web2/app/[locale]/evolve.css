@@ -43,65 +43,58 @@
 .ev-logo img {
   object-fit: contain;
 }
+/* Satu pill berisi nav + bahasa + sign-in. */
 .ev-nav {
   flex: none;
-  height: 48px;
+  height: 52px;
   background: #fff;
   border-radius: 999px;
   box-shadow: var(--ev-nav-shadow);
-  padding: 4px 6px;
+  padding: 5px 6px 5px 8px;
   display: flex;
   align-items: center;
+  gap: 4px;
 }
-.ev-nav a {
-  flex: none;
+.ev-nav-links {
+  display: flex;
+  align-items: center;
+  height: 100%;
+}
+.ev-nav-links a {
   height: 100%;
   display: flex;
   align-items: center;
-  justify-content: center;
-  position: relative;
-  padding: 0 clamp(12px, 1.3vw, 18px);
+  padding: 0 clamp(10px, 1.1vw, 15px);
+  border-radius: 999px;
   text-decoration: none;
   font-weight: 500;
-  font-size: clamp(12px, 1.35vw, 14px);
+  font-size: clamp(12px, 1.3vw, 14px);
   letter-spacing: -0.01em;
   color: #2e2e2e;
-  opacity: 0.5;
-  transition: opacity 0.2s;
+  opacity: 0.55;
+  transition:
+    opacity 0.2s,
+    background 0.2s;
 }
-.ev-nav a:hover {
-  opacity: 0.78;
+.ev-nav-links a:hover {
+  opacity: 0.85;
 }
-.ev-nav a.active {
+/* Aktif = pill halus, TANPA titik 3. */
+.ev-nav-links a.active {
   opacity: 1;
+  background: #f0f0f0;
 }
-.ev-nav a.active::after {
-  content: "";
-  position: absolute;
-  left: 50%;
-  bottom: 5px;
-  width: 3px;
-  height: 3px;
-  margin-left: -1.5px;
-  background: #000;
-  box-shadow:
-    -5px 0 0 #000,
-    5px 0 0 #000;
-}
-.ev-right {
+.ev-div {
   flex: none;
-  display: flex;
-  align-items: center;
-  gap: 8px;
+  width: 1px;
+  height: 22px;
+  margin: 0 4px;
+  background: rgba(0, 0, 0, 0.1);
 }
 .ev-lang {
   display: inline-flex;
   align-items: center;
   gap: 2px;
-  background: #fff;
-  border-radius: 999px;
-  padding: 4px;
-  box-shadow: var(--ev-nav-shadow);
 }
 .ev-lang a {
   padding: 6px 9px;
@@ -109,9 +102,9 @@
   font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
   text-decoration: none;
-  color: #6b6b6b;
+  color: #8a8a8a;
   transition:
     background 0.2s,
     color 0.2s;
@@ -121,14 +114,14 @@
   color: #fff;
 }
 .ev-signin {
-  height: 44px;
+  height: 40px;
+  margin-left: 2px;
   display: inline-flex;
   align-items: center;
-  padding: 0 clamp(14px, 1.8vw, 20px);
+  padding: 0 clamp(14px, 1.6vw, 18px);
   border-radius: 999px;
   background: var(--ev-pill-dark);
   color: var(--ev-sign-in-text);
-  box-shadow: var(--ev-nav-shadow);
   border: 0;
   cursor: pointer;
   text-decoration: none;
@@ -138,13 +131,11 @@
   white-space: nowrap;
   transition:
     background 0.2s,
-    color 0.2s,
-    transform 0.2s;
+    color 0.2s;
 }
 .ev-signin:hover {
   background: #323234;
   color: #fff;
-  transform: translateY(-1px);
 }
 .ev-burger {
   display: none;

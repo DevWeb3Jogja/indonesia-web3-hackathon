@@ -59,15 +59,16 @@ export default function EvolveNav({ nav, logo }: { nav: Dict["nav"]; logo: strin
           <Image src={logo} alt="" width={34} height={34} className="object-contain" />
         </Link>
 
-        <nav className="ev-nav" aria-label="Primary">
-          {NAV.map((n) => (
-            <Link key={n.path} href={to(n.path)} className={active(n.path) ? "active" : ""}>
-              {nav[n.key]}
-            </Link>
-          ))}
-        </nav>
-
-        <div className="ev-right">
+        {/* Satu pill: nav + bahasa + sign-in (bukan card terpisah-pisah). */}
+        <div className="ev-nav">
+          <nav className="ev-nav-links" aria-label="Primary">
+            {NAV.map((n) => (
+              <Link key={n.path} href={to(n.path)} className={active(n.path) ? "active" : ""}>
+                {nav[n.key]}
+              </Link>
+            ))}
+          </nav>
+          <span className="ev-div" aria-hidden="true" />
           {/* biome-ignore lint/a11y/useSemanticElements: grup pill bahasa, bukan fieldset form */}
           <div className="ev-lang" role="group" aria-label={nav.switchLanguage}>
             {langLinks("")}
