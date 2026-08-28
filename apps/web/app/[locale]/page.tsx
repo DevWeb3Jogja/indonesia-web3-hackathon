@@ -6,17 +6,21 @@ import { ASSETS } from "@/lib/assets";
 import { REGISTER_URL } from "@/lib/content";
 import { getDict, localePath } from "@/lib/i18n";
 
-/** Bagian presentasi stat card yang bukan konten: gambar, bentuk, posisi teks. */
-// text di-bound kiri+kanan (inset-x-6) supaya deskripsi tidak meluber keluar kartu.
+/** Bagian presentasi stat card yang bukan konten: gambar, bentuk, posisi teks.
+ * Inset teks asimetris: clip-path memotong sudut sampai 64px, jadi sisi yang
+ * kena potongan besar diberi jarak lebih supaya teks tidak menonjol keluar.
+ *   a: sudut bawah kecil (14px)      → inset merata
+ *   b: kiri-bawah 64px               → kiri dijauhkan
+ *   c: kanan-bawah 64px              → kanan dijauhkan (deskripsi berhenti sebelum potongan) */
 const STAT_STYLE = [
-  { image: ASSETS.statPrize, clip: "clip-stat-a", offset: "", text: "inset-x-6 bottom-6" },
+  { image: ASSETS.statPrize, clip: "clip-stat-a", offset: "", text: "left-8 right-8 bottom-8" },
   {
     image: ASSETS.statBuilders,
     clip: "clip-stat-b",
     offset: "lg:mt-24",
-    text: "inset-x-6 bottom-12",
+    text: "left-16 right-8 bottom-10",
   },
-  { image: ASSETS.statSessions, clip: "clip-stat-c", offset: "", text: "inset-x-6 bottom-6" },
+  { image: ASSETS.statSessions, clip: "clip-stat-c", offset: "", text: "left-8 right-16 bottom-8" },
 ];
 
 function NominationCard({ title, sub, href }: { title: string; sub: string; href: string }) {
@@ -61,7 +65,7 @@ function StatCard({
         <p className="grad-text font-firs text-[36px] font-semibold uppercase leading-none sm:text-[52px]">
           {value}
         </p>
-        <p className="mt-3 max-w-[92%] text-sm leading-[1.4] text-ink">{desc}</p>
+        <p className="mt-3 text-sm leading-[1.4] text-ink">{desc}</p>
       </div>
     </div>
   );
