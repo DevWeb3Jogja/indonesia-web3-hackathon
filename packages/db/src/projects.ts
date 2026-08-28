@@ -89,6 +89,54 @@ async function hydrate(db: Db, row: typeof projects.$inferSelect): Promise<Proje
   };
 }
 
+/**
+ * Hydrate banyak baris tanpa N+1: 3 query (tracks, teams, members) untuk SELURUH
+ * halaman, bukan 2 query per baris. Penting untuk latency & ketahanan galeri
+ * publik — tiap round-trip ke Turso menambah waktu dan peluang gagal.
+ */
+async function hydrateMany(db: Db, rows: (typeof projects.$inferSelect)[]): Promise<ProjectFull[]> {
+  if (rows.length === 0) return [];
+  const ids = rows.map((r) => r.id);
+  const teamIds = [...new Set(rows.map((r) => r.teamId).filter((t): t is string => t !== null))];
+
+  const trackRows = await db
+    .select({ projectId: projectTracks.projectId, trackId: projectTracks.trackId })
+    .from(projectTracks)
+    .where(inArray(projectTracks.projectId, ids));
+  const tracksByProject = new Map<string, string[]>();
+  for (const r of trackRows) {
+    const arr = tracksByProject.get(r.projectId);
+    if (arr) arr.push(r.trackId);
+    else tracksByProject.set(r.projectId, [r.trackId]);
+  }
+
+  const teamById = new Map<string, { name: string; memberAddresses: string[] }>();
+  if (teamIds.length > 0) {
+    const [teamRows, memberRows] = await Promise.all([
+      db.select({ id: teams.id, name: teams.name }).from(teams).where(inArray(teams.id, teamIds)),
+      db
+        .select({ teamId: teamMembers.teamId, address: teamMembers.address })
+        .from(teamMembers)
+        .where(inArray(teamMembers.teamId, teamIds)),
+    ]);
+    const membersByTeam = new Map<string, string[]>();
+    for (const m of memberRows) {
+      const arr = membersByTeam.get(m.teamId);
+      if (arr) arr.push(m.address);
+      else membersByTeam.set(m.teamId, [m.address]);
+    }
+    for (const t of teamRows) {
+      teamById.set(t.id, { name: t.name, memberAddresses: membersByTeam.get(t.id) ?? [] });
+    }
+  }
+
+  return rows.map((r) => ({
+    ...r,
+    trackIds: tracksByProject.get(r.id) ?? [],
+    team: r.teamId ? (teamById.get(r.teamId) ?? null) : null,
+  }));
+}
+
 export async function getProjectById(db: Db, id: string): Promise<ProjectFull | null> {
   const rows = await db.select().from(projects).where(eq(projects.id, id)).limit(1);
   return rows[0] ? hydrate(db, rows[0]) : null;
@@ -222,7 +270,7 @@ export async function listSubmittedProjects(db: Db, hackathonId: string): Promis
     .from(projects)
     .where(and(eq(projects.hackathonId, hackathonId), eq(projects.status, "submitted")))
     .orderBy(desc(projects.submittedAt));
-  return Promise.all(rows.map((r) => hydrate(db, r)));
+  return hydrateMany(db, rows);
 }
 
 /** Admin: semua project (semua status) untuk review. */
@@ -232,7 +280,7 @@ export async function listAllProjects(db: Db, hackathonId: string): Promise<Proj
     .from(projects)
     .where(eq(projects.hackathonId, hackathonId))
     .orderBy(desc(projects.submittedAt));
-  return Promise.all(rows.map((r) => hydrate(db, r)));
+  return hydrateMany(db, rows);
 }
 
 /** Admin: ubah status project (mis. disqualify ↔ submitted). */
@@ -310,7 +358,7 @@ export async function listProjectsPaged(
   ]);
 
   const total = Number(countRows[0]?.n ?? 0);
-  const items = await Promise.all(rows.map((r) => hydrate(db, r)));
+  const items = await hydrateMany(db, rows);
   return {
     items,
     meta: { page, limit, total, totalPages: Math.max(1, Math.ceil(total / limit)) },
