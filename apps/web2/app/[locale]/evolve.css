@@ -11,97 +11,94 @@
   --ev-ease: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-/* ---------- nav bar (semua halaman) ---------- */
+/* ---------- nav bar (semua halaman) — gaya sui/landing ---------- */
 .ev-navbar {
   position: sticky;
   top: 0;
   z-index: 40;
   display: flex;
   justify-content: center;
-  padding: 16px clamp(12px, 3vw, 28px);
-  transition:
-    transform 0.35s var(--ev-ease),
-    background 0.3s,
-    backdrop-filter 0.3s;
+  padding: 20px clamp(12px, 3vw, 28px) 0;
+  transition: transform 0.35s var(--ev-ease);
 }
-/* scroll turun → sembunyi ke atas */
 .ev-navbar.ev-hidden {
-  transform: translateY(-115%);
-}
-/* sudah scroll → beri latar tipis biar pill terbaca di atas konten */
-.ev-navbar.ev-scrolled {
-  background: rgba(0, 0, 0, 0.55);
-  backdrop-filter: blur(10px);
+  transform: translateY(-130%);
 }
 .ev-navbar-inner {
+  position: relative;
+  width: 100%;
+  max-width: 1120px;
+  height: 56px;
   display: flex;
   align-items: center;
-  gap: clamp(10px, 1.4vw, 16px);
+  gap: 14px;
+  padding: 0 8px 0 18px;
+}
+/* Chrome pill: transparan di atas hero, blur gelap saat sudah scroll. */
+.ev-chrome {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: 999px;
+  background: transparent;
+  border: 1px solid transparent;
+  transition:
+    background 0.35s,
+    border-color 0.35s,
+    box-shadow 0.35s,
+    backdrop-filter 0.35s;
+}
+.ev-navbar.ev-scrolled .ev-chrome {
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(14px);
+  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 18px 50px -28px rgba(0, 0, 0, 0.85);
 }
 .ev-logo {
   flex: none;
-  width: 46px;
-  height: 46px;
-  border-radius: 50%;
-  background: #fff;
-  box-shadow: var(--ev-nav-shadow);
   display: grid;
   place-items: center;
-  overflow: hidden;
   transition: transform 0.25s var(--ev-ease);
 }
 .ev-logo:hover {
-  transform: scale(1.04);
+  transform: scale(1.05);
 }
 .ev-logo img {
   object-fit: contain;
 }
-/* Satu pill berisi nav + bahasa + sign-in. */
-.ev-nav {
-  flex: none;
-  height: 52px;
-  background: #fff;
-  border-radius: 999px;
-  box-shadow: var(--ev-nav-shadow);
-  padding: 5px 6px 5px 8px;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
+/* Link mengambang langsung di atas hero/konten (teks putih). */
 .ev-nav-links {
+  flex: 1;
   display: flex;
+  justify-content: center;
   align-items: center;
-  height: 100%;
+  gap: clamp(2px, 0.6vw, 6px);
 }
 .ev-nav-links a {
-  height: 100%;
-  display: flex;
-  align-items: center;
-  padding: 0 clamp(10px, 1.1vw, 15px);
+  padding: 7px clamp(10px, 1vw, 15px);
   border-radius: 999px;
   text-decoration: none;
   font-weight: 500;
-  font-size: clamp(12px, 1.3vw, 14px);
-  letter-spacing: -0.01em;
-  color: #4b4b4f; /* kontras AA di atas pill putih (dulu abu terlalu terang) */
+  font-size: 14px;
+  letter-spacing: -0.005em;
+  color: rgba(255, 255, 255, 0.72);
   transition:
     color 0.2s,
     background 0.2s;
 }
 .ev-nav-links a:hover {
-  color: #111;
+  color: #fff;
 }
-/* Aktif = pill halus, TANPA titik 3. */
 .ev-nav-links a.active {
-  color: #111;
-  background: #ededed;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.12);
 }
-.ev-div {
+.ev-nav-right {
   flex: none;
-  width: 1px;
-  height: 22px;
-  margin: 0 4px;
-  background: rgba(0, 0, 0, 0.1);
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 .ev-lang {
   display: inline-flex;
@@ -116,38 +113,42 @@
   text-transform: uppercase;
   letter-spacing: 0.06em;
   text-decoration: none;
-  color: #5f5f5f; /* kontras AA di atas putih */
+  color: rgba(255, 255, 255, 0.6);
   transition:
     background 0.2s,
     color 0.2s;
 }
-.ev-lang a.active {
-  background: #000;
+.ev-lang a:hover {
   color: #fff;
 }
-.ev-signin {
+.ev-lang a.active {
+  background: #fff;
+  color: #000;
+}
+/* CTA connect — pill putih menonjol (ala tombol console sui). */
+.ev-cta-pill {
   height: 40px;
-  margin-left: 2px;
   display: inline-flex;
   align-items: center;
-  padding: 0 clamp(14px, 1.6vw, 18px);
+  padding: 0 clamp(14px, 1.6vw, 20px);
   border-radius: 999px;
-  background: var(--ev-pill-dark);
-  color: var(--ev-sign-in-text);
+  background: #fff;
+  color: #000;
   border: 0;
   cursor: pointer;
   text-decoration: none;
-  font-weight: 500;
-  font-size: clamp(12px, 1.3vw, 13.5px);
+  font-weight: 600;
+  font-size: 13px;
   letter-spacing: -0.01em;
   white-space: nowrap;
+  box-shadow: 0 10px 24px -14px rgba(0, 0, 0, 0.6);
   transition:
-    background 0.2s,
-    color 0.2s;
+    transform 0.2s,
+    background 0.2s;
 }
-.ev-signin:hover {
-  background: #323234;
-  color: #fff;
+.ev-cta-pill:hover {
+  transform: translateY(-1px);
+  background: #f0f0f0;
 }
 .ev-burger {
   display: none;
@@ -485,13 +486,13 @@
 }
 
 @media (max-width: 760px) {
-  .ev-nav,
-  .ev-lang {
+  .ev-nav-links,
+  .ev-nav-right {
     display: none;
   }
   .ev-navbar-inner {
-    width: 100%;
     justify-content: space-between;
+    padding: 0 6px;
   }
   .ev-burger {
     display: grid;

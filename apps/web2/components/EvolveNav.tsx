@@ -77,25 +77,27 @@ export default function EvolveNav({ nav, logo }: { nav: Dict["nav"]; logo: strin
   return (
     <header className={`ev-navbar${hidden ? " ev-hidden" : ""}${scrolled ? " ev-scrolled" : ""}`}>
       <div className="ev-navbar-inner">
+        {/* Chrome pill — transparan di atas hero, muncul (blur gelap) saat scroll. */}
+        <span className="ev-chrome" aria-hidden="true" />
+
         <Link className="ev-logo" href={to("/")} aria-label="Home">
-          <Image src={logo} alt="" width={34} height={34} className="object-contain" />
+          <Image src={logo} alt="" width={30} height={30} className="object-contain" />
         </Link>
 
-        {/* Satu pill: nav + bahasa + sign-in (bukan card terpisah-pisah). */}
-        <div className="ev-nav">
-          <nav className="ev-nav-links" aria-label="Primary">
-            {NAV.map((n) => (
-              <Link key={n.path} href={to(n.path)} className={active(n.path) ? "active" : ""}>
-                {nav[n.key]}
-              </Link>
-            ))}
-          </nav>
-          <span className="ev-div" aria-hidden="true" />
+        <nav className="ev-nav-links" aria-label="Primary">
+          {NAV.map((n) => (
+            <Link key={n.path} href={to(n.path)} className={active(n.path) ? "active" : ""}>
+              {nav[n.key]}
+            </Link>
+          ))}
+        </nav>
+
+        <div className="ev-nav-right">
           {/* biome-ignore lint/a11y/useSemanticElements: grup pill bahasa, bukan fieldset form */}
           <div className="ev-lang" role="group" aria-label={nav.switchLanguage}>
             {langLinks("")}
           </div>
-          <ConnectWalletButton className="ev-signin" />
+          <ConnectWalletButton className="ev-cta-pill" />
         </div>
 
         <button
