@@ -2,6 +2,18 @@
 @tailwind components;
 @tailwind utilities;
 
+/* TT Firs Neue self-hosted (dulu hotlink db.onlinewebfonts — render-blocking).
+   Font by OnlineWebFonts, CC BY 4.0. */
+@font-face {
+  font-family: "TT Firs Neue";
+  src:
+    url("/media/fonts/tt-firs-neue.woff2") format("woff2"),
+    url("/media/fonts/tt-firs-neue.woff") format("woff");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   --ink: #154359;
   --teal: #066377;

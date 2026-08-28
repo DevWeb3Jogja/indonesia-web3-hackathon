@@ -64,13 +64,13 @@ export default function LocaleLayout({
   return (
     <html lang={params.locale} className={body.variable}>
       <head>
-        {/* Preconnect ke host aset/font pihak ketiga — hemat ~300ms handshake (Lighthouse). */}
-        <link rel="preconnect" href="https://db.onlinewebfonts.com" crossOrigin="anonymous" />
-        <link rel="preconnect" href="https://d8j0ntlcm91z4.cloudfront.net" />
-        <link rel="preconnect" href="https://images.higgs.ai" />
+        {/* Preload font display self-hosted — dipakai di judul above-the-fold. */}
         <link
-          rel="stylesheet"
-          href="https://db.onlinewebfonts.com/c/69f2576e7ca287875bf8d089130e292c?family=TT+Firs+Neue"
+          rel="preload"
+          href="/media/fonts/tt-firs-neue.woff2"
+          as="font"
+          type="font/woff2"
+          crossOrigin="anonymous"
         />
       </head>
       <body className="font-body antialiased">
