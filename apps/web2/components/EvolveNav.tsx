@@ -27,6 +27,8 @@ export default function EvolveNav({ nav, logo }: { nav: Dict["nav"]; logo: strin
   const pathname = usePathname();
   const { locale, path } = splitPath(pathname);
   const [open, setOpen] = useState(false);
+  const [hidden, setHidden] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
 
   const to = (x: string) => localePath(locale, x);
   const active = (x: string) => x === path || (x !== "/" && path.startsWith(x));
@@ -36,6 +38,26 @@ export default function EvolveNav({ nav, logo }: { nav: Dict["nav"]; logo: strin
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
+  // Headroom: scroll turun → nav sembunyi ke atas; scroll naik → muncul lagi
+  // (sticky). Scroll terjadi di #scroll-root, bukan window.
+  useEffect(() => {
+    const root = document.getElementById("scroll-root");
+    if (!root) return;
+    let lastY = root.scrollTop;
+    const onScroll = () => {
+      const y = root.scrollTop;
+      setScrolled(y > 8);
+      if (y < 80)
+        setHidden(false); // dekat atas → selalu tampil
+      else if (y > lastY + 6)
+        setHidden(true); // turun
+      else if (y < lastY - 6) setHidden(false); // naik
+      lastY = y;
+    };
+    root.addEventListener("scroll", onScroll, { passive: true });
+    return () => root.removeEventListener("scroll", onScroll);
   }, []);
 
   const langLinks = (extra: string) =>
@@ -53,7 +75,7 @@ export default function EvolveNav({ nav, logo }: { nav: Dict["nav"]; logo: strin
     ));
 
   return (
-    <header className="ev-navbar">
+    <header className={`ev-navbar${hidden ? " ev-hidden" : ""}${scrolled ? " ev-scrolled" : ""}`}>
       <div className="ev-navbar-inner">
         <Link className="ev-logo" href={to("/")} aria-label="Home">
           <Image src={logo} alt="" width={34} height={34} className="object-contain" />
