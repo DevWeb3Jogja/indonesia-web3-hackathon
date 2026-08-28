@@ -12,8 +12,8 @@ const config: Config = {
         teal: "#d0d0d0", // aksen → abu terang (evolve monokrom)
         deep: "#8e8e8e",
         sky: "#ffffff",
-        mist: "#141414", // permukaan gelap
-        haze: "#0a0a0a", // section bg gelap
+        mist: "#000000", // section bg — hitam (evolve)
+        haze: "#000000", // section bg — hitam (evolve)
       },
       fontFamily: {
         display: ["Geist Pixel Circle", "var(--font-body)", "monospace"],

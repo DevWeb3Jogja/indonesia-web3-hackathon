@@ -69,10 +69,10 @@ export default async function LocaleLayout(props: {
   return (
     <html lang={params.locale} className={body.variable}>
       <head>
-        {/* Preload font display self-hosted — dipakai di judul above-the-fold. */}
+        {/* Preload font display (pixel) — dipakai di headline hero above-the-fold. */}
         <link
           rel="preload"
-          href="/media/fonts/tt-firs-neue.woff2"
+          href="/media/fonts/geist-pixel-circle.woff2"
           as="font"
           type="font/woff2"
           crossOrigin="anonymous"

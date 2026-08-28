@@ -21,11 +21,9 @@
   padding: clamp(14px, 2vh, 22px) clamp(12px, 3vw, 28px);
 }
 .ev-navbar-inner {
-  width: 100%;
-  max-width: 980px;
   display: flex;
   align-items: center;
-  gap: clamp(10px, 1.6vw, 18px);
+  gap: clamp(10px, 1.4vw, 16px);
 }
 .ev-logo {
   flex: none;
@@ -48,23 +46,23 @@
   object-fit: contain;
 }
 .ev-nav {
-  flex: 1;
-  max-width: 470px;
+  flex: none;
   height: 48px;
   background: #fff;
   border-radius: 999px;
   box-shadow: var(--ev-nav-shadow);
-  padding: 4px 8px;
+  padding: 4px 6px;
   display: flex;
   align-items: center;
 }
 .ev-nav a {
-  flex: 1;
+  flex: none;
   height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
+  padding: 0 clamp(12px, 1.3vw, 18px);
   text-decoration: none;
   font-weight: 500;
   font-size: clamp(12px, 1.35vw, 14px);
@@ -488,6 +486,7 @@
     display: none;
   }
   .ev-navbar-inner {
+    width: 100%;
     justify-content: space-between;
   }
   .ev-burger {

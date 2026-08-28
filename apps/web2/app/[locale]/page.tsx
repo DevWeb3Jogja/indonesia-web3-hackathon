@@ -84,8 +84,7 @@ export default async function HomePage(props: { params: Promise<{ locale: string
           { icon: "*", target: 30, label: "Days to submit" },
           { icon: "%", target: 100, suffix: "%", label: "Free to enter" },
         ]}
-        bgVideo={ASSETS.heroVideo}
-        bgPoster={ASSETS.heroPoster}
+        bgVideo="/media/evolve-bg.mp4"
       />
 
       {/* ========================= SUBMISSIONS (dari web) ========================= */}
