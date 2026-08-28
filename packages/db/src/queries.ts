@@ -1,5 +1,13 @@
-import { desc, eq, inArray, sql } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, or, sql } from "drizzle-orm";
 import type { Db } from "./client";
+import {
+  buildPage,
+  decodeCursor,
+  normLimit,
+  normPage,
+  type Paged,
+  type PageParams,
+} from "./paginate";
 import type { HackathonPhase } from "./phase";
 import { auditLogs, hackathons, projects, registrations, scores, users } from "./schema";
 
@@ -50,6 +58,108 @@ export async function recentAuditLogs(db: Db, limit = 50) {
 
 export async function listUsers(db: Db, limit = 100) {
   return db.select().from(users).orderBy(desc(users.createdAt)).limit(limit);
+}
+
+export type UserSort = "newest" | "oldest";
+export const USER_SORTS: UserSort[] = ["newest", "oldest"];
+export interface UserListOpts extends PageParams {
+  role?: Role;
+  sort?: UserSort;
+}
+
+/** Users dengan meta: page+cursor, search (address/username/email), filter role, sort. */
+export async function listUsersPaged(
+  db: Db,
+  opts: UserListOpts = {}
+): Promise<Paged<typeof users.$inferSelect>> {
+  const page = normPage(opts.page);
+  const limit = normLimit(opts.limit);
+  const ascending = opts.sort === "oldest";
+
+  const conds = [];
+  if (opts.role) conds.push(eq(users.role, opts.role));
+  const q = opts.q?.trim().toLowerCase();
+  if (q) {
+    const like = `%${q}%`;
+    conds.push(
+      or(
+        sql`lower(${users.address}) like ${like}`,
+        sql`lower(coalesce(${users.username}, '')) like ${like}`,
+        sql`lower(coalesce(${users.email}, '')) like ${like}`
+      )
+    );
+  }
+  // Keyset (created_at, address) — cursor meniadakan offset.
+  const cur = decodeCursor(opts.cursor);
+  if (cur) {
+    conds.push(
+      ascending
+        ? sql`(${users.createdAt}, ${users.address}) > (${cur[0]}, ${cur[1]})`
+        : sql`(${users.createdAt}, ${users.address}) < (${cur[0]}, ${cur[1]})`
+    );
+  }
+  const where = conds.length ? and(...conds) : undefined;
+  const order = ascending
+    ? [asc(users.createdAt), asc(users.address)]
+    : [desc(users.createdAt), desc(users.address)];
+
+  const [rows, total] = await Promise.all([
+    db
+      .select()
+      .from(users)
+      .where(where)
+      .orderBy(...order)
+      .limit(limit + 1)
+      .offset(cur ? 0 : (page - 1) * limit),
+    db.$count(users, where),
+  ]);
+  return buildPage(rows, { page, limit, total }, (u) => [u.createdAt, u.address]);
+}
+
+export type AuditSort = "newest" | "oldest";
+export interface AuditListOpts extends PageParams {
+  action?: string;
+  actor?: string;
+}
+
+/** Audit log dengan meta: page+cursor (id), search action/target/actor, filter. */
+export async function listAuditPaged(
+  db: Db,
+  opts: AuditListOpts = {}
+): Promise<Paged<typeof auditLogs.$inferSelect>> {
+  const page = normPage(opts.page);
+  const limit = normLimit(opts.limit);
+
+  const conds = [];
+  if (opts.action) conds.push(eq(auditLogs.action, opts.action));
+  if (opts.actor) conds.push(sql`lower(${auditLogs.actorAddress}) = ${opts.actor.toLowerCase()}`);
+  const q = opts.q?.trim().toLowerCase();
+  if (q) {
+    const like = `%${q}%`;
+    conds.push(
+      or(
+        sql`lower(${auditLogs.action}) like ${like}`,
+        sql`lower(coalesce(${auditLogs.target}, '')) like ${like}`,
+        sql`lower(${auditLogs.actorAddress}) like ${like}`
+      )
+    );
+  }
+  // Keyset id (integer autoincrement) — selalu desc (terbaru dulu).
+  const cur = decodeCursor(opts.cursor);
+  if (cur) conds.push(sql`${auditLogs.id} < ${cur[0]}`);
+  const where = conds.length ? and(...conds) : undefined;
+
+  const [rows, total] = await Promise.all([
+    db
+      .select()
+      .from(auditLogs)
+      .where(where)
+      .orderBy(desc(auditLogs.id))
+      .limit(limit + 1)
+      .offset(cur ? 0 : (page - 1) * limit),
+    db.$count(auditLogs, where),
+  ]);
+  return buildPage(rows, { page, limit, total }, (a) => [a.id]);
 }
 
 /** Profil publik (username/avatar) untuk sekumpulan alamat — dipakai galeri/detail. */

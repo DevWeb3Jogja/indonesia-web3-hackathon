@@ -3,7 +3,15 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-export default function ProjectActions({ id, status }: { id: string; status: string }) {
+export default function ProjectActions({
+  id,
+  status,
+  onChanged,
+}: {
+  id: string;
+  status: string;
+  onChanged?: () => void;
+}) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const next = status === "disqualified" ? "submitted" : "disqualified";
@@ -17,8 +25,10 @@ export default function ProjectActions({ id, status }: { id: string; status: str
       body: JSON.stringify({ status: next }),
     });
     setBusy(false);
-    if (res.ok) router.refresh();
-    else alert((await res.json().catch(() => null))?.error ?? "Gagal");
+    if (res.ok) {
+      onChanged?.();
+      router.refresh();
+    } else alert((await res.json().catch(() => null))?.error ?? "Gagal");
   }
 
   return (

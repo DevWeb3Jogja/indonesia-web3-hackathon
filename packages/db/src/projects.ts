@@ -1,6 +1,14 @@
 import { randomBytes } from "node:crypto";
 import { and, asc, desc, eq, inArray, isNull, or, sql } from "drizzle-orm";
 import type { Db } from "./client";
+import {
+  buildPage,
+  decodeCursor,
+  normLimit,
+  normPage,
+  type Paged,
+  type PageParams,
+} from "./paginate";
 import { projects, projectTracks, teamMembers, teams, tracks } from "./schema";
 import { getMyTeam } from "./teams";
 
@@ -363,4 +371,77 @@ export async function listProjectsPaged(
     items,
     meta: { page, limit, total, totalPages: Math.max(1, Math.ceil(total / limit)) },
   };
+}
+
+export type ProjectStatusFilter = "submitted" | "draft" | "disqualified";
+export interface AdminProjectListOpts extends PageParams {
+  status?: ProjectStatusFilter;
+  track?: string;
+  sort?: ProjectSort;
+}
+
+/**
+ * Admin: SEMUA status (bukan cuma submitted) dengan meta page+cursor, search,
+ * filter status/track, sort. Keyset di (created_at, id) — created_at selalu ada
+ * (submitted_at bisa null untuk draft), jadi urutan stabil.
+ */
+export async function listAllProjectsPaged(
+  db: Db,
+  hackathonId: string,
+  opts: AdminProjectListOpts = {}
+): Promise<Paged<ProjectFull>> {
+  const page = normPage(opts.page);
+  const limit = normLimit(opts.limit);
+
+  const conds = [eq(projects.hackathonId, hackathonId)];
+  if (opts.status) conds.push(eq(projects.status, opts.status));
+  const q = opts.q?.trim().toLowerCase();
+  if (q) {
+    const like = `%${q}%`;
+    conds.push(
+      or(
+        sql`lower(${projects.name}) like ${like}`,
+        sql`lower(coalesce(${projects.tagline}, '')) like ${like}`
+      ) as ReturnType<typeof eq>
+    );
+  }
+  if (opts.track) {
+    conds.push(
+      sql`exists (select 1 from project_tracks pt where pt.project_id = ${projects.id} and pt.track_id = ${opts.track})` as ReturnType<
+        typeof eq
+      >
+    );
+  }
+  // Sort utama tetap by name kalau diminta, selain itu by created_at.
+  const byName = opts.sort === "name";
+  const ascending = opts.sort === "oldest";
+  const cur = decodeCursor(opts.cursor);
+  if (cur) {
+    const col = byName ? projects.name : projects.createdAt;
+    conds.push(
+      (ascending || byName
+        ? sql`(${col}, ${projects.id}) > (${cur[0]}, ${cur[1]})`
+        : sql`(${col}, ${projects.id}) < (${cur[0]}, ${cur[1]})`) as ReturnType<typeof eq>
+    );
+  }
+  const where = and(...conds);
+  const order = byName
+    ? [asc(projects.name), asc(projects.id)]
+    : ascending
+      ? [asc(projects.createdAt), asc(projects.id)]
+      : [desc(projects.createdAt), desc(projects.id)];
+
+  const [rows, total] = await Promise.all([
+    db
+      .select()
+      .from(projects)
+      .where(where)
+      .orderBy(...order)
+      .limit(limit + 1)
+      .offset(cur ? 0 : (page - 1) * limit),
+    db.$count(projects, where),
+  ]);
+  // Hydrate SEMUA (limit+1); buildPage yang memotong ke limit & bikin nextCursor.
+  const items = await hydrateMany(db, rows);
+  return buildPage(items, { page, limit, total }, (p) => [byName ? p.name : p.createdAt, p.id]);
 }

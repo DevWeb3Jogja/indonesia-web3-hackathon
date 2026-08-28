@@ -5,7 +5,15 @@ import { useState } from "react";
 
 const ROLES = ["participant", "judge", "admin"] as const;
 
-export default function RoleSelect({ address, role }: { address: string; role: string }) {
+export default function RoleSelect({
+  address,
+  role,
+  onChanged,
+}: {
+  address: string;
+  role: string;
+  onChanged?: () => void;
+}) {
   const router = useRouter();
   const [value, setValue] = useState(role);
   const [busy, setBusy] = useState(false);
@@ -21,6 +29,7 @@ export default function RoleSelect({ address, role }: { address: string; role: s
     });
     setBusy(false);
     if (res.ok) {
+      onChanged?.();
       router.refresh();
     } else {
       setValue(prev);

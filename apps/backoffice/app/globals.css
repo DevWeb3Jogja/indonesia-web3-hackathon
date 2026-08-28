@@ -143,3 +143,85 @@ td button {
 small {
   color: #5b7684;
 }
+
+/* Config CRUD + paginated list */
+.config {
+  margin: 10px 0 18px;
+}
+.config h3 {
+  font-size: 14px;
+  margin: 0 0 6px;
+  color: #154359;
+}
+.config input,
+.config select,
+.paged input,
+.paged select,
+.settings input {
+  padding: 5px 8px;
+  border: 1px solid #d5e2e8;
+  background: #fff;
+  font-size: 12px;
+  color: #154359;
+  max-width: 100%;
+}
+tr.add {
+  background: #f2f8fa;
+}
+tr.editing {
+  background: #fffbe9;
+}
+.note.err {
+  color: #b3452f;
+}
+
+.paged {
+  margin: 4px 0 8px;
+}
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.controls input[type="search"] {
+  min-width: 220px;
+  flex: 1;
+}
+.controls .total {
+  font-size: 12px;
+  color: #5b7684;
+  margin-left: auto;
+}
+.pager {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 8px;
+  font-size: 12px;
+  color: #5b7684;
+}
+.pager button {
+  padding: 5px 12px;
+  font-size: 12px;
+}
+
+.settings .grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 10px;
+  margin: 8px 0;
+}
+.settings label {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 11px;
+  color: #5b7684;
+}
+.settings .hint {
+  font-size: 11px;
+  color: #5b7684;
+  font-style: italic;
+}
