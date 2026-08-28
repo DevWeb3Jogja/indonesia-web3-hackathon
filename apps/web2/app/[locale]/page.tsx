@@ -8,14 +8,9 @@ import { REGISTER_URL } from "@/lib/content";
 import { getDict, localePath } from "@/lib/i18n";
 
 const STAT_STYLE = [
-  { image: ASSETS.statPrize, clip: "clip-stat-a", offset: "", text: "left-8 right-8 bottom-8" },
-  {
-    image: ASSETS.statBuilders,
-    clip: "clip-stat-b",
-    offset: "lg:mt-24",
-    text: "left-16 right-8 bottom-10",
-  },
-  { image: ASSETS.statSessions, clip: "clip-stat-c", offset: "", text: "left-8 right-16 bottom-8" },
+  { image: ASSETS.statPrize, offset: "" },
+  { image: ASSETS.statBuilders, offset: "lg:mt-24" },
+  { image: ASSETS.statSessions, offset: "" },
 ];
 
 function NominationCard({ title, sub, href }: { title: string; sub: string; href: string }) {
@@ -43,21 +38,19 @@ function StatCard({
   style: (typeof STAT_STYLE)[number];
 }) {
   return (
-    <div className={`relative w-full ${style.offset}`}>
-      <div
-        className={`${style.clip} h-[280px] w-full sm:h-[340px]`}
-        style={{ backgroundColor: "rgba(255,255,255,0.12)", padding: "1.5px" }}
-      >
+    <div className={`w-full ${style.offset}`}>
+      <div className="relative h-[300px] w-full overflow-hidden rounded-2xl border border-white/10 sm:h-[360px]">
         <div
-          className={`${style.clip} h-full w-full overflow-hidden bg-cover bg-center`}
-          style={{ backgroundImage: `url("${style.image}")`, opacity: 0.5 }}
+          className="absolute inset-0 bg-cover bg-center opacity-55"
+          style={{ backgroundImage: `url("${style.image}")` }}
         />
-      </div>
-      <div className={`absolute ${style.text}`}>
-        <p className="grad-text font-firs text-[36px] font-normal uppercase leading-none sm:text-[52px]">
-          {value}
-        </p>
-        <p className="mt-3 text-sm leading-[1.4] text-white">{desc}</p>
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/45 to-transparent" />
+        <div className="absolute inset-x-6 bottom-6">
+          <p className="grad-text font-firs text-[34px] font-normal uppercase leading-none sm:text-[46px]">
+            {value}
+          </p>
+          <p className="mt-2 max-w-[92%] text-sm leading-snug text-white/85">{desc}</p>
+        </div>
       </div>
     </div>
   );
