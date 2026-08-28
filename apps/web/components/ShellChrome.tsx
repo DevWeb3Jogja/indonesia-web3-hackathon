@@ -7,6 +7,7 @@ import type { Dict } from "@/lib/i18n";
 import { LOCALES, localePath, splitPath } from "@/lib/locale";
 import AuthNavLink from "./AuthNavLink";
 import ConnectWalletButton from "./ConnectWalletButton";
+import JudgeNavLink from "./JudgeNavLink";
 import { ArrowUpRight, BrandMark } from "./ui";
 
 /** Urutan nav; label diambil dari kamus. */
@@ -133,6 +134,11 @@ export default function ShellChrome({
 
       {/* ---------- Connect wallet + switcher bahasa, pojok kanan atas (desktop) ---------- */}
       <div className="absolute right-0 top-0 z-40 hidden items-center gap-3 rounded-bl-[24px] bg-white py-3 pl-4 pr-4 md:flex">
+        <JudgeNavLink
+          locale={locale}
+          label={t.judge}
+          className="text-[11px] font-medium uppercase tracking-[0.14em] text-teal transition hover:brightness-125"
+        />
         <AuthNavLink
           locale={locale}
           href="/team"
