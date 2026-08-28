@@ -1,0 +1,386 @@
+"use client";
+
+import { useAppKit, useAppKitAccount } from "@reown/appkit/react";
+import Link from "next/link";
+import { useCallback, useEffect, useState } from "react";
+import type { Dict } from "@/lib/i18n";
+import { localePath } from "@/lib/locale";
+import { trackLabel } from "@/lib/types";
+import { projectId as wcProjectId } from "@/lib/web3";
+import ConnectWalletButton from "./ConnectWalletButton";
+import ProjectForm, { type ProjectData } from "./ProjectForm";
+import { Alert, ArrowUpRight, Panel } from "./ui";
+
+type T = Dict["psubmit"];
+type FormDict = Dict["form"];
+
+interface Project {
+  id: string;
+  name: string;
+  tagline: string | null;
+  teamId: string | null;
+  trackIds: string[];
+  status: string;
+  team: { name: string; memberAddresses: string[] } | null;
+  contractAddress: string | null;
+  network: string | null;
+  problemStatement: string | null;
+  solution: string | null;
+  description: string | null;
+  githubUrl: string | null;
+  demoUrl: string | null;
+  demoVideoUrl: string | null;
+  logoUrl: string | null;
+}
+interface Mine {
+  project: Project | null;
+  hasTeam: boolean;
+  teamName: string | null;
+  canSubmit: boolean;
+}
+
+function toInitial(p: Project): ProjectData {
+  return {
+    name: p.name,
+    tagline: p.tagline ?? "",
+    tracks: p.trackIds,
+    logoUrl: p.logoUrl ?? "",
+    contractAddress: p.contractAddress ?? "",
+    network: p.network ?? "bsc",
+    problemStatement: p.problemStatement ?? "",
+    solution: p.solution ?? "",
+    description: p.description ?? "",
+    githubUrl: p.githubUrl ?? "",
+    demoUrl: p.demoUrl ?? "",
+    demoVideoUrl: p.demoVideoUrl ?? "",
+  };
+}
+
+export default function ProjectSubmit({
+  locale,
+  t,
+  form,
+}: {
+  locale: string;
+  t: T;
+  form: FormDict;
+}) {
+  if (!wcProjectId) return <Gate t={t} />;
+  return <Inner locale={locale} t={t} form={form} />;
+}
+
+function Gate({ t, onSignIn }: { t: T; onSignIn?: () => void }) {
+  return (
+    <Panel className="mx-auto max-w-md" clip="chamfer-lg">
+      <div className="p-8 text-center">
+        <h2 className="section-title">{t.signInTitle}</h2>
+        <p className="mt-3 text-sm leading-relaxed text-ink/70">{t.signInDesc}</p>
+        <div className="mt-6 flex justify-center">
+          {onSignIn ? (
+            <button type="button" className="btn-teal" onClick={onSignIn}>
+              {t.signInTitle}
+            </button>
+          ) : (
+            <ConnectWalletButton className="btn-teal" />
+          )}
+        </div>
+      </div>
+    </Panel>
+  );
+}
+
+type View = "my" | "mode" | "team" | "form" | "edit";
+
+function Inner({ locale, t, form }: { locale: string; t: T; form: FormDict }) {
+  const { isConnected } = useAppKitAccount();
+  const { open } = useAppKit();
+
+  const [status, setStatus] = useState<"loading" | "unauth" | "ready">("loading");
+  const [mine, setMine] = useState<Mine | null>(null);
+  const [view, setView] = useState<View>("mode");
+  const [mode, setMode] = useState<"solo" | "team">("solo");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+  const [teamName, setTeamName] = useState("");
+  const [code, setCode] = useState("");
+
+  const load = useCallback(async () => {
+    setStatus("loading");
+    const res = await fetch("/api/projects/mine");
+    if (res.status === 401) return setStatus("unauth");
+    const data: Mine = await res.json();
+    setMine(data);
+    setView(data.project ? "my" : "mode");
+    setStatus("ready");
+  }, []);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  async function send(method: "POST" | "PUT", url: string, body: unknown) {
+    setBusy(true);
+    setError(null);
+    const res = await fetch(url, {
+      method,
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    setBusy(false);
+    if (res.status === 401) {
+      setStatus("unauth");
+      return null;
+    }
+    if (res.status === 429) {
+      setError(t.errorRate);
+      return null;
+    }
+    const json = await res.json().catch(() => null);
+    if (!res.ok) {
+      setError(json?.error ?? t.errorGeneric);
+      return null;
+    }
+    return json;
+  }
+
+  if (!isConnected || status === "unauth") {
+    return <Gate t={t} onSignIn={isConnected ? () => open() : undefined} />;
+  }
+  if (status === "loading" || !mine) return <p className="text-sm text-ink/60">{t.loading}</p>;
+
+  const errorBox = error && (
+    <p className="flex items-center gap-2 text-sm text-red-600">
+      <Alert />
+      {error}
+    </p>
+  );
+
+  // ---------- Sudah punya project ----------
+  if (view === "my" && mine.project) {
+    const p = mine.project;
+    return (
+      <div className="max-w-2xl space-y-6">
+        <Panel clip="chamfer-lg">
+          <div className="p-6">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="tag">{t.submittedBadge}</span>
+              <span className="tag">{p.teamId ? t.teamBadge : t.soloBadge}</span>
+              {p.team && <span className="text-sm text-ink/60">· {p.team.name}</span>}
+            </div>
+            <h2 className="section-title mt-3">{p.name}</h2>
+            {p.tagline && <p className="mt-2 text-ink/70">{p.tagline}</p>}
+            <div className="mt-4 flex flex-wrap gap-2">
+              {p.trackIds.map((id) => (
+                <span key={id} className="tag">
+                  {trackLabel(id)}
+                </span>
+              ))}
+            </div>
+          </div>
+        </Panel>
+        {notice && <p className="text-sm text-teal">{notice}</p>}
+        <div className="flex flex-wrap gap-3">
+          <button
+            type="button"
+            className="btn-teal"
+            disabled={!mine.canSubmit}
+            onClick={() => {
+              setNotice(null);
+              setView("edit");
+            }}
+          >
+            {t.edit}
+          </button>
+          <Link href={localePath(locale, "/projects")} className="btn-outline">
+            {t.viewGallery}
+            <ArrowUpRight />
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  // ---------- Edit ----------
+  if (view === "edit" && mine.project) {
+    const p = mine.project;
+    return (
+      <div className="max-w-3xl space-y-5">
+        <button
+          type="button"
+          className="text-sm text-teal hover:underline"
+          onClick={() => setView("my")}
+        >
+          ← {t.cancelEdit}
+        </button>
+        {errorBox}
+        <ProjectForm
+          form={form}
+          initial={toInitial(p)}
+          submitLabel={t.edit}
+          savingLabel={form.saving}
+          busy={busy}
+          onSubmit={async (payload) => {
+            const r = await send("PUT", `/api/projects/${p.id}`, payload);
+            if (r) {
+              setNotice(t.savedEdit);
+              await load();
+            }
+          }}
+        />
+      </div>
+    );
+  }
+
+  // ---------- Belum submit: pilih mode ----------
+  if (!mine.canSubmit) {
+    return (
+      <p className="flex items-center gap-2 text-sm text-ink/70">
+        <Alert />
+        {t.closed}
+      </p>
+    );
+  }
+
+  if (view === "mode") {
+    return (
+      <div className="max-w-xl space-y-6">
+        <h2 className="section-title">{t.chooseTitle}</h2>
+        <div className="grid gap-4 sm:grid-cols-2">
+          {(["solo", "team"] as const).map((m) => (
+            <button
+              key={m}
+              type="button"
+              onClick={() => setMode(m)}
+              className={`chamfer-lg p-6 text-left transition ${
+                mode === m
+                  ? "bg-teal text-white"
+                  : "border border-teal/25 bg-white/[0.04] hover:bg-haze"
+              }`}
+            >
+              <span className="font-firs text-xl font-semibold">
+                {m === "solo" ? t.soloLabel : t.teamLabel}
+              </span>
+              <span
+                className={`mt-2 block text-sm ${mode === m ? "text-white/80" : "text-ink/60"}`}
+              >
+                {m === "solo" ? t.soloDesc : t.teamDesc}
+              </span>
+            </button>
+          ))}
+        </div>
+        <button
+          type="button"
+          className="btn-teal"
+          onClick={() => setView(mode === "team" && !mine.hasTeam ? "team" : "form")}
+        >
+          {t.continue}
+          <ArrowUpRight />
+        </button>
+      </div>
+    );
+  }
+
+  // ---------- Langkah tim (kalau pilih Tim tapi belum punya tim) ----------
+  if (view === "team") {
+    return (
+      <div className="max-w-2xl space-y-6">
+        <button
+          type="button"
+          className="text-sm text-teal hover:underline"
+          onClick={() => setView("mode")}
+        >
+          ← {t.back}
+        </button>
+        <h2 className="section-title">{t.teamStepTitle}</h2>
+        <p className="text-sm text-ink/70">{t.teamNone}</p>
+        {errorBox}
+        <div className="grid gap-6 md:grid-cols-2">
+          <Panel clip="chamfer-lg">
+            <form
+              className="space-y-4 p-6"
+              onSubmit={async (e) => {
+                e.preventDefault();
+                const r = await send("POST", "/api/teams", { name: teamName });
+                if (r) {
+                  await load();
+                  setView("form");
+                }
+              }}
+            >
+              <h3 className="section-title text-[22px]">{t.createTeam}</h3>
+              <input
+                className="input-field"
+                value={teamName}
+                onChange={(e) => setTeamName(e.target.value)}
+                placeholder={t.teamNamePlaceholder}
+                minLength={2}
+                maxLength={60}
+                required
+              />
+              <button type="submit" className="btn-teal" disabled={busy}>
+                {t.createTeam}
+              </button>
+            </form>
+          </Panel>
+          <Panel clip="chamfer-lg">
+            <form
+              className="space-y-4 p-6"
+              onSubmit={async (e) => {
+                e.preventDefault();
+                const r = await send("POST", "/api/teams/join", { code: code.trim() });
+                if (r) {
+                  await load();
+                  setView("form");
+                }
+              }}
+            >
+              <h3 className="section-title text-[22px]">{t.joinTeam}</h3>
+              <input
+                className="input-field font-mono uppercase tracking-[0.3em]"
+                value={code}
+                onChange={(e) => setCode(e.target.value.toUpperCase())}
+                placeholder={t.codePlaceholder}
+                maxLength={8}
+                required
+              />
+              <button type="submit" className="btn-ink" disabled={busy}>
+                {t.joinTeam}
+              </button>
+            </form>
+          </Panel>
+        </div>
+      </div>
+    );
+  }
+
+  // ---------- Form project (create) ----------
+  return (
+    <div className="max-w-3xl space-y-5">
+      <button
+        type="button"
+        className="text-sm text-teal hover:underline"
+        onClick={() => setView("mode")}
+      >
+        ← {t.back}
+      </button>
+      <p className="text-sm text-ink/70">
+        {mode === "team" ? `${t.usingTeam}: ${mine.teamName ?? "—"}` : t.soloLabel}
+      </p>
+      {errorBox}
+      <ProjectForm
+        form={form}
+        submitLabel={t.submitCta}
+        savingLabel={form.saving}
+        busy={busy}
+        onSubmit={async (payload) => {
+          const r = await send("POST", "/api/projects", { mode, ...payload });
+          if (r) {
+            setNotice(null);
+            await load();
+          }
+        }}
+      />
+    </div>
+  );
+}
