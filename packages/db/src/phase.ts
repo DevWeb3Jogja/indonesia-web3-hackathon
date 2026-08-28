@@ -16,7 +16,13 @@ export interface PhaseInfo {
 
 function beforeDeadline(deadline: string | null | undefined, now: Date): boolean {
   if (!deadline) return true;
-  return now.getTime() < new Date(`${deadline.replace(" ", "T")}Z`).getTime();
+  let raw = deadline.trim().replace(" ", "T");
+  if (raw.length === 10) raw += "T23:59:59"; // date-only → akhir hari
+  if (!/[zZ]|[+-]\d\d:?\d\d$/.test(raw)) raw += "Z"; // tanpa timezone → anggap UTC
+  const t = new Date(raw).getTime();
+  // Deadline tak valid → jangan diam-diam mengunci fase; status yang menentukan.
+  if (Number.isNaN(t)) return true;
+  return now.getTime() < t;
 }
 
 export function canRegister(h: PhaseInfo, now = new Date()): boolean {

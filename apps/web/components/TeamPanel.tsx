@@ -136,10 +136,16 @@ function Inner({ t }: { t: T }) {
                 <button
                   type="button"
                   className="btn-outline"
-                  onClick={() => {
-                    navigator.clipboard.writeText(team.inviteCode);
-                    setCopied(true);
-                    setTimeout(() => setCopied(false), 1500);
+                  onClick={async () => {
+                    // clipboard bisa gagal (konteks non-HTTPS/izin ditolak) → jangan
+                    // tampilkan "tersalin" kalau gagal, dan jangan lempar unhandled.
+                    try {
+                      await navigator.clipboard?.writeText(team.inviteCode);
+                      setCopied(true);
+                      setTimeout(() => setCopied(false), 1500);
+                    } catch {
+                      /* diamkan; user bisa salin manual */
+                    }
                   }}
                 >
                   {copied ? t.copied : t.copy}

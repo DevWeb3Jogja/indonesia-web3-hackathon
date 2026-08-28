@@ -170,3 +170,22 @@ export async function setWinner(db: Db, prizeId: string, projectId: string): Pro
 export async function clearWinner(db: Db, prizeId: string): Promise<void> {
   await db.delete(winners).where(eq(winners.prizeId, prizeId));
 }
+
+/** Hapus project ini dari semua prize (dipakai saat diskualifikasi). */
+export async function clearWinnersForProject(db: Db, projectId: string): Promise<void> {
+  await db.delete(winners).where(eq(winners.projectId, projectId));
+}
+
+/** Cek prize milik hackathon tertentu (cegah set pemenang lintas-hackathon). */
+export async function prizeBelongsTo(
+  db: Db,
+  prizeId: string,
+  hackathonId: string
+): Promise<boolean> {
+  const row = await db
+    .select({ id: prizes.id })
+    .from(prizes)
+    .where(and(eq(prizes.id, prizeId), eq(prizes.hackathonId, hackathonId)))
+    .limit(1);
+  return row.length > 0;
+}

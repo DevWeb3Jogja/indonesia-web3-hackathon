@@ -22,6 +22,8 @@ if (projectId) {
     themeVariables: {
       "--w3m-accent": "#066377",
     },
+    // Matikan telemetri AppKit (hindari "Analytics SDK: Failed to fetch" & tak kirim data).
+    features: { analytics: false },
     siweConfig,
   });
 } else if (typeof window !== "undefined") {

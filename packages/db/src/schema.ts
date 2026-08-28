@@ -97,34 +97,45 @@ export const teamMembers = sqliteTable(
 );
 
 /** status: draft | submitted | disqualified */
-export const projects = sqliteTable("projects", {
-  id: text("id").primaryKey(),
-  hackathonId: text("hackathon_id")
-    .notNull()
-    .references(() => hackathons.id),
-  // NULL = submission solo. Kalau diisi, project milik tim.
-  teamId: text("team_id").references(() => teams.id),
-  // Selalu diisi: siapa yang membuat/memiliki project (untuk solo = editor-nya).
-  submitterAddress: text("submitter_address")
-    .notNull()
-    .references(() => users.address),
-  name: text("name").notNull(),
-  tagline: text("tagline"),
-  problemStatement: text("problem_statement"),
-  solution: text("solution"),
-  description: text("description"),
-  githubUrl: text("github_url"),
-  demoUrl: text("demo_url"),
-  demoVideoUrl: text("demo_video_url"),
-  logoUrl: text("logo_url"),
-  contractAddress: text("contract_address"),
-  network: text("network"),
-  extraLinks: text("extra_links"),
-  status: text("status").notNull().default("draft"),
-  submittedAt: text("submitted_at"),
-  createdAt: text("created_at").notNull().default(now),
-  updatedAt: text("updated_at").notNull().default(now),
-});
+export const projects = sqliteTable(
+  "projects",
+  {
+    id: text("id").primaryKey(),
+    hackathonId: text("hackathon_id")
+      .notNull()
+      .references(() => hackathons.id),
+    // NULL = submission solo. Kalau diisi, project milik tim.
+    teamId: text("team_id").references(() => teams.id),
+    // Selalu diisi: siapa yang membuat/memiliki project (untuk solo = editor-nya).
+    submitterAddress: text("submitter_address")
+      .notNull()
+      .references(() => users.address),
+    name: text("name").notNull(),
+    tagline: text("tagline"),
+    problemStatement: text("problem_statement"),
+    solution: text("solution"),
+    description: text("description"),
+    githubUrl: text("github_url"),
+    demoUrl: text("demo_url"),
+    demoVideoUrl: text("demo_video_url"),
+    logoUrl: text("logo_url"),
+    contractAddress: text("contract_address"),
+    network: text("network"),
+    extraLinks: text("extra_links"),
+    status: text("status").notNull().default("draft"),
+    submittedAt: text("submitted_at"),
+    createdAt: text("created_at").notNull().default(now),
+    updatedAt: text("updated_at").notNull().default(now),
+  },
+  (t) => [
+    // Backstop TOCTOU (cek-lalu-insert di createProject bisa balapan):
+    // satu project per tim, dan satu project solo per (hackathon, submitter).
+    uniqueIndex("uq_project_team").on(t.teamId).where(sql`${t.teamId} is not null`),
+    uniqueIndex("uq_project_solo")
+      .on(t.hackathonId, t.submitterAddress)
+      .where(sql`${t.teamId} is null`),
+  ]
+);
 
 export const projectTracks = sqliteTable(
   "project_tracks",

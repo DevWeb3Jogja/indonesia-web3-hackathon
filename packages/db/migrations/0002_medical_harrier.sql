@@ -1,0 +1,2 @@
+CREATE UNIQUE INDEX `uq_project_team` ON `projects` (`team_id`) WHERE "projects"."team_id" is not null;--> statement-breakpoint
+CREATE UNIQUE INDEX `uq_project_solo` ON `projects` (`hackathon_id`,`submitter_address`) WHERE "projects"."team_id" is null;
