@@ -231,7 +231,8 @@
     "noResultDesc": "Coba ubah filter atau kata kuncinya.",
     "submitCta": "Submit project",
     "count": "project terdaftar",
-    "by": "by"
+    "by": "by",
+    "solo": "Solo"
   },
   "projectDetail": {
     "back": "← Semua projects",
@@ -250,7 +251,9 @@
     "social": "Sosmed",
     "submitted": "Submitted",
     "lastEdit": "Last edit",
-    "by": "by"
+    "by": "by",
+    "solo": "Builder solo",
+    "viewProfile": "Profil"
   },
   "submit": {
     "metaTitle": "Submit",

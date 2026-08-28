@@ -59,6 +59,16 @@ export interface StoredSubmission extends Submission {
 
 export type SubmissionInput = Omit<Submission, "id" | "createdAt" | "updatedAt">;
 
+/** Bentuk kartu project dari Turso untuk galeri publik (GET /api/projects). */
+export interface PublicProjectCard {
+  id: string;
+  name: string;
+  tagline: string;
+  logoUrl: string;
+  trackIds: string[];
+  teamName: string | null; // null = solo
+}
+
 export function explorerUrl(network: NetworkId, address: string): string {
   const net = NETWORKS.find((n) => n.id === network) ?? NETWORKS[0];
   return net.explorer + address;

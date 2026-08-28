@@ -1,23 +1,46 @@
+import { getProjectById, getPublicProfiles } from "@iw3h/db";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import MarkdownRenderer from "@/components/MarkdownRenderer";
 import { ArrowUpRight, Panel } from "@/components/ui";
 import YouTubeEmbed from "@/components/YouTubeEmbed";
-import { getSubmission, toPublic } from "@/lib/db";
 import { getDict, localePath } from "@/lib/i18n";
-import { explorerUrl, NETWORKS, trackLabel } from "@/lib/types";
+import { db } from "@/lib/turso";
+import { explorerUrl, NETWORKS, type NetworkId, trackLabel } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
+
+interface ExtraLink {
+  label: string;
+  url: string;
+}
+
+function parseLinks(raw: string | null | undefined): ExtraLink[] {
+  if (!raw) return [];
+  try {
+    const v = JSON.parse(raw);
+    return Array.isArray(v) ? v.filter((l) => l?.url) : [];
+  } catch {
+    return [];
+  }
+}
+
+const short = (a: string) => `${a.slice(0, 6)}…${a.slice(-4)}`;
 
 export default async function ProjectDetailPage({
   params,
 }: {
   params: { id: string; locale: string };
 }) {
-  const stored = await getSubmission(params.id);
-  if (!stored) notFound();
-  const p = toPublic(stored);
-  const network = NETWORKS.find((n) => n.id === p.network);
+  const p = await getProjectById(db, params.id);
+  if (p?.status !== "submitted") notFound();
+
+  const memberAddresses = p.team ? p.team.memberAddresses : [p.submitterAddress];
+  const profiles = await getPublicProfiles(db, memberAddresses);
+  const profileOf = (addr: string) => profiles.find((x) => x.address === addr);
+
+  const network = p.network ? NETWORKS.find((n) => n.id === p.network) : undefined;
+  const extraLinks = parseLinks(p.extraLinks);
 
   const dict = getDict(params.locale);
   const t = dict.projectDetail;
@@ -39,69 +62,64 @@ export default async function ProjectDetailPage({
           <div>
             <div className="h-1 w-full bg-teal" />
             <div className="p-6 md:p-10">
-              <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
-                <div className="flex items-start gap-5">
-                  {p.logoUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={p.logoUrl}
-                      alt=""
-                      className="chamfer-sm h-16 w-16 shrink-0 object-cover"
-                    />
-                  ) : (
-                    <div className="chamfer-sm flex h-16 w-16 shrink-0 items-center justify-center bg-teal/10 font-firs text-2xl font-semibold text-teal">
-                      {p.projectName.charAt(0).toUpperCase()}
-                    </div>
+              <div className="flex items-start gap-5">
+                {p.logoUrl ? (
+                  <img
+                    src={p.logoUrl}
+                    alt=""
+                    className="chamfer-sm h-16 w-16 shrink-0 object-cover"
+                  />
+                ) : (
+                  <div className="chamfer-sm flex h-16 w-16 shrink-0 items-center justify-center bg-teal/10 font-firs text-2xl font-semibold text-teal">
+                    {p.name.charAt(0).toUpperCase()}
+                  </div>
+                )}
+                <div>
+                  <h1 className="font-firs text-3xl font-semibold uppercase tracking-tight text-ink md:text-4xl">
+                    {p.name}
+                  </h1>
+                  <p className="mt-1 text-sm text-ink/55">
+                    {p.team ? `${t.by} ${p.team.name}` : t.solo}
+                  </p>
+                  {p.tagline && (
+                    <p className="mt-3 max-w-xl leading-relaxed text-ink/80">{p.tagline}</p>
                   )}
-                  <div>
-                    <h1 className="font-firs text-3xl font-semibold uppercase tracking-tight text-ink md:text-4xl">
-                      {p.projectName}
-                    </h1>
-                    <p className="mt-1 text-sm text-ink/55">
-                      {t.by} {p.teamName}
-                    </p>
-                    {p.tagline && (
-                      <p className="mt-3 max-w-xl leading-relaxed text-ink/80">{p.tagline}</p>
-                    )}
-                    <div className="mt-4 flex flex-wrap gap-2">
-                      {p.tracks.map((tr) => (
-                        <span key={tr} className="tag">
-                          {trackLabel(tr)}
-                        </span>
-                      ))}
-                    </div>
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    {p.trackIds.map((tr) => (
+                      <span key={tr} className="tag">
+                        {trackLabel(tr)}
+                      </span>
+                    ))}
                   </div>
                 </div>
-                <Link
-                  href={path(`/projects/${p.id}/edit`)}
-                  className="btn-outline shrink-0 border border-teal/25"
-                >
-                  {t.edit}
-                </Link>
               </div>
 
               {/* Tautan cepat */}
               <div className="mt-8 flex flex-wrap gap-3 border-t border-teal/15 pt-6">
-                <a
-                  href={explorerUrl(p.network, p.contractAddress)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="chamfer-sm inline-flex items-center gap-2 bg-teal px-4 py-2 text-sm font-medium text-white transition hover:brightness-125"
-                >
-                  {t.contract}
-                  <span className="hidden font-mono text-xs opacity-70 sm:inline">
-                    {p.contractAddress.slice(0, 6)}…{p.contractAddress.slice(-4)}
-                  </span>
-                </a>
-                <a
-                  href={p.githubUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="link-chip"
-                >
-                  {t.github}
-                  <ArrowUpRight className="h-3 w-3" />
-                </a>
+                {p.contractAddress && network && (
+                  <a
+                    href={explorerUrl(p.network as NetworkId, p.contractAddress)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="chamfer-sm inline-flex items-center gap-2 bg-teal px-4 py-2 text-sm font-medium text-white transition hover:brightness-125"
+                  >
+                    {t.contract}
+                    <span className="hidden font-mono text-xs opacity-70 sm:inline">
+                      {short(p.contractAddress)}
+                    </span>
+                  </a>
+                )}
+                {p.githubUrl && (
+                  <a
+                    href={p.githubUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="link-chip"
+                  >
+                    {t.github}
+                    <ArrowUpRight className="h-3 w-3" />
+                  </a>
+                )}
                 {p.demoUrl && (
                   <a
                     href={p.demoUrl}
@@ -113,7 +131,7 @@ export default async function ProjectDetailPage({
                     <ArrowUpRight className="h-3 w-3" />
                   </a>
                 )}
-                {p.extraLinks.map((l) => (
+                {extraLinks.map((l) => (
                   <a
                     key={l.url}
                     href={l.url}
@@ -137,75 +155,100 @@ export default async function ProjectDetailPage({
 
         <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_320px]">
           <div className="space-y-8">
-            <section>
-              <p className="eyebrow mb-4">{t.videoDemo}</p>
-              <YouTubeEmbed url={p.demoVideoUrl} label={t.watchVideo} />
-            </section>
-
-            <section className="grid gap-5 md:grid-cols-2">
-              <Panel clip="chamfer-lg" tone="bg-white/60" soft>
-                <div className="p-6 md:p-7">
-                  <p className="eyebrow">{t.problem}</p>
-                  <p className="mt-4 whitespace-pre-line text-sm leading-relaxed text-ink/80">
-                    {p.problemStatement}
-                  </p>
-                </div>
-              </Panel>
-              <Panel clip="chamfer-lg">
-                <div className="p-6 md:p-7">
-                  <p className="eyebrow">{t.solution}</p>
-                  <p className="mt-4 whitespace-pre-line text-sm leading-relaxed text-ink/80">
-                    {p.solution}
-                  </p>
-                </div>
-              </Panel>
-            </section>
-
-            <Panel clip="chamfer-lg">
-              <section className="p-6 md:p-8">
-                <p className="eyebrow mb-6">{t.detail}</p>
-                <MarkdownRenderer content={p.description} errorLabel={dict.form.mermaidError} />
+            {p.demoVideoUrl && (
+              <section>
+                <p className="eyebrow mb-4">{t.videoDemo}</p>
+                <YouTubeEmbed url={p.demoVideoUrl} label={t.watchVideo} />
               </section>
-            </Panel>
+            )}
+
+            {(p.problemStatement || p.solution) && (
+              <section className="grid gap-5 md:grid-cols-2">
+                {p.problemStatement && (
+                  <Panel clip="chamfer-lg" tone="bg-white/60" soft>
+                    <div className="p-6 md:p-7">
+                      <p className="eyebrow">{t.problem}</p>
+                      <p className="mt-4 whitespace-pre-line text-sm leading-relaxed text-ink/80">
+                        {p.problemStatement}
+                      </p>
+                    </div>
+                  </Panel>
+                )}
+                {p.solution && (
+                  <Panel clip="chamfer-lg">
+                    <div className="p-6 md:p-7">
+                      <p className="eyebrow">{t.solution}</p>
+                      <p className="mt-4 whitespace-pre-line text-sm leading-relaxed text-ink/80">
+                        {p.solution}
+                      </p>
+                    </div>
+                  </Panel>
+                )}
+              </section>
+            )}
+
+            {p.description && (
+              <Panel clip="chamfer-lg">
+                <section className="p-6 md:p-8">
+                  <p className="eyebrow mb-6">{t.detail}</p>
+                  <MarkdownRenderer content={p.description} errorLabel={dict.form.mermaidError} />
+                </section>
+              </Panel>
+            )}
           </div>
 
-          {/* Sidebar tim */}
+          {/* Sidebar tim / builder */}
           <aside className="space-y-5">
             <Panel clip="chamfer-lg">
               <div className="p-6">
-                <p className="eyebrow">
-                  {t.team} · {p.teamName}
-                </p>
+                <p className="eyebrow">{p.team ? `${t.team} · ${p.team.name}` : t.solo}</p>
                 <ul className="mt-5 space-y-4">
-                  {p.teamMembers.map((m) => (
-                    <li key={`${m.name}-${m.social}`} className="flex items-start gap-3">
-                      <span className="chamfer-sm flex h-9 w-9 shrink-0 items-center justify-center bg-teal/10 font-firs text-sm font-semibold text-teal">
-                        {m.name.charAt(0).toUpperCase()}
-                      </span>
-                      <div className="min-w-0">
-                        <p className="truncate font-medium text-ink">{m.name}</p>
-                        {m.role && <p className="text-xs text-ink/55">{m.role}</p>}
-                        {m.social && (
-                          <a
-                            href={m.social}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-xs text-teal hover:underline"
-                          >
-                            {t.social}
-                          </a>
+                  {memberAddresses.map((addr) => {
+                    const prof = profileOf(addr);
+                    const name = prof?.username || short(addr);
+                    const link = prof?.githubUrl || prof?.twitterUrl;
+                    return (
+                      <li key={addr} className="flex items-start gap-3">
+                        {prof?.avatarUrl ? (
+                          <img
+                            src={prof.avatarUrl}
+                            alt=""
+                            className="chamfer-sm h-9 w-9 shrink-0 object-cover"
+                          />
+                        ) : (
+                          <span className="chamfer-sm flex h-9 w-9 shrink-0 items-center justify-center bg-teal/10 font-firs text-sm font-semibold text-teal">
+                            {name.charAt(0).toUpperCase()}
+                          </span>
                         )}
-                      </div>
-                    </li>
-                  ))}
+                        <div className="min-w-0">
+                          <p className="truncate font-medium text-ink">{name}</p>
+                          <p className="truncate font-mono text-[11px] text-ink/45">
+                            {short(addr)}
+                          </p>
+                          {link && (
+                            <a
+                              href={link}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-xs text-teal hover:underline"
+                            >
+                              {t.viewProfile}
+                            </a>
+                          )}
+                        </div>
+                      </li>
+                    );
+                  })}
                 </ul>
               </div>
             </Panel>
             <Panel clip="chamfer-lg" tone="bg-white/60" soft>
               <div className="p-6 text-[10px] uppercase tracking-[0.14em] text-ink/55">
-                <p>
-                  {t.submitted} · {new Date(p.createdAt).toLocaleDateString(dateLocale)}
-                </p>
+                {p.submittedAt && (
+                  <p>
+                    {t.submitted} · {new Date(p.submittedAt).toLocaleDateString(dateLocale)}
+                  </p>
+                )}
                 {p.updatedAt !== p.createdAt && (
                   <p className="mt-2">
                     {t.lastEdit} · {new Date(p.updatedAt).toLocaleDateString(dateLocale)}

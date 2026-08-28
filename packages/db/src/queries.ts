@@ -1,4 +1,4 @@
-import { desc, eq, sql } from "drizzle-orm";
+import { desc, eq, inArray, sql } from "drizzle-orm";
 import type { Db } from "./client";
 import { auditLogs, projects, registrations, scores, users } from "./schema";
 
@@ -49,6 +49,21 @@ export async function recentAuditLogs(db: Db, limit = 50) {
 
 export async function listUsers(db: Db, limit = 100) {
   return db.select().from(users).orderBy(desc(users.createdAt)).limit(limit);
+}
+
+/** Profil publik (username/avatar) untuk sekumpulan alamat — dipakai galeri/detail. */
+export async function getPublicProfiles(db: Db, addresses: string[]) {
+  if (addresses.length === 0) return [];
+  return db
+    .select({
+      address: users.address,
+      username: users.username,
+      avatarUrl: users.avatarUrl,
+      githubUrl: users.githubUrl,
+      twitterUrl: users.twitterUrl,
+    })
+    .from(users)
+    .where(inArray(users.address, addresses));
 }
 
 export async function setUserRole(db: Db, address: string, role: Role) {

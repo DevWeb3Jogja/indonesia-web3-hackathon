@@ -4,19 +4,19 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import type { Dict } from "@/lib/i18n";
 import { localePath } from "@/lib/locale";
-import type { Submission } from "@/lib/types";
+import type { PublicProjectCard } from "@/lib/types";
 import { TRACKS } from "@/lib/types";
 import ProjectCard from "./ProjectCard";
 import { ArrowUpRight, Panel } from "./ui";
 
 export default function ProjectsBrowser({ locale, t }: { locale: string; t: Dict["projects"] }) {
-  const [items, setItems] = useState<Submission[] | null>(null);
+  const [items, setItems] = useState<PublicProjectCard[] | null>(null);
   const [error, setError] = useState(false);
   const [track, setTrack] = useState<string>("all");
   const [q, setQ] = useState("");
 
   useEffect(() => {
-    fetch("/api/submissions")
+    fetch("/api/projects")
       .then((r) => r.json())
       .then((j) => setItems(j.items ?? []))
       .catch(() => setError(true));
@@ -25,12 +25,12 @@ export default function ProjectsBrowser({ locale, t }: { locale: string; t: Dict
   const filtered = useMemo(() => {
     if (!items) return [];
     return items.filter((p) => {
-      const okTrack = track === "all" || p.tracks.includes(track as never);
+      const okTrack = track === "all" || p.trackIds.includes(track);
       const s = q.trim().toLowerCase();
       const okQ =
         !s ||
-        p.projectName.toLowerCase().includes(s) ||
-        p.teamName.toLowerCase().includes(s) ||
+        p.name.toLowerCase().includes(s) ||
+        (p.teamName ?? "").toLowerCase().includes(s) ||
         p.tagline.toLowerCase().includes(s);
       return okTrack && okQ;
     });
@@ -99,7 +99,7 @@ export default function ProjectsBrowser({ locale, t }: { locale: string; t: Dict
             </p>
             <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
               {filtered.map((p) => (
-                <ProjectCard key={p.id} p={p} locale={locale} byLabel={t.by} />
+                <ProjectCard key={p.id} p={p} locale={locale} byLabel={t.by} soloLabel={t.solo} />
               ))}
             </div>
           </>
