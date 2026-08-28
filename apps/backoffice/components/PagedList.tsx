@@ -1,6 +1,24 @@
 "use client";
 
+import { ChevronLeft, ChevronRight, Search } from "lucide-react";
 import { type ReactNode, useCallback, useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 export interface Column<T> {
   header: string;
@@ -20,10 +38,9 @@ interface Meta {
   hasMore: boolean;
 }
 
-/**
- * Tabel client generik untuk "data banyak": search + filter + sort + paginasi
- * (page-based, memakai meta dari API — API juga menyediakan cursor untuk skala).
- */
+const ALL = "__all__";
+
+/** Tabel data-banyak: search + filter + sort + paginasi (page; API juga cursor). */
 export default function PagedList<T>({
   endpoint,
   columns,
@@ -65,110 +82,135 @@ export default function PagedList<T>({
     }
   }, [endpoint, page, q, sort, filterVals]);
 
-  // debounce (search berubah cepat); filter/sort juga lewat sini.
   useEffect(() => {
     const t = setTimeout(load, 250);
     return () => clearTimeout(t);
   }, [load]);
 
-  // ubah query → balik ke page 1.
-  function reset<V>(setter: (v: V) => void) {
-    return (v: V) => {
-      setPage(1);
-      setter(v);
-    };
-  }
-
   return (
-    <div className="paged">
-      <div className="controls">
-        <input
-          type="search"
-          placeholder={searchPlaceholder}
-          value={q}
-          onChange={(e) => reset(setQ)(e.target.value)}
-        />
+    <div className="space-y-3">
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="relative min-w-52 flex-1">
+          <Search className="absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            className="h-8 pl-8"
+            type="search"
+            placeholder={searchPlaceholder}
+            value={q}
+            onChange={(e) => {
+              setPage(1);
+              setQ(e.target.value);
+            }}
+          />
+        </div>
         {filters.map((f) => (
-          <select
+          <Select
             key={f.key}
-            value={filterVals[f.key] ?? ""}
-            onChange={(e) =>
-              reset((v: string) => setFilterVals((s) => ({ ...s, [f.key]: v })))(e.target.value)
-            }
+            value={filterVals[f.key] || ALL}
+            onValueChange={(v) => {
+              setPage(1);
+              setFilterVals((s) => ({ ...s, [f.key]: v === ALL ? "" : v }));
+            }}
           >
-            <option value="">{f.label}: semua</option>
-            {f.options.map((o) => (
-              <option key={o.value} value={o.value}>
-                {o.label}
-              </option>
-            ))}
-          </select>
+            <SelectTrigger size="sm" className="w-40">
+              <SelectValue placeholder={f.label} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={ALL}>{f.label}: semua</SelectItem>
+              {f.options.map((o) => (
+                <SelectItem key={o.value} value={o.value}>
+                  {o.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         ))}
         {sorts.length > 0 && (
-          <select value={sort} onChange={(e) => reset(setSort)(e.target.value)}>
-            <option value="">Urut: default</option>
-            {sorts.map((s) => (
-              <option key={s.value} value={s.value}>
-                {s.label}
-              </option>
-            ))}
-          </select>
+          <Select
+            value={sort || ALL}
+            onValueChange={(v) => {
+              setPage(1);
+              setSort(v === ALL ? "" : v);
+            }}
+          >
+            <SelectTrigger size="sm" className="w-40">
+              <SelectValue placeholder="Urut" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={ALL}>Urut: default</SelectItem>
+              {sorts.map((s) => (
+                <SelectItem key={s.value} value={s.value}>
+                  {s.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         )}
         {meta && (
-          <span className="total">
+          <span className="ml-auto text-xs text-muted-foreground">
             {meta.total} total{state === "loading" ? " · memuat…" : ""}
           </span>
         )}
       </div>
 
       {state === "error" ? (
-        <p className="note err">
-          Gagal memuat.{" "}
-          <button type="button" onClick={load}>
+        <div className="flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm">
+          Gagal memuat.
+          <Button size="sm" variant="outline" onClick={load}>
             Coba lagi
-          </button>
-        </p>
+          </Button>
+        </div>
       ) : (
-        <table>
-          <thead>
-            <tr>
-              {columns.map((c) => (
-                <th key={c.header}>{c.header}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {items.length === 0 && state === "ready" && (
-              <tr>
-                <td colSpan={columns.length}>Tidak ada data.</td>
-              </tr>
-            )}
-            {items.map((row) => (
-              <tr key={rowKey(row)}>
+        <div className="overflow-x-auto rounded-lg border">
+          <Table>
+            <TableHeader>
+              <TableRow>
                 {columns.map((c) => (
-                  <td key={c.header}>{c.cell(row, load)}</td>
+                  <TableHead key={c.header}>{c.header}</TableHead>
                 ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {items.length === 0 && state === "ready" && (
+                <TableRow>
+                  <TableCell colSpan={columns.length} className="text-center text-muted-foreground">
+                    Tidak ada data.
+                  </TableCell>
+                </TableRow>
+              )}
+              {items.map((row) => (
+                <TableRow key={rowKey(row)}>
+                  {columns.map((c) => (
+                    <TableCell key={c.header}>{c.cell(row, load)}</TableCell>
+                  ))}
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       )}
 
       {meta && (
-        <div className="pager">
-          <button
-            type="button"
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
-            disabled={page <= 1}
-          >
-            ‹ Prev
-          </button>
+        <div className="flex items-center justify-end gap-3 text-xs text-muted-foreground">
           <span>
             Hal {meta.page} / {meta.totalPages}
           </span>
-          <button type="button" onClick={() => setPage((p) => p + 1)} disabled={!meta.hasMore}>
-            Next ›
-          </button>
+          <Button
+            size="icon-xs"
+            variant="outline"
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            disabled={page <= 1}
+          >
+            <ChevronLeft />
+          </Button>
+          <Button
+            size="icon-xs"
+            variant="outline"
+            onClick={() => setPage((p) => p + 1)}
+            disabled={!meta.hasMore}
+          >
+            <ChevronRight />
+          </Button>
         </div>
       )}
     </div>

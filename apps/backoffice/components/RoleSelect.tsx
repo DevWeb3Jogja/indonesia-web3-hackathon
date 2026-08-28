@@ -2,6 +2,14 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { toast } from "sonner";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const ROLES = ["participant", "judge", "admin"] as const;
 
@@ -29,21 +37,27 @@ export default function RoleSelect({
     });
     setBusy(false);
     if (res.ok) {
+      toast.success(`Role → ${next}`);
       onChanged?.();
       router.refresh();
     } else {
       setValue(prev);
-      alert((await res.json().catch(() => null))?.error ?? "Gagal ubah role");
+      toast.error((await res.json().catch(() => null))?.error ?? "Gagal ubah role");
     }
   }
 
   return (
-    <select value={value} onChange={(e) => change(e.target.value)} disabled={busy}>
-      {ROLES.map((r) => (
-        <option key={r} value={r}>
-          {r}
-        </option>
-      ))}
-    </select>
+    <Select value={value} onValueChange={change} disabled={busy}>
+      <SelectTrigger size="sm" className="w-32">
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        {ROLES.map((r) => (
+          <SelectItem key={r} value={r}>
+            {r}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
   );
 }

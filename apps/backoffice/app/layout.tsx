@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { ThemeProvider } from "@/components/theme-provider";
+import { Toaster } from "@/components/ui/sonner";
 import Web3Provider from "@/components/Web3Provider";
 
 export const metadata: Metadata = {
@@ -9,9 +11,17 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="id">
+    <html lang="id" suppressHydrationWarning>
       <body>
-        <Web3Provider>{children}</Web3Provider>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="light"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <Web3Provider>{children}</Web3Provider>
+          <Toaster />
+        </ThemeProvider>
       </body>
     </html>
   );

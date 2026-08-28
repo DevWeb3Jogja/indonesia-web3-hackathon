@@ -2,12 +2,22 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { toast } from "sonner";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface Option {
   projectId: string;
   name: string;
   avgScore: number;
 }
+
+const NONE = "__none__";
 
 export default function WinnerPicker({
   prizeId,
@@ -19,7 +29,7 @@ export default function WinnerPicker({
   options: Option[];
 }) {
   const router = useRouter();
-  const [value, setValue] = useState(current ?? "");
+  const [value, setValue] = useState(current ?? NONE);
   const [busy, setBusy] = useState(false);
 
   async function change(next: string) {
@@ -29,24 +39,31 @@ export default function WinnerPicker({
     const res = await fetch("/api/admin/winners", {
       method: "PUT",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ prizeId, projectId: next || null }),
+      body: JSON.stringify({ prizeId, projectId: next === NONE ? null : next }),
     });
     setBusy(false);
-    if (res.ok) router.refresh();
-    else {
+    if (res.ok) {
+      toast.success("Pemenang diperbarui");
+      router.refresh();
+    } else {
       setValue(prev);
-      alert((await res.json().catch(() => null))?.error ?? "Gagal");
+      toast.error((await res.json().catch(() => null))?.error ?? "Gagal");
     }
   }
 
   return (
-    <select value={value} onChange={(e) => change(e.target.value)} disabled={busy}>
-      <option value="">— belum ada —</option>
-      {options.map((o) => (
-        <option key={o.projectId} value={o.projectId}>
-          {o.name} ({o.avgScore.toFixed(1)})
-        </option>
-      ))}
-    </select>
+    <Select value={value} onValueChange={change} disabled={busy}>
+      <SelectTrigger size="sm" className="w-64">
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value={NONE}>— belum ada —</SelectItem>
+        {options.map((o) => (
+          <SelectItem key={o.projectId} value={o.projectId}>
+            {o.name} ({o.avgScore.toFixed(1)})
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
   );
 }
