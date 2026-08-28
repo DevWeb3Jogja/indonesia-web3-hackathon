@@ -232,7 +232,15 @@
     "submitCta": "Submit project",
     "count": "project terdaftar",
     "by": "by",
-    "solo": "Solo"
+    "solo": "Solo",
+    "sortLabel": "Urutkan",
+    "sortNewest": "Terbaru",
+    "sortOldest": "Terlama",
+    "sortName": "Nama (A-Z)",
+    "prev": "Sebelumnya",
+    "next": "Berikutnya",
+    "pageOf": "Halaman {page} dari {total}",
+    "loading": "Memuat…"
   },
   "projectDetail": {
     "back": "← Semua projects",

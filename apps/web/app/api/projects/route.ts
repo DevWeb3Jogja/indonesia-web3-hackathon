@@ -5,8 +5,9 @@ import {
   createProject,
   getCurrentHackathon,
   getMyTeam,
-  listSubmittedProjects,
+  listProjectsPaged,
   ProjectError,
+  type ProjectSort,
   rateLimit,
 } from "@iw3h/db";
 import { NextResponse } from "next/server";
@@ -17,12 +18,27 @@ import type { NetworkId } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
-/** Galeri publik — project ter-submit (tanpa auth). */
-export async function GET() {
+const SORTS: ProjectSort[] = ["newest", "oldest", "name"];
+
+/** Galeri publik — project ter-submit (tanpa auth), paginated + search/filter/sort. */
+export async function GET(req: Request) {
   const hackathon = await getCurrentHackathon(db);
-  if (!hackathon) return NextResponse.json({ items: [] });
-  const projects = await listSubmittedProjects(db, hackathon.id);
-  const items = projects.map((p) => ({
+  const emptyMeta = { page: 1, limit: 12, total: 0, totalPages: 1 };
+  if (!hackathon) return NextResponse.json({ items: [], meta: emptyMeta });
+
+  const sp = new URL(req.url).searchParams;
+  const sortParam = sp.get("sort");
+  const sort = SORTS.includes(sortParam as ProjectSort) ? (sortParam as ProjectSort) : "newest";
+
+  const { items, meta } = await listProjectsPaged(db, hackathon.id, {
+    page: Number(sp.get("page")) || 1,
+    limit: Number(sp.get("limit")) || 12,
+    q: sp.get("q") ?? undefined,
+    track: sp.get("track") ?? undefined,
+    sort,
+  });
+
+  const cards = items.map((p) => ({
     id: p.id,
     name: p.name,
     tagline: p.tagline ?? "",
@@ -32,7 +48,7 @@ export async function GET() {
   }));
   // Cache di CDN 30s — endpoint publik read-only, lindungi DB dari hammering (DoS).
   return NextResponse.json(
-    { items },
+    { items: cards, meta },
     { headers: { "Cache-Control": "public, s-maxage=30, stale-while-revalidate=60" } }
   );
 }

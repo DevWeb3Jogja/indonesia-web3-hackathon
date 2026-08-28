@@ -1,5 +1,5 @@
 import { randomBytes } from "node:crypto";
-import { and, desc, eq, inArray, isNull } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, isNull, or, sql } from "drizzle-orm";
 import type { Db } from "./client";
 import { projects, projectTracks, teamMembers, teams, tracks } from "./schema";
 import { getMyTeam } from "./teams";
@@ -203,4 +203,74 @@ export async function listSubmittedProjects(db: Db, hackathonId: string): Promis
     .where(and(eq(projects.hackathonId, hackathonId), eq(projects.status, "submitted")))
     .orderBy(desc(projects.submittedAt));
   return Promise.all(rows.map((r) => hydrate(db, r)));
+}
+
+export type ProjectSort = "newest" | "oldest" | "name";
+export const PROJECT_SORTS: ProjectSort[] = ["newest", "oldest", "name"];
+
+export interface ProjectListOpts {
+  page?: number;
+  limit?: number;
+  q?: string;
+  track?: string;
+  sort?: ProjectSort;
+}
+
+export interface ProjectListResult {
+  items: ProjectFull[];
+  meta: { page: number; limit: number; total: number; totalPages: number };
+}
+
+/** Galeri publik dengan pagination + search + filter track + sort (server-side). */
+export async function listProjectsPaged(
+  db: Db,
+  hackathonId: string,
+  opts: ProjectListOpts = {}
+): Promise<ProjectListResult> {
+  const page = Math.max(1, Math.trunc(opts.page ?? 1));
+  const limit = Math.min(48, Math.max(1, Math.trunc(opts.limit ?? 12)));
+
+  const conds = [eq(projects.hackathonId, hackathonId), eq(projects.status, "submitted")];
+  const q = opts.q?.trim().toLowerCase();
+  if (q) {
+    const like = `%${q}%`;
+    conds.push(
+      or(
+        sql`lower(${projects.name}) like ${like}`,
+        sql`lower(coalesce(${projects.tagline}, '')) like ${like}`
+      ) as ReturnType<typeof eq>
+    );
+  }
+  if (opts.track) {
+    conds.push(
+      sql`exists (select 1 from project_tracks pt where pt.project_id = ${projects.id} and pt.track_id = ${opts.track})` as ReturnType<
+        typeof eq
+      >
+    );
+  }
+  const where = and(...conds);
+  const orderBy =
+    opts.sort === "oldest"
+      ? asc(projects.submittedAt)
+      : opts.sort === "name"
+        ? asc(projects.name)
+        : desc(projects.submittedAt);
+
+  const [rows, countRows] = await Promise.all([
+    db
+      .select()
+      .from(projects)
+      .where(where)
+      .orderBy(orderBy)
+      .limit(limit)
+      .offset((page - 1) * limit),
+    db.select({ n: sql<number>`count(*)` }).from(projects).where(where),
+  ]);
+
+  const total = Number(countRows[0]?.n ?? 0);
+  const items = await Promise.all(rows.map((r) => hydrate(db, r)));
+  return {
+    items,
+    meta: { page, limit, total, totalPages: Math.max(1, Math.ceil(total / limit)) },
+  };
 }

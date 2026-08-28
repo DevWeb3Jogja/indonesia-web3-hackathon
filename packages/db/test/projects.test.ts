@@ -3,6 +3,7 @@ import {
   canEditProject,
   createProject,
   getProjectForUser,
+  listProjectsPaged,
   listSubmittedProjects,
   ProjectError,
   updateProject,
@@ -151,5 +152,49 @@ describe("projects (integration)", () => {
   it("ProjectError adalah instanceof Error", async () => {
     const err = new ProjectError("not_found", "x");
     expect(err).toBeInstanceOf(Error);
+  });
+
+  describe("listProjectsPaged", () => {
+    async function seedMany(db: Awaited<ReturnType<typeof testDb>>) {
+      for (let i = 1; i <= 5; i++) {
+        await createProject(db, {
+          hackathonId: H,
+          submitterAddress: addr(i),
+          teamId: null,
+          input: { name: i === 1 ? "ZetaSwap" : `Proj ${i}`, tagline: `tagline ${i}` },
+          trackIds: [i % 2 === 0 ? "fin" : "ai"],
+        });
+      }
+    }
+
+    it("pagination + meta", async () => {
+      await seedMany(db);
+      const p1 = await listProjectsPaged(db, H, { page: 1, limit: 2 });
+      expect(p1.items).toHaveLength(2);
+      expect(p1.meta).toMatchObject({ page: 1, limit: 2, total: 5, totalPages: 3 });
+      const p3 = await listProjectsPaged(db, H, { page: 3, limit: 2 });
+      expect(p3.items).toHaveLength(1); // sisa
+    });
+
+    it("filter track", async () => {
+      await seedMany(db);
+      const fin = await listProjectsPaged(db, H, { track: "fin", limit: 50 });
+      expect(fin.meta.total).toBe(2); // proj 2,4
+      expect(fin.items.every((p) => p.trackIds.includes("fin"))).toBe(true);
+    });
+
+    it("search nama/tagline", async () => {
+      await seedMany(db);
+      const r = await listProjectsPaged(db, H, { q: "zeta" });
+      expect(r.meta.total).toBe(1);
+      expect(r.items[0].name).toBe("ZetaSwap");
+    });
+
+    it("sort name asc", async () => {
+      await seedMany(db);
+      const r = await listProjectsPaged(db, H, { sort: "name", limit: 50 });
+      const names = r.items.map((p) => p.name);
+      expect(names).toEqual([...names].sort());
+    });
   });
 });
