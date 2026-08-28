@@ -6,9 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
-    "check:sheets": "node scripts/check-sheets.mjs",
-    "migrate:sheets": "node scripts/migrate-to-sheets.mjs"
+    "lint": "next lint"
   },
   "dependencies": {
     "@iw3h/auth": "workspace:*",
@@ -18,8 +16,6 @@
     "@reown/appkit-adapter-wagmi": "^1.8.23",
     "@reown/appkit-siwe": "^1.8.23",
     "@tanstack/react-query": "^5.102.8",
-    "google-auth-library": "^9.14.1",
-    "google-spreadsheet": "^4.1.4",
     "mermaid": "^10.9.1",
     "nanoid": "^5.0.7",
     "next": "^14.2.35",

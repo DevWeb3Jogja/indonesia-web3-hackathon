@@ -8,7 +8,8 @@ import { getDict, localePath } from "@/lib/i18n";
 import { db } from "@/lib/turso";
 import { explorerUrl, NETWORKS, type NetworkId, trackLabel } from "@/lib/types";
 
-export const dynamic = "force-dynamic";
+// ISR: cache render per-id 30s — lindungi DB dari hammering, edit tampil dalam ≤30s.
+export const revalidate = 30;
 
 interface ExtraLink {
   label: string;

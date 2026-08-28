@@ -1,4 +1,4 @@
-import { clientIp } from "@iw3h/auth";
+import { checkWalletSybil, clientIp, sybilPolicyFromEnv } from "@iw3h/auth";
 import { isContract } from "@iw3h/auth/chains";
 import {
   canSubmitProject,
@@ -30,7 +30,11 @@ export async function GET() {
     trackIds: p.trackIds,
     teamName: p.team?.name ?? null, // null = solo
   }));
-  return NextResponse.json({ items });
+  // Cache di CDN 30s — endpoint publik read-only, lindungi DB dari hammering (DoS).
+  return NextResponse.json(
+    { items },
+    { headers: { "Cache-Control": "public, s-maxage=30, stale-while-revalidate=60" } }
+  );
 }
 
 export async function POST(req: Request) {
@@ -39,6 +43,15 @@ export async function POST(req: Request) {
 
   const limit = await rateLimit(db, `project:${clientIp(req)}`, 10, 300);
   if (!limit.ok) return NextResponse.json({ error: "Terlalu banyak percobaan" }, { status: 429 });
+
+  // Anti-sybil: gate reputasi on-chain (opt-in via SYBIL_MIN_TX).
+  const sybil = await checkWalletSybil(auth.address as `0x${string}`, sybilPolicyFromEnv());
+  if (!sybil.ok) {
+    return NextResponse.json(
+      { error: "Wallet belum memenuhi aktivitas on-chain minimum untuk submit" },
+      { status: 403 }
+    );
+  }
 
   const parsed = createProjectSchema.safeParse(await req.json().catch(() => null));
   if (!parsed.success) {

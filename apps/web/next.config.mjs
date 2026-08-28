@@ -52,6 +52,15 @@ const nextConfig = {
       "@x402/extensions": false,
       "@x402/svm": false,
     };
+    // Warning benign dari library wallet (pino/@walletconnect pakai dynamic require;
+    // ox/viem modul "tempo"; @metamask/sdk nyari async-storage React Native).
+    // Bukan error — disenyapkan supaya output build bersih & masalah nyata kelihatan.
+    config.ignoreWarnings = [
+      ...(config.ignoreWarnings ?? []),
+      { message: /Critical dependency: the request of a dependency is an expression/ },
+      { message: /Can't resolve '@react-native-async-storage\/async-storage'/ },
+      { message: /Can't resolve 'pino-pretty'/ },
+    ];
     return config;
   },
 };
