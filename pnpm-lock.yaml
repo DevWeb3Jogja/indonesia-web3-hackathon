@@ -257,9 +257,6 @@ importers:
       autoprefixer:
         specifier: ^10.5.4
         version: 10.5.4(postcss@8.5.26)
-      drizzle-orm:
-        specifier: ^0.45.2
-        version: 0.45.2(@libsql/client@0.17.4(bufferutil@4.1.0)(utf-8-validate@5.0.10))
       postcss:
         specifier: ^8.5.26
         version: 8.5.26
@@ -269,9 +266,6 @@ importers:
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
-      vitest:
-        specifier: ^4.1.11
-        version: 4.1.11(@types/node@26.4.0)(vite@7.3.6(@types/node@26.4.0)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.23.12))
 
   packages/auth:
     dependencies:
