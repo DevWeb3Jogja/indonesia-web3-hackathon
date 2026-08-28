@@ -5,6 +5,7 @@ import {
   createProject,
   getCurrentHackathon,
   getMyTeam,
+  listSubmittedProjects,
   ProjectError,
   rateLimit,
 } from "@iw3h/db";
@@ -15,6 +16,22 @@ import { db } from "@/lib/turso";
 import type { NetworkId } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
+
+/** Galeri publik — project ter-submit (tanpa auth). */
+export async function GET() {
+  const hackathon = await getCurrentHackathon(db);
+  if (!hackathon) return NextResponse.json({ items: [] });
+  const projects = await listSubmittedProjects(db, hackathon.id);
+  const items = projects.map((p) => ({
+    id: p.id,
+    name: p.name,
+    tagline: p.tagline ?? "",
+    logoUrl: p.logoUrl ?? "",
+    trackIds: p.trackIds,
+    teamName: p.team?.name ?? null, // null = solo
+  }));
+  return NextResponse.json({ items });
+}
 
 export async function POST(req: Request) {
   const auth = await requireAuth();

@@ -231,7 +231,8 @@
     "noResultDesc": "Try changing the filter or your search terms.",
     "submitCta": "Submit project",
     "count": "projects registered",
-    "by": "by"
+    "by": "by",
+    "solo": "Solo"
   },
   "projectDetail": {
     "back": "← All projects",
@@ -250,7 +251,9 @@
     "social": "Social",
     "submitted": "Submitted",
     "lastEdit": "Last edit",
-    "by": "by"
+    "by": "by",
+    "solo": "Solo builder",
+    "viewProfile": "Profile"
   },
   "submit": {
     "metaTitle": "Submit",
