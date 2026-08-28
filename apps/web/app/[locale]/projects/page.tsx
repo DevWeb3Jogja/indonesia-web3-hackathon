@@ -2,11 +2,15 @@ import type { Metadata } from "next";
 import ProjectsBrowser from "@/components/ProjectsBrowser";
 import { getDict } from "@/lib/i18n";
 
-export function generateMetadata({ params }: { params: { locale: string } }): Metadata {
+export async function generateMetadata(props: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const params = await props.params;
   return { title: getDict(params.locale).projects.metaTitle };
 }
 
-export default function ProjectsPage({ params }: { params: { locale: string } }) {
+export default async function ProjectsPage(props: { params: Promise<{ locale: string }> }) {
+  const params = await props.params;
   const t = getDict(params.locale).projects;
 
   return (

@@ -71,7 +71,8 @@ function StatCard({
   );
 }
 
-export default function HomePage({ params }: { params: { locale: string } }) {
+export default async function HomePage(props: { params: Promise<{ locale: string }> }) {
+  const params = await props.params;
   const dict = getDict(params.locale);
   const t = dict.home;
   const p = (path: string) => localePath(params.locale, path);

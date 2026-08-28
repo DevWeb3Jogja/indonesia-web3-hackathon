@@ -3,7 +3,10 @@ import Link from "next/link";
 import { ArrowUpRight, Panel } from "@/components/ui";
 import { getDict, localePath } from "@/lib/i18n";
 
-export function generateMetadata({ params }: { params: { locale: string } }): Metadata {
+export async function generateMetadata(props: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const params = await props.params;
   return { title: getDict(params.locale).prizes.metaTitle };
 }
 
@@ -15,7 +18,8 @@ const TRACKS = [
 
 const AMOUNTS = [600, 400, 300];
 
-export default function PrizesPage({ params }: { params: { locale: string } }) {
+export default async function PrizesPage(props: { params: Promise<{ locale: string }> }) {
+  const params = await props.params;
   const t = getDict(params.locale).prizes;
   const places = t.places.map((label, i) => ({ label, amount: AMOUNTS[i] }));
 

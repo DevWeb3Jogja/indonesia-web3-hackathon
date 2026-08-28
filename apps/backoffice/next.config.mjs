@@ -25,24 +25,32 @@ const securityHeaders = [
 const nextConfig = {
   reactStrictMode: true,
   transpilePackages: ["@iw3h/db", "@iw3h/auth"],
-  experimental: {
-    serverComponentsExternalPackages: ["@libsql/client", "libsql"],
-  },
+  // Next 16: pindah dari experimental.serverComponentsExternalPackages.
+  serverExternalPackages: ["@libsql/client", "libsql"],
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },
+  // Pakai --webpack (script) — lihat catatan di apps/web/next.config.mjs.
   webpack: (config, { isServer }) => {
     if (isServer) {
       config.externals.push("@libsql/client", "libsql");
     }
-    // Lihat catatan di apps/web/next.config.mjs.
     config.resolve.alias = {
       ...config.resolve.alias,
       "@x402/core": false,
+      "@x402/core/client": false,
       "@x402/evm": false,
+      "@x402/evm/exact/client": false,
+      "@x402/evm/upto/client": false,
       "@x402/extensions": false,
       "@x402/svm": false,
     };
+    config.ignoreWarnings = [
+      ...(config.ignoreWarnings ?? []),
+      { message: /Critical dependency: the request of a dependency is an expression/ },
+      { message: /Can't resolve '@react-native-async-storage\/async-storage'/ },
+      { message: /Can't resolve 'pino-pretty'/ },
+    ];
     return config;
   },
 };

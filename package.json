@@ -2,7 +2,7 @@
   "name": "indonesia-web3-hackathon",
   "version": "1.0.0",
   "private": true,
-  "packageManager": "pnpm@10.20.0",
+  "packageManager": "pnpm@11.24.0",
   "scripts": {
     "dev": "turbo dev",
     "build": "turbo build",
@@ -14,8 +14,8 @@
     "typecheck": "turbo typecheck"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.2.0",
+    "@biomejs/biome": "^2.5.11",
     "husky": "^9.1.7",
-    "turbo": "^2.5.0"
+    "turbo": "^2.10.12"
   }
 }
