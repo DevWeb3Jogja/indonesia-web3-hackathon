@@ -69,7 +69,7 @@ export default async function HomePage(props: { params: Promise<{ locale: string
         trustPill="Co-hosted by Binance Academy · BNB Chain"
         headline={[t.title1, t.title2]}
         subtitle={t.subtitle}
-        primary={{ label: t.cta, href: p("/submit") }}
+        primary={{ label: t.cta, href: p("/my") }}
         secondary={{ label: t.ctaRegister, href: REGISTER_URL }}
         stats={[
           { icon: "$", target: 5000, prefix: "$", label: "Prize pool" },

@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import type { Dict } from "@/lib/i18n";
 import { projectId } from "@/lib/web3";
 import ConnectWalletButton from "./ConnectWalletButton";
+import { GeneratedAvatar } from "./GeneratedAvatar";
 import { Alert, Panel } from "./ui";
 
 type T = Dict["profile"];
@@ -147,7 +148,10 @@ function Inner({ t }: { t: T }) {
 
   return (
     <form onSubmit={save} className="max-w-2xl space-y-6">
-      <div className="flex flex-wrap gap-x-8 gap-y-2 border-y border-teal/15 py-4">
+      <div className="flex flex-wrap items-center gap-x-6 gap-y-2 border-y border-teal/15 py-4">
+        {profile?.address && (
+          <GeneratedAvatar name={profile.address} size={48} className="chamfer-sm !rounded-lg" />
+        )}
         <div>
           <p className="label-field">{t.walletLabel}</p>
           <p className="font-mono text-sm text-ink">{profile?.address}</p>

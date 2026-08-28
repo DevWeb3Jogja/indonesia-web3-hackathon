@@ -97,7 +97,7 @@ export default function EvolveNav({ nav, logo }: { nav: Dict["nav"]; logo: strin
           <div className="ev-lang" role="group" aria-label={nav.switchLanguage}>
             {langLinks("")}
           </div>
-          <ConnectWalletButton className="ev-cta-pill" />
+          <ConnectWalletButton className="ev-cta-pill" locale={locale} />
         </div>
 
         <button
@@ -126,7 +126,7 @@ export default function EvolveNav({ nav, logo }: { nav: Dict["nav"]; logo: strin
                 </Link>
               ))}
               <div className="ev-mlang">{langLinks("")}</div>
-              <ConnectWalletButton className="ev-msignin ev-signin" />
+              <ConnectWalletButton className="ev-cta-pill ev-msignin" locale={locale} />
             </nav>
           </div>
         </>
