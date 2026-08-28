@@ -171,8 +171,8 @@ export default async function HomePage(props: { params: Promise<{ locale: string
               width={1324}
               height={562}
               sizes="(max-width: 1024px) 100vw, 1024px"
-              className="mx-auto w-full max-w-5xl opacity-80"
-              style={{ filter: "grayscale(1) brightness(1.4)" }}
+              className="mx-auto w-full max-w-5xl"
+              style={{ filter: "brightness(1.15) saturate(1.1)" }}
             />
           </div>
 
