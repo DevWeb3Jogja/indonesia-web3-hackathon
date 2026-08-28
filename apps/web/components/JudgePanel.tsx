@@ -56,16 +56,23 @@ function Gate({ t, onSignIn }: { t: T; onSignIn?: () => void }) {
 function Inner({ t }: { t: T }) {
   const { isConnected } = useAppKitAccount();
   const { open } = useAppKit();
-  const [status, setStatus] = useState<"loading" | "unauth" | "forbidden" | "ready">("loading");
+  const [status, setStatus] = useState<"loading" | "unauth" | "forbidden" | "ready" | "error">(
+    "loading"
+  );
   const [data, setData] = useState<Data | null>(null);
 
   const load = useCallback(async () => {
     setStatus("loading");
-    const res = await fetch("/api/judge/data");
-    if (res.status === 401) return setStatus("unauth");
-    if (res.status === 403) return setStatus("forbidden");
-    setData(await res.json());
-    setStatus("ready");
+    try {
+      const res = await fetch("/api/judge/data");
+      if (res.status === 401) return setStatus("unauth");
+      if (res.status === 403) return setStatus("forbidden");
+      if (!res.ok) return setStatus("error"); // 429/500/dll → jangan render data rusak
+      setData(await res.json());
+      setStatus("ready");
+    } catch {
+      setStatus("error"); // network error → tampilkan retry, bukan crash
+    }
   }, []);
   useEffect(() => {
     load();
@@ -79,6 +86,17 @@ function Inner({ t }: { t: T }) {
       <p className="flex items-center gap-2 text-sm text-ink/70">
         <Alert />
         {t.notJudge}
+      </p>
+    );
+  }
+  if (status === "error") {
+    return (
+      <p className="flex items-center gap-2 text-sm text-ink/70">
+        <Alert />
+        {t.error}
+        <button type="button" className="btn-outline ml-2" onClick={() => load()}>
+          {t.loading}
+        </button>
       </p>
     );
   }

@@ -27,6 +27,23 @@ describe("phase guards", () => {
     expect(canSubmitProject({ status: "submission", submissionClosesAt: null })).toBe(true);
   });
 
+  it("deadline date-only dianggap akhir hari (UTC)", () => {
+    const h = { status: "submission", submissionClosesAt: "2026-10-01" };
+    expect(canSubmitProject(h, at("2026-10-01T23:00:00Z"))).toBe(true); // masih hari itu
+    expect(canSubmitProject(h, at("2026-10-02T00:00:01Z"))).toBe(false); // lewat hari
+  });
+
+  it("deadline ISO dengan Z tidak double-append", () => {
+    const h = { status: "submission", submissionClosesAt: "2026-10-01T00:00:00Z" };
+    expect(canSubmitProject(h, at("2026-09-30T23:59:00Z"))).toBe(true);
+    expect(canSubmitProject(h, at("2026-10-01T00:00:01Z"))).toBe(false);
+  });
+
+  it("deadline malformed tidak diam-diam mengunci (status yang menentukan)", () => {
+    const h = { status: "submission", submissionClosesAt: "bukan-tanggal" };
+    expect(canSubmitProject(h, at("2026-10-01T00:00:00Z"))).toBe(true);
+  });
+
   it("scoring hanya saat judging, beku setelah completed", () => {
     expect(canScore({ status: "judging" })).toBe(true);
     expect(canScore({ status: "completed" })).toBe(false);

@@ -13,16 +13,14 @@ import { publicClient, SIWE_CHAIN_IDS } from "./chains";
  * ponytail: cocok untuk Vercel/Cloudflare; sesuaikan urutan header kalau proxy lain.
  */
 export function clientIp(req: Request): string {
-  const single =
-    req.headers.get("cf-connecting-ip") ??
-    req.headers.get("x-real-ip") ??
-    req.headers.get("x-vercel-forwarded-for");
-  if (single) return single.trim();
+  // Hanya percaya header yang di-set edge/proxy platform (Vercel), bukan yang
+  // bisa dikirim klien. cf-connecting-ip DIHAPUS: di luar Cloudflare ia
+  // spoofable → penyerang bisa rotasi header untuk bypass rate-limit per-IP.
+  const trusted = req.headers.get("x-vercel-forwarded-for") ?? req.headers.get("x-real-ip");
+  if (trusted) return trusted.split(",")[0].trim();
+  // Fallback (dev/platform lain): IP paling kiri = klien asli.
   const xff = req.headers.get("x-forwarded-for");
-  if (xff) {
-    const parts = xff.split(",");
-    return parts[parts.length - 1].trim();
-  }
+  if (xff) return xff.split(",")[0].trim();
   return "unknown";
 }
 

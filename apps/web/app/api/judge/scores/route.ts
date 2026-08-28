@@ -1,5 +1,12 @@
 import { clientIp } from "@iw3h/auth";
-import { canScore, getCurrentHackathon, getProjectById, rateLimit, upsertScores } from "@iw3h/db";
+import {
+  canScore,
+  getCurrentHackathon,
+  getJudgeTracks,
+  getProjectById,
+  rateLimit,
+  upsertScores,
+} from "@iw3h/db";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requireAuth } from "@/lib/session";
@@ -39,6 +46,13 @@ export async function PUT(req: Request) {
   const project = await getProjectById(db, parsed.data.projectId);
   if (project?.status !== "submitted" || project.hackathonId !== hackathon.id) {
     return NextResponse.json({ error: "Project tidak valid" }, { status: 404 });
+  }
+
+  // Otorisasi per-track: juri yang di-assign track tertentu hanya boleh menilai
+  // project di track itu (mirror filter di GET /api/judge/data). Kosong = semua.
+  const tracks = await getJudgeTracks(db, hackathon.id, auth.address);
+  if (tracks.length > 0 && !project.trackIds.some((id) => tracks.includes(id))) {
+    return NextResponse.json({ error: "Project di luar track yang kamu nilai" }, { status: 403 });
   }
 
   await upsertScores(db, parsed.data.projectId, auth.address, parsed.data.entries);

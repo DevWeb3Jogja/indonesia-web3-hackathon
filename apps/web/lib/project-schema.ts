@@ -3,7 +3,14 @@ import { NETWORKS, TRACKS } from "./types";
 
 const trackIds = TRACKS.map((t) => t.id) as [string, ...string[]];
 const networkIds = NETWORKS.map((n) => n.id) as [string, ...string[]];
-const optionalUrl = z.string().url().max(2048).nullish();
+// WAJIB https:// — z.string().url() saja lolos javascript:/data: (stored XSS saat
+// URL dirender sebagai href/src di halaman detail publik).
+const optionalUrl = z
+  .string()
+  .url()
+  .max(2048)
+  .startsWith("https://", "Harus diawali https://")
+  .nullish();
 
 /** Field project — dipakai create & update. Dipakai server (zod) dan client. */
 export const projectFields = z.object({

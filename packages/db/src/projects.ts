@@ -20,6 +20,16 @@ export class ProjectError extends Error {
   }
 }
 
+/** Cek apakah error (atau rantai .cause-nya) adalah pelanggaran UNIQUE constraint SQLite. */
+function isUniqueViolation(e: unknown): boolean {
+  let cur: unknown = e;
+  while (cur instanceof Error) {
+    if (/UNIQUE constraint|uq_project_/i.test(cur.message)) return true;
+    cur = cur.cause;
+  }
+  return false;
+}
+
 export interface ProjectInput {
   name: string;
   tagline?: string | null;
@@ -144,18 +154,28 @@ export async function createProject(
   await assertTracks(db, hackathonId, trackIds);
 
   const id = projectId();
-  await db.batch([
-    db.insert(projects).values({
-      id,
-      hackathonId,
-      teamId,
-      submitterAddress,
-      ...input,
-      status: "submitted",
-      submittedAt: new Date().toISOString(),
-    }),
-    ...trackIds.map((trackId) => db.insert(projectTracks).values({ projectId: id, trackId })),
-  ]);
+  try {
+    await db.batch([
+      db.insert(projects).values({
+        id,
+        hackathonId,
+        teamId,
+        submitterAddress,
+        ...input,
+        status: "submitted",
+        submittedAt: new Date().toISOString(),
+      }),
+      ...trackIds.map((trackId) => db.insert(projectTracks).values({ projectId: id, trackId })),
+    ]);
+  } catch (e) {
+    // Backstop unique index (uq_project_team/uq_project_solo) menang balapan
+    // TOCTOU dari cek di atas → kembalikan error yang sama, bukan 500.
+    // drizzle membungkus error libsql, jadi telusuri rantai .cause juga.
+    if (isUniqueViolation(e)) {
+      throw new ProjectError("already_has_project", "Kamu/tim sudah punya project di edisi ini");
+    }
+    throw e;
+  }
   return (await getProjectById(db, id)) as ProjectFull;
 }
 

@@ -89,6 +89,47 @@ describe("projects (integration)", () => {
     ).rejects.toMatchObject({ code: "already_has_project" });
   });
 
+  it("backstop unique index: DB tolak project kedua untuk tim yang sama (anti-race TOCTOU)", async () => {
+    const team = await createTeam(db, H, addr(1), "Rocket");
+    await createProject(db, {
+      hackathonId: H,
+      submitterAddress: addr(1),
+      teamId: team.id,
+      input: baseInput,
+      trackIds: ["ai"],
+    });
+    // Bypass cek app-level → paksa insert baris kedua utk team sama. Index harus menolak.
+    const err = await db
+      .run(
+        `INSERT INTO projects (id, hackathon_id, team_id, submitter_address, name, status) VALUES ('p_dup','${H}','${team.id}','${addr(1)}','Dup','submitted')`
+      )
+      .then(
+        () => null,
+        (e) => e
+      );
+    // drizzle membungkus error libsql → UNIQUE ada di message atau .cause.
+    expect(`${err?.message} ${err?.cause?.message}`).toMatch(/UNIQUE/i);
+  });
+
+  it("backstop unique index: DB tolak solo kedua utk (hackathon, submitter)", async () => {
+    await createProject(db, {
+      hackathonId: H,
+      submitterAddress: addr(2),
+      teamId: null,
+      input: baseInput,
+      trackIds: ["ai"],
+    });
+    const err = await db
+      .run(
+        `INSERT INTO projects (id, hackathon_id, team_id, submitter_address, name, status) VALUES ('p_dup2','${H}',NULL,'${addr(2)}','Dup','submitted')`
+      )
+      .then(
+        () => null,
+        (e) => e
+      );
+    expect(`${err?.message} ${err?.cause?.message}`).toMatch(/UNIQUE/i);
+  });
+
   it("submit untuk tim yang bukan timnya ditolak", async () => {
     const team = await createTeam(db, H, addr(1), "Rocket");
     await expect(
