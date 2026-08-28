@@ -2,6 +2,10 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 const FIELDS: { key: string; label: string; type: "text" | "number" }[] = [
   { key: "name", label: "Nama", type: "text" },
@@ -22,11 +26,9 @@ export default function HackathonSettings({ current }: { current: Record<string,
     )
   );
   const [busy, setBusy] = useState(false);
-  const [msg, setMsg] = useState<string | null>(null);
 
   async function save() {
     setBusy(true);
-    setMsg(null);
     const body: Record<string, unknown> = {};
     for (const f of FIELDS) {
       const raw = vals[f.key];
@@ -43,35 +45,37 @@ export default function HackathonSettings({ current }: { current: Record<string,
     });
     setBusy(false);
     if (res.ok) {
-      setMsg("Tersimpan.");
+      toast.success("Setting tersimpan");
       router.refresh();
     } else {
-      setMsg((await res.json().catch(() => null))?.error ?? "Gagal");
+      toast.error((await res.json().catch(() => null))?.error ?? "Gagal");
     }
   }
 
   return (
-    <section className="settings">
-      <p className="hint">
+    <div className="space-y-4">
+      <p className="text-xs text-muted-foreground">
         Deadline: format bebas — tanggal (2026-10-01) atau ISO. Kosong = tanpa deadline.
       </p>
-      <div className="grid">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {FIELDS.map((f) => (
-          <label key={f.key}>
-            <span>{f.label}</span>
-            <input
+          <div key={f.key} className="grid gap-1.5">
+            <Label htmlFor={`hs-${f.key}`} className="text-xs">
+              {f.label}
+            </Label>
+            <Input
+              id={`hs-${f.key}`}
               type={f.type === "number" ? "number" : "text"}
               value={vals[f.key]}
               onChange={(e) => setVals((s) => ({ ...s, [f.key]: e.target.value }))}
               disabled={busy}
             />
-          </label>
+          </div>
         ))}
       </div>
-      <button type="button" onClick={save} disabled={busy}>
+      <Button onClick={save} disabled={busy}>
         {busy ? "…" : "Simpan setting"}
-      </button>
-      {msg && <span className="note">{msg}</span>}
-    </section>
+      </Button>
+    </div>
   );
 }

@@ -2,6 +2,8 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 
 export default function ProjectActions({
   id,
@@ -17,7 +19,7 @@ export default function ProjectActions({
   const next = status === "disqualified" ? "submitted" : "disqualified";
 
   async function toggle() {
-    if (next === "disqualified" && !confirm("Disqualify project ini?")) return;
+    if (next === "disqualified" && !window.confirm("Disqualify project ini?")) return;
     setBusy(true);
     const res = await fetch(`/api/admin/projects/${id}/status`, {
       method: "PUT",
@@ -26,19 +28,20 @@ export default function ProjectActions({
     });
     setBusy(false);
     if (res.ok) {
+      toast.success(next === "disqualified" ? "Project didiskualifikasi" : "Project dipulihkan");
       onChanged?.();
       router.refresh();
-    } else alert((await res.json().catch(() => null))?.error ?? "Gagal");
+    } else toast.error((await res.json().catch(() => null))?.error ?? "Gagal");
   }
 
   return (
-    <button
-      type="button"
-      className={next === "disqualified" ? "danger" : ""}
+    <Button
+      variant={next === "disqualified" ? "destructive" : "outline"}
+      size="sm"
       onClick={toggle}
       disabled={busy}
     >
       {busy ? "…" : next === "disqualified" ? "Disqualify" : "Pulihkan"}
-    </button>
+    </Button>
   );
 }

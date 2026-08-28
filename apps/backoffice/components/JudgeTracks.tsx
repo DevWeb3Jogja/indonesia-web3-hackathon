@@ -2,6 +2,8 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 
 interface Track {
   id: string;
@@ -23,6 +25,7 @@ export default function JudgeTracks({
 
   async function toggle(id: string) {
     const next = sel.includes(id) ? sel.filter((t) => t !== id) : [...sel, id];
+    const prev = sel;
     setSel(next);
     setBusy(true);
     const res = await fetch("/api/admin/judge-tracks", {
@@ -33,25 +36,28 @@ export default function JudgeTracks({
     setBusy(false);
     if (res.ok) router.refresh();
     else {
-      setSel(sel);
-      alert((await res.json().catch(() => null))?.error ?? "Gagal");
+      setSel(prev);
+      toast.error((await res.json().catch(() => null))?.error ?? "Gagal");
     }
   }
 
   return (
-    <span className="tracks">
+    <div className="flex flex-wrap items-center gap-1.5">
       {tracks.map((t) => (
-        <label key={t.id} className="chip">
-          <input
-            type="checkbox"
-            checked={sel.includes(t.id)}
-            onChange={() => toggle(t.id)}
-            disabled={busy}
-          />
+        <Button
+          key={t.id}
+          type="button"
+          size="xs"
+          variant={sel.includes(t.id) ? "default" : "outline"}
+          onClick={() => toggle(t.id)}
+          disabled={busy}
+        >
           {t.name}
-        </label>
+        </Button>
       ))}
-      {sel.length === 0 && <span className="all">semua track</span>}
-    </span>
+      {sel.length === 0 && (
+        <span className="text-xs text-muted-foreground italic">semua track</span>
+      )}
+    </div>
   );
 }

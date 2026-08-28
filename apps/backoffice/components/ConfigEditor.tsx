@@ -1,7 +1,26 @@
 "use client";
 
+import { Pencil, Plus, Trash2, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 export interface FieldDef {
   key: string;
@@ -10,20 +29,18 @@ export interface FieldDef {
   options?: { value: string; label: string }[];
   placeholder?: string;
 }
-
 export interface ConfigRow {
   id: string;
   [k: string]: unknown;
 }
 
-/** Inline CRUD generik untuk entitas config (tracks/criteria/prizes). */
+const NONE = "__none__";
+
 export default function ConfigEditor({
-  title,
   endpoint,
   fields,
   items,
 }: {
-  title: string;
   endpoint: string;
   fields: FieldDef[];
   items: ConfigRow[];
@@ -33,25 +50,20 @@ export default function ConfigEditor({
   const [editing, setEditing] = useState<string | null>(null);
   const [editVals, setEditVals] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
-  const [msg, setMsg] = useState<string | null>(null);
 
   function payload(vals: Record<string, string>) {
     const out: Record<string, unknown> = {};
     for (const f of fields) {
       const raw = vals[f.key];
       if (raw === undefined) continue;
-      if (raw === "") {
-        out[f.key] = f.type === "number" ? undefined : null; // kosong = null (kecuali angka)
-      } else {
-        out[f.key] = f.type === "number" ? Number(raw) : raw;
-      }
+      if (raw === "" || raw === NONE) out[f.key] = f.type === "number" ? undefined : null;
+      else out[f.key] = f.type === "number" ? Number(raw) : raw;
     }
     return Object.fromEntries(Object.entries(out).filter(([, v]) => v !== undefined));
   }
 
   async function send(method: string, url: string, vals?: Record<string, string>) {
     setBusy(true);
-    setMsg(null);
     const res = await fetch(url, {
       method,
       headers: vals ? { "content-type": "application/json" } : undefined,
@@ -62,140 +74,152 @@ export default function ConfigEditor({
       router.refresh();
       return true;
     }
-    setMsg((await res.json().catch(() => null))?.error ?? "Gagal");
+    toast.error((await res.json().catch(() => null))?.error ?? "Gagal");
     return false;
   }
 
-  function field(f: FieldDef, value: string, onChange: (v: string) => void, key: string) {
+  async function remove(id: string) {
+    if (!window.confirm("Hapus item ini?")) return;
+    await send("DELETE", `${endpoint}/${id}`);
+  }
+
+  function cell(f: FieldDef, value: string, onChange: (v: string) => void, idPrefix: string) {
     if (f.type === "select") {
       return (
-        <select key={key} value={value} onChange={(e) => onChange(e.target.value)} disabled={busy}>
-          <option value="">—</option>
-          {f.options?.map((o) => (
-            <option key={o.value} value={o.value}>
-              {o.label}
-            </option>
-          ))}
-        </select>
+        <Select value={value || NONE} onValueChange={onChange} disabled={busy}>
+          <SelectTrigger size="sm" className="w-full min-w-32">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={NONE}>—</SelectItem>
+            {f.options?.map((o) => (
+              <SelectItem key={o.value} value={o.value}>
+                {o.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       );
     }
     return (
-      <input
-        key={key}
+      <Input
+        id={`${idPrefix}-${f.key}`}
         type={f.type === "number" ? "number" : "text"}
         value={value}
         placeholder={f.placeholder ?? f.label}
         onChange={(e) => onChange(e.target.value)}
         disabled={busy}
+        className="h-8"
       />
     );
   }
 
+  function fmt(v: unknown, f: FieldDef): string {
+    if (v == null || v === "") return "—";
+    if (f.type === "select") return f.options?.find((o) => o.value === v)?.label ?? String(v);
+    return String(v);
+  }
+
   return (
-    <section className="config">
-      <h3>{title}</h3>
-      <table>
-        <thead>
-          <tr>
+    <div className="overflow-x-auto rounded-lg border">
+      <Table>
+        <TableHeader>
+          <TableRow>
             {fields.map((f) => (
-              <th key={f.key}>{f.label}</th>
+              <TableHead key={f.key}>{f.label}</TableHead>
             ))}
-            <th>Aksi</th>
-          </tr>
-        </thead>
-        <tbody>
+            <TableHead className="w-28 text-right">Aksi</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
           {items.map((it) =>
             editing === it.id ? (
-              <tr key={it.id} className="editing">
+              <TableRow key={it.id} className="bg-muted/40">
                 {fields.map((f) => (
-                  <td key={f.key}>
-                    {field(
+                  <TableCell key={f.key}>
+                    {cell(
                       f,
                       editVals[f.key] ?? "",
                       (v) => setEditVals((s) => ({ ...s, [f.key]: v })),
-                      `${it.id}-${f.key}`
+                      it.id
                     )}
-                  </td>
+                  </TableCell>
                 ))}
-                <td>
-                  <button
-                    type="button"
-                    onClick={() => send("PUT", `${endpoint}/${it.id}`, editVals)}
-                    disabled={busy}
-                  >
-                    Simpan
-                  </button>{" "}
-                  <button type="button" onClick={() => setEditing(null)} disabled={busy}>
-                    Batal
-                  </button>
-                </td>
-              </tr>
-            ) : (
-              <tr key={it.id}>
-                {fields.map((f) => (
-                  <td key={f.key}>{fmt(it[f.key], f)}</td>
-                ))}
-                <td>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setEditing(it.id);
-                      setEditVals(
-                        Object.fromEntries(
-                          fields.map((f) => [f.key, it[f.key] == null ? "" : String(it[f.key])])
+                <TableCell className="text-right">
+                  <div className="flex justify-end gap-1">
+                    <Button
+                      size="sm"
+                      onClick={() =>
+                        send("PUT", `${endpoint}/${it.id}`, editVals).then(
+                          (ok) => ok && setEditing(null)
                         )
-                      );
-                    }}
-                    disabled={busy}
-                  >
-                    Edit
-                  </button>{" "}
-                  <button type="button" onClick={() => remove(it.id)} disabled={busy}>
-                    Hapus
-                  </button>
-                </td>
-              </tr>
+                      }
+                      disabled={busy}
+                    >
+                      Simpan
+                    </Button>
+                    <Button size="icon-xs" variant="ghost" onClick={() => setEditing(null)}>
+                      <X />
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ) : (
+              <TableRow key={it.id}>
+                {fields.map((f) => (
+                  <TableCell key={f.key}>{fmt(it[f.key], f)}</TableCell>
+                ))}
+                <TableCell className="text-right">
+                  <div className="flex justify-end gap-1">
+                    <Button
+                      size="icon-xs"
+                      variant="ghost"
+                      onClick={() => {
+                        setEditing(it.id);
+                        setEditVals(
+                          Object.fromEntries(
+                            fields.map((f) => [f.key, it[f.key] == null ? "" : String(it[f.key])])
+                          )
+                        );
+                      }}
+                      disabled={busy}
+                    >
+                      <Pencil />
+                    </Button>
+                    <Button
+                      size="icon-xs"
+                      variant="ghost"
+                      onClick={() => remove(it.id)}
+                      disabled={busy}
+                    >
+                      <Trash2 className="text-destructive" />
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
             )
           )}
-          <tr className="add">
+          <TableRow className="bg-muted/20">
             {fields.map((f) => (
-              <td key={f.key}>
-                {field(
-                  f,
-                  draft[f.key] ?? "",
-                  (v) => setDraft((s) => ({ ...s, [f.key]: v })),
-                  `add-${f.key}`
-                )}
-              </td>
+              <TableCell key={f.key}>
+                {cell(f, draft[f.key] ?? "", (v) => setDraft((s) => ({ ...s, [f.key]: v })), "add")}
+              </TableCell>
             ))}
-            <td>
-              <button
-                type="button"
+            <TableCell className="text-right">
+              <Button
+                size="sm"
                 onClick={async () => {
                   if (await send("POST", endpoint, draft)) setDraft({});
                 }}
                 disabled={busy}
               >
+                <Plus />
                 Tambah
-              </button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-      {msg && <span className="note err">{msg}</span>}
-    </section>
+              </Button>
+            </TableCell>
+          </TableRow>
+        </TableBody>
+      </Table>
+    </div>
   );
-
-  async function remove(id: string) {
-    if (typeof window !== "undefined" && !window.confirm("Hapus item ini?")) return;
-    await send("DELETE", `${endpoint}/${id}`);
-  }
-}
-
-function fmt(v: unknown, f: FieldDef): string {
-  if (v == null || v === "") return "—";
-  if (f.type === "select") {
-    return f.options?.find((o) => o.value === v)?.label ?? String(v);
-  }
-  return String(v);
 }

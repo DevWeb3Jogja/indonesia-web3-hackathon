@@ -98,6 +98,27 @@
           }
         }
       }
+    },
+    {
+      "includes": ["**/components/ui/**"],
+      "linter": {
+        "rules": {
+          "a11y": {
+            "useFocusableInteractive": "off",
+            "useSemanticElements": "off",
+            "noStaticElementInteractions": "off",
+            "noSvgWithoutTitle": "off",
+            "useKeyWithClickEvents": "off"
+          },
+          "suspicious": {
+            "noExplicitAny": "off",
+            "noArrayIndexKey": "off",
+            "noDocumentCookie": "off"
+          },
+          "complexity": { "noUselessFragments": "off" },
+          "correctness": { "useExhaustiveDependencies": "off" }
+        }
+      }
     }
   ]
 }

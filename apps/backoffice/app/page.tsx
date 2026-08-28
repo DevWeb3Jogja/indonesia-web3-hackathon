@@ -11,26 +11,37 @@ import {
   projectRankings,
 } from "@iw3h/db";
 import AuditPanel from "@/components/AuditPanel";
+import { AppSidebar } from "@/components/app-sidebar";
 import ConfigEditor from "@/components/ConfigEditor";
 import HackathonSettings from "@/components/HackathonSettings";
 import JudgeTracks from "@/components/JudgeTracks";
 import PhaseControl from "@/components/PhaseControl";
 import ProjectsPanel from "@/components/ProjectsPanel";
 import SignInGate from "@/components/SignInGate";
+import { SiteHeader } from "@/components/site-header";
 import UsersPanel from "@/components/UsersPanel";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import WinnerPicker from "@/components/WinnerPicker";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/turso";
+import { short } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
-
-const short = (a: string) => `${a.slice(0, 6)}…${a.slice(-4)}`;
 
 export default async function Dashboard() {
   const session = await auth.getSession();
   if (!session.address) return <SignInGate reason="signin" />;
 
-  // RBAC di server component: role dibaca segar dari DB setiap request.
   const user = await getUser(db, session.address);
   if (user?.role !== "admin") return <SignInGate reason="forbidden" />;
 
@@ -38,7 +49,7 @@ export default async function Dashboard() {
   const [stats, users, rankings, prizes, winners, tracks, criteria, judgeAssign] =
     await Promise.all([
       adminStats(db),
-      listUsers(db, 100), // hanya untuk daftar juri (subset kecil)
+      listUsers(db, 100),
       hackathon ? projectRankings(db, hackathon.id) : Promise.resolve([]),
       hackathon ? listPrizes(db, hackathon.id) : Promise.resolve([]),
       listWinners(db),
@@ -57,176 +68,253 @@ export default async function Dashboard() {
     avgScore: r.avgScore,
   }));
   const trackOptions = tracks.map((t) => ({ value: t.id, label: t.name }));
+  const statCards = [
+    { label: "Users", value: stats.users },
+    { label: "Registrasi", value: stats.registrations },
+    { label: "Projects", value: stats.projects },
+    { label: "Skor juri", value: stats.scores },
+  ];
 
   return (
-    <main>
-      <h1>Backoffice IW3H</h1>
-      <p>
-        Masuk sebagai <code>{short(user.address)}</code>
-      </p>
+    <SidebarProvider>
+      <AppSidebar />
+      <SidebarInset>
+        <SiteHeader address={user.address} />
+        <main className="flex-1 space-y-8 p-4 md:p-6">
+          {/* Overview */}
+          <section id="overview" className="scroll-mt-16 space-y-4">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {statCards.map((s) => (
+                <Card key={s.label}>
+                  <CardHeader className="pb-2">
+                    <CardDescription>{s.label}</CardDescription>
+                    <CardTitle className="text-3xl tabular-nums">{s.value}</CardTitle>
+                  </CardHeader>
+                </Card>
+              ))}
+            </div>
 
-      <div className="stats">
-        <div className="stat">
-          <b>{stats.users}</b>
-          <span>Users</span>
-        </div>
-        <div className="stat">
-          <b>{stats.registrations}</b>
-          <span>Registrasi</span>
-        </div>
-        <div className="stat">
-          <b>{stats.projects}</b>
-          <span>Projects</span>
-        </div>
-        <div className="stat">
-          <b>{stats.scores}</b>
-          <span>Skor juri</span>
-        </div>
-      </div>
+            {hackathon && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Fase hackathon</CardTitle>
+                  <CardDescription>
+                    {hackathon.name} · fase sekarang:{" "}
+                    <Badge variant="secondary">{hackathon.status}</Badge>
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <PhaseControl current={hackathon.status} />
+                  <div>
+                    <h3 className="mb-3 text-sm font-semibold">Setting edisi</h3>
+                    <HackathonSettings current={hackathon as unknown as Record<string, unknown>} />
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </section>
 
-      {hackathon && (
-        <>
-          <h2>Fase hackathon</h2>
-          <p>
-            {hackathon.name} · fase sekarang: <b>{hackathon.status}</b>
-          </p>
-          <PhaseControl current={hackathon.status} />
+          {/* Projects */}
+          <section id="projects" className="scroll-mt-16">
+            <Card>
+              <CardHeader>
+                <CardTitle>Projects</CardTitle>
+                <CardDescription>Semua status. Cari, filter, sort, paginasi.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ProjectsPanel />
+              </CardContent>
+            </Card>
+          </section>
 
-          <h2>Setting edisi</h2>
-          <HackathonSettings current={hackathon as unknown as Record<string, unknown>} />
-
-          <h2>Konfigurasi</h2>
-          <ConfigEditor
-            title="Tracks"
-            endpoint="/api/admin/tracks"
-            items={tracks}
-            fields={[
-              { key: "code", label: "Kode" },
-              { key: "name", label: "Nama" },
-              { key: "description", label: "Deskripsi" },
-              { key: "sort", label: "Urutan", type: "number" },
-            ]}
-          />
-          <ConfigEditor
-            title="Kriteria penilaian"
-            endpoint="/api/admin/criteria"
-            items={criteria}
-            fields={[
-              { key: "name", label: "Nama" },
-              { key: "weight", label: "Bobot", type: "number" },
-              { key: "description", label: "Deskripsi" },
-              { key: "sort", label: "Urutan", type: "number" },
-            ]}
-          />
-          <ConfigEditor
-            title="Prizes"
-            endpoint="/api/admin/prizes"
-            items={prizes}
-            fields={[
-              { key: "name", label: "Nama" },
-              { key: "amountUsd", label: "Nilai (USD)", type: "number" },
-              { key: "sponsor", label: "Sponsor" },
-              { key: "trackId", label: "Track", type: "select", options: trackOptions },
-              { key: "sort", label: "Urutan", type: "number" },
-            ]}
-          />
-        </>
-      )}
-
-      <h2>Projects</h2>
-      <ProjectsPanel />
-
-      <h2>Assign juri → track</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Juri</th>
-            <th>Track dinilai (kosong = semua)</th>
-          </tr>
-        </thead>
-        <tbody>
-          {judges.length === 0 && (
-            <tr>
-              <td colSpan={2}>Belum ada user ber-role juri. Set role di tabel Users.</td>
-            </tr>
+          {/* Config */}
+          {hackathon && (
+            <section id="config" className="scroll-mt-16 space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Tracks</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ConfigEditor
+                    endpoint="/api/admin/tracks"
+                    items={tracks}
+                    fields={[
+                      { key: "code", label: "Kode" },
+                      { key: "name", label: "Nama" },
+                      { key: "description", label: "Deskripsi" },
+                      { key: "sort", label: "Urutan", type: "number" },
+                    ]}
+                  />
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Kriteria penilaian</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ConfigEditor
+                    endpoint="/api/admin/criteria"
+                    items={criteria}
+                    fields={[
+                      { key: "name", label: "Nama" },
+                      { key: "weight", label: "Bobot", type: "number" },
+                      { key: "description", label: "Deskripsi" },
+                      { key: "sort", label: "Urutan", type: "number" },
+                    ]}
+                  />
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Prizes</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ConfigEditor
+                    endpoint="/api/admin/prizes"
+                    items={prizes}
+                    fields={[
+                      { key: "name", label: "Nama" },
+                      { key: "amountUsd", label: "Nilai (USD)", type: "number" },
+                      { key: "sponsor", label: "Sponsor" },
+                      { key: "trackId", label: "Track", type: "select", options: trackOptions },
+                      { key: "sort", label: "Urutan", type: "number" },
+                    ]}
+                  />
+                </CardContent>
+              </Card>
+            </section>
           )}
-          {judges.map((j) => (
-            <tr key={j.address}>
-              <td>
-                {j.username ?? <code>{short(j.address)}</code>} <small>({j.role})</small>
-              </td>
-              <td>
-                <JudgeTracks
-                  judgeAddress={j.address}
-                  tracks={tracks.map((t) => ({ id: t.id, name: t.name }))}
-                  assigned={tracksOf(j.address)}
-                />
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
 
-      <h2>Ranking penjurian</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>Project</th>
-            <th>Skor rata-rata</th>
-            <th>Jumlah juri</th>
-          </tr>
-        </thead>
-        <tbody>
-          {rankings.length === 0 && (
-            <tr>
-              <td colSpan={4}>Belum ada skor.</td>
-            </tr>
-          )}
-          {rankings.map((r, i) => (
-            <tr key={r.projectId}>
-              <td>{i + 1}</td>
-              <td>{r.name}</td>
-              <td>{r.judges > 0 ? r.avgScore.toFixed(2) : "—"}</td>
-              <td>{r.judges}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+          {/* Judging */}
+          <section id="judging" className="scroll-mt-16 grid gap-4 lg:grid-cols-2">
+            <Card>
+              <CardHeader>
+                <CardTitle>Assign juri → track</CardTitle>
+                <CardDescription>Kosong = juri menilai semua track.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {judges.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">
+                    Belum ada juri. Set role di tabel Users.
+                  </p>
+                ) : (
+                  <div className="space-y-3">
+                    {judges.map((j) => (
+                      <div
+                        key={j.address}
+                        className="flex flex-wrap items-center justify-between gap-2 border-b pb-3 last:border-0"
+                      >
+                        <span className="text-sm">
+                          {j.username ?? <code className="text-xs">{short(j.address)}</code>}{" "}
+                          <Badge variant="outline" className="ml-1">
+                            {j.role}
+                          </Badge>
+                        </span>
+                        <JudgeTracks
+                          judgeAddress={j.address}
+                          tracks={tracks.map((t) => ({ id: t.id, name: t.name }))}
+                          assigned={tracksOf(j.address)}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
 
-      <h2>Pemenang</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Prize</th>
-            <th>Project pemenang</th>
-          </tr>
-        </thead>
-        <tbody>
-          {prizes.length === 0 && (
-            <tr>
-              <td colSpan={2}>Belum ada prize dikonfigurasi.</td>
-            </tr>
-          )}
-          {prizes.map((pz) => (
-            <tr key={pz.id}>
-              <td>
-                {pz.name}
-                {pz.amountUsd ? ` · $${pz.amountUsd.toLocaleString()}` : ""}
-              </td>
-              <td>
-                <WinnerPicker prizeId={pz.id} current={winnerOf(pz.id)} options={rankOptions} />
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+            <Card>
+              <CardHeader>
+                <CardTitle>Ranking penjurian</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-8">#</TableHead>
+                      <TableHead>Project</TableHead>
+                      <TableHead className="text-right">Skor</TableHead>
+                      <TableHead className="text-right">Juri</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {rankings.length === 0 && (
+                      <TableRow>
+                        <TableCell colSpan={4} className="text-center text-muted-foreground">
+                          Belum ada skor.
+                        </TableCell>
+                      </TableRow>
+                    )}
+                    {rankings.map((r, i) => (
+                      <TableRow key={r.projectId}>
+                        <TableCell>{i + 1}</TableCell>
+                        <TableCell>{r.name}</TableCell>
+                        <TableCell className="text-right tabular-nums">
+                          {r.judges > 0 ? r.avgScore.toFixed(2) : "—"}
+                        </TableCell>
+                        <TableCell className="text-right tabular-nums">{r.judges}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
 
-      <h2>Users</h2>
-      <UsersPanel />
+            <Card className="lg:col-span-2">
+              <CardHeader>
+                <CardTitle>Pemenang</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {prizes.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">Belum ada prize dikonfigurasi.</p>
+                ) : (
+                  <div className="space-y-3">
+                    {prizes.map((pz) => (
+                      <div
+                        key={pz.id}
+                        className="flex flex-wrap items-center justify-between gap-2 border-b pb-3 last:border-0"
+                      >
+                        <span className="text-sm font-medium">
+                          {pz.name}
+                          {pz.amountUsd ? ` · $${pz.amountUsd.toLocaleString()}` : ""}
+                        </span>
+                        <WinnerPicker
+                          prizeId={pz.id}
+                          current={winnerOf(pz.id)}
+                          options={rankOptions}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </section>
 
-      <h2>Audit log</h2>
-      <AuditPanel />
-    </main>
+          {/* Users */}
+          <section id="users" className="scroll-mt-16">
+            <Card>
+              <CardHeader>
+                <CardTitle>Users</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <UsersPanel />
+              </CardContent>
+            </Card>
+          </section>
+
+          {/* Audit */}
+          <section id="audit" className="scroll-mt-16">
+            <Card>
+              <CardHeader>
+                <CardTitle>Audit log</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <AuditPanel />
+              </CardContent>
+            </Card>
+          </section>
+        </main>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }
