@@ -36,10 +36,13 @@ vi.mock("@/lib/session", () => ({
   },
 }));
 
-// Route handler ASLI (kode yang dites).
 import { GET as judgeData } from "@/app/api/judge/data/route";
 import { PUT as judgeScore } from "@/app/api/judge/scores/route";
+// Route handler ASLI (kode yang dites).
+import { PUT as editProject } from "@/app/api/projects/[id]/route";
 import { POST as submitProject } from "@/app/api/projects/route";
+import { POST as joinTeamRoute } from "@/app/api/teams/join/route";
+import { POST as createTeamRoute } from "@/app/api/teams/route";
 
 const login = (a: string | null) => {
   store.actor = a;
@@ -211,5 +214,79 @@ describe("POV: Judge (juri)", () => {
       jsonReq({ projectId: ids.aiId, entries: [{ criterionId: "c1", score: 8 }] })
     );
     expect(res.status).toBe(409);
+  });
+});
+
+describe("POV: Tim & edit-by-wallet", () => {
+  const editBody = { name: "Diedit anggota", tracks: ["ai-agents"] };
+  const editReq = (id: string, body: unknown = editBody) =>
+    editProject(jsonReq(body, { method: "PUT" }), { params: Promise.resolve({ id }) });
+
+  // Bentuk tim (leader addr1 + anggota addr2) lalu submit project tim. Return id-nya.
+  async function makeTeamProject() {
+    login(addr(1));
+    const created = await createTeamRoute(jsonReq({ name: "Rocket" }));
+    expect(created.status).toBe(201);
+    const code = (await created.json()).team.inviteCode as string;
+
+    login(addr(2));
+    expect((await joinTeamRoute(jsonReq({ code }))).status).toBe(200);
+
+    login(addr(1)); // leader submit project tim
+    const res = await submitProject(jsonReq({ ...validProject, mode: "team" }));
+    expect(res.status).toBe(201);
+    return (await res.json()).project.id as string;
+  }
+
+  it("submit mode team tanpa punya tim → 409", async () => {
+    login(addr(1)); // belum bikin/join tim
+    const res = await submitProject(jsonReq({ ...validProject, mode: "team" }));
+    expect(res.status).toBe(409);
+  });
+
+  it("bikin tim dua kali (user sama) → 409", async () => {
+    login(addr(1));
+    expect((await createTeamRoute(jsonReq({ name: "Rocket" }))).status).toBe(201);
+    expect((await createTeamRoute(jsonReq({ name: "Rocket 2" }))).status).toBe(409);
+  });
+
+  it("join dengan kode ngawur → 404", async () => {
+    login(addr(2));
+    expect((await joinTeamRoute(jsonReq({ code: "ZZZZ9999" }))).status).toBe(404);
+  });
+
+  it("bikin tim saat fase bukan registrasi/submission → 409", async () => {
+    await setPhase("judging");
+    login(addr(1));
+    expect((await createTeamRoute(jsonReq({ name: "Rocket" }))).status).toBe(409);
+  });
+
+  it("anggota tim mana pun boleh edit project tim (edit-by-wallet)", async () => {
+    const pid = await makeTeamProject();
+    // leader (addr1) dan anggota (addr2) → dua-duanya boleh.
+    login(addr(1));
+    expect((await editReq(pid)).status).toBe(200);
+    login(addr(2));
+    const res = await editReq(pid, { name: "Diedit anggota 2", tracks: ["finance-commerce"] });
+    expect(res.status).toBe(200);
+    expect((await res.json()).project.trackIds).toEqual(["finance-commerce"]);
+  });
+
+  it("non-anggota TIDAK boleh edit project tim → 403", async () => {
+    const pid = await makeTeamProject();
+    login(addr(4)); // bukan anggota tim
+    expect((await editReq(pid)).status).toBe(403);
+  });
+
+  it("solo: hanya submitter yang boleh edit (aiId milik addr6)", async () => {
+    login(addr(6));
+    expect((await editReq(ids.aiId)).status).toBe(200);
+    login(addr(1)); // bukan pemilik
+    expect((await editReq(ids.aiId)).status).toBe(403);
+  });
+
+  it("edit tanpa sign-in → 401", async () => {
+    login(null);
+    expect((await editReq(ids.aiId)).status).toBe(401);
   });
 });
