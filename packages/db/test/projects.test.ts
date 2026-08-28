@@ -3,9 +3,11 @@ import {
   canEditProject,
   createProject,
   getProjectForUser,
+  listAllProjects,
   listProjectsPaged,
   listSubmittedProjects,
   ProjectError,
+  setProjectStatus,
   updateProject,
 } from "../src/projects";
 import { ensureUser } from "../src/queries";
@@ -152,6 +154,23 @@ describe("projects (integration)", () => {
   it("ProjectError adalah instanceof Error", async () => {
     const err = new ProjectError("not_found", "x");
     expect(err).toBeInstanceOf(Error);
+  });
+
+  it("admin: disqualify menyembunyikan dari galeri, listAllProjects tetap tampil", async () => {
+    const p = await createProject(db, {
+      hackathonId: H,
+      submitterAddress: addr(1),
+      teamId: null,
+      input: baseInput,
+      trackIds: ["ai"],
+    });
+    await setProjectStatus(db, p.id, "disqualified");
+    expect(await listSubmittedProjects(db, H)).toHaveLength(0); // hilang dari publik
+    const all = await listAllProjects(db, H);
+    expect(all).toHaveLength(1);
+    expect(all[0].status).toBe("disqualified");
+    await setProjectStatus(db, p.id, "submitted"); // pulihkan
+    expect(await listSubmittedProjects(db, H)).toHaveLength(1);
   });
 
   describe("listProjectsPaged", () => {

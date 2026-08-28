@@ -205,6 +205,28 @@ export async function listSubmittedProjects(db: Db, hackathonId: string): Promis
   return Promise.all(rows.map((r) => hydrate(db, r)));
 }
 
+/** Admin: semua project (semua status) untuk review. */
+export async function listAllProjects(db: Db, hackathonId: string): Promise<ProjectFull[]> {
+  const rows = await db
+    .select()
+    .from(projects)
+    .where(eq(projects.hackathonId, hackathonId))
+    .orderBy(desc(projects.submittedAt));
+  return Promise.all(rows.map((r) => hydrate(db, r)));
+}
+
+/** Admin: ubah status project (mis. disqualify ↔ submitted). */
+export async function setProjectStatus(
+  db: Db,
+  id: string,
+  status: "submitted" | "disqualified"
+): Promise<void> {
+  await db
+    .update(projects)
+    .set({ status, updatedAt: new Date().toISOString() })
+    .where(eq(projects.id, id));
+}
+
 export type ProjectSort = "newest" | "oldest" | "name";
 export const PROJECT_SORTS: ProjectSort[] = ["newest", "oldest", "name"];
 

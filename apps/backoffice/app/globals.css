@@ -91,3 +91,33 @@ code {
   padding: 1px 5px;
   font-size: 12px;
 }
+
+/* Kontrol admin */
+.phase {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 8px 0 4px;
+  flex-wrap: wrap;
+}
+select {
+  padding: 6px 10px;
+  border: 1px solid #d5e2e8;
+  background: #fff;
+  font-size: 13px;
+  color: #154359;
+}
+.note {
+  font-size: 12px;
+  color: #066377;
+}
+tr.dq td {
+  opacity: 0.55;
+}
+button.danger {
+  background: #b3452f;
+}
+td button {
+  padding: 6px 12px;
+  font-size: 11px;
+}

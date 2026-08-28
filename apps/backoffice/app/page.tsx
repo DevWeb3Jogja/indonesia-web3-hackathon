@@ -1,9 +1,21 @@
-import { adminStats, getUser, listUsers, recentAuditLogs } from "@iw3h/db";
+import {
+  adminStats,
+  getCurrentHackathon,
+  getUser,
+  listAllProjects,
+  listUsers,
+  recentAuditLogs,
+} from "@iw3h/db";
+import PhaseControl from "@/components/PhaseControl";
+import ProjectActions from "@/components/ProjectActions";
+import RoleSelect from "@/components/RoleSelect";
 import SignInGate from "@/components/SignInGate";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/turso";
 
 export const dynamic = "force-dynamic";
+
+const short = (a: string) => `${a.slice(0, 6)}…${a.slice(-4)}`;
 
 export default async function Dashboard() {
   const session = await auth.getSession();
@@ -13,17 +25,19 @@ export default async function Dashboard() {
   const user = await getUser(db, session.address);
   if (user?.role !== "admin") return <SignInGate reason="forbidden" />;
 
-  const [stats, users, logs] = await Promise.all([
+  const hackathon = await getCurrentHackathon(db);
+  const [stats, users, logs, projects] = await Promise.all([
     adminStats(db),
-    listUsers(db, 50),
-    recentAuditLogs(db, 20),
+    listUsers(db, 100),
+    recentAuditLogs(db, 25),
+    hackathon ? listAllProjects(db, hackathon.id) : Promise.resolve([]),
   ]);
 
   return (
     <main>
       <h1>Backoffice IW3H</h1>
       <p>
-        Masuk sebagai <code>{user.address}</code>
+        Masuk sebagai <code>{short(user.address)}</code>
       </p>
 
       <div className="stats">
@@ -45,25 +59,66 @@ export default async function Dashboard() {
         </div>
       </div>
 
-      <h2>Users terbaru</h2>
+      {hackathon && (
+        <>
+          <h2>Fase hackathon</h2>
+          <p>
+            {hackathon.name} · fase sekarang: <b>{hackathon.status}</b>
+          </p>
+          <PhaseControl current={hackathon.status} />
+        </>
+      )}
+
+      <h2>Projects ({projects.length})</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Nama</th>
+            <th>Tim / Solo</th>
+            <th>Tracks</th>
+            <th>Status</th>
+            <th>Aksi</th>
+          </tr>
+        </thead>
+        <tbody>
+          {projects.length === 0 && (
+            <tr>
+              <td colSpan={5}>Belum ada project.</td>
+            </tr>
+          )}
+          {projects.map((p) => (
+            <tr key={p.id} className={p.status === "disqualified" ? "dq" : ""}>
+              <td>{p.name}</td>
+              <td>{p.team ? p.team.name : "Solo"}</td>
+              <td>{p.trackIds.join(", ")}</td>
+              <td>{p.status}</td>
+              <td>
+                <ProjectActions id={p.id} status={p.status} />
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      <h2>Users ({users.length})</h2>
       <table>
         <thead>
           <tr>
             <th>Address</th>
             <th>Username</th>
             <th>Role</th>
-            <th>Bergabung</th>
           </tr>
         </thead>
         <tbody>
           {users.map((u) => (
             <tr key={u.address}>
               <td>
-                <code>{u.address}</code>
+                <code>{short(u.address)}</code>
               </td>
               <td>{u.username ?? "—"}</td>
-              <td>{u.role}</td>
-              <td>{u.createdAt}</td>
+              <td>
+                <RoleSelect address={u.address} role={u.role} />
+              </td>
             </tr>
           ))}
         </tbody>
@@ -89,10 +144,10 @@ export default async function Dashboard() {
             <tr key={l.id}>
               <td>{l.createdAt}</td>
               <td>
-                <code>{l.actorAddress}</code>
+                <code>{short(l.actorAddress)}</code>
               </td>
               <td>{l.action}</td>
-              <td>{l.target ?? "—"}</td>
+              <td>{l.target ? short(l.target) : "—"}</td>
             </tr>
           ))}
         </tbody>
