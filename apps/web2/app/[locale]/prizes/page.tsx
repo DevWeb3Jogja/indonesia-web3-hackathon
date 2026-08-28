@@ -48,7 +48,7 @@ export default async function PrizesPage(props: { params: Promise<{ locale: stri
             </div>
           </Panel>
 
-          <Panel clip="chamfer-lg" tone="bg-white/60" soft>
+          <Panel clip="chamfer-lg" tone="bg-white/[0.05]" soft>
             <div className="p-8 md:p-10">
               <p className="eyebrow">{t.communityChoice}</p>
               <p className="mt-6 font-firs text-[56px] font-semibold uppercase leading-none text-ink md:text-[72px]">
@@ -82,7 +82,7 @@ export default async function PrizesPage(props: { params: Promise<{ locale: stri
                       } ${i === 0 ? "bg-teal/[0.06]" : ""}`}
                     >
                       <span className="flex items-center gap-3 text-sm text-ink/80">
-                        <span className="text-[11px] tracking-[0.18em] text-teal/60">
+                        <span className="text-[11px] tracking-[0.18em] text-teal/80">
                           {String(i + 1).padStart(2, "0")}
                         </span>
                         {p.label}

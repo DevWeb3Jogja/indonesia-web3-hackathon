@@ -101,7 +101,7 @@ export default async function ProjectDetailPage(props: {
                     href={explorerUrl(p.network as NetworkId, p.contractAddress)}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="chamfer-sm inline-flex items-center gap-2 bg-teal px-4 py-2 text-sm font-medium text-white transition hover:brightness-125"
+                    className="chamfer-sm inline-flex items-center gap-2 bg-white px-4 py-2 text-sm font-medium text-black transition hover:bg-white/90"
                   >
                     {t.contract}
                     <span className="hidden font-mono text-xs opacity-70 sm:inline">
@@ -165,7 +165,7 @@ export default async function ProjectDetailPage(props: {
             {(p.problemStatement || p.solution) && (
               <section className="grid gap-5 md:grid-cols-2">
                 {p.problemStatement && (
-                  <Panel clip="chamfer-lg" tone="bg-white/60" soft>
+                  <Panel clip="chamfer-lg" tone="bg-white/[0.05]" soft>
                     <div className="p-6 md:p-7">
                       <p className="eyebrow">{t.problem}</p>
                       <p className="mt-4 whitespace-pre-line text-sm leading-relaxed text-ink/80">
@@ -242,7 +242,7 @@ export default async function ProjectDetailPage(props: {
                 </ul>
               </div>
             </Panel>
-            <Panel clip="chamfer-lg" tone="bg-white/60" soft>
+            <Panel clip="chamfer-lg" tone="bg-white/[0.05]" soft>
               <div className="p-6 text-[10px] uppercase tracking-[0.14em] text-ink/55">
                 {p.submittedAt && (
                   <p>

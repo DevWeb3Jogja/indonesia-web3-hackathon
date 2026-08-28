@@ -75,7 +75,7 @@ export default function ProjectsBrowser({ locale, t }: { locale: string; t: Dict
                 onClick={() => setTrack(tr.id)}
                 className={`chamfer-sm px-4 py-2 text-[10px] font-medium uppercase tracking-[0.14em] transition ${
                   track === tr.id
-                    ? "bg-teal text-white"
+                    ? "bg-white text-black"
                     : "bg-white/[0.04] text-ink/70 hover:text-teal"
                 }`}
               >
@@ -115,7 +115,7 @@ export default function ProjectsBrowser({ locale, t }: { locale: string; t: Dict
           <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
             {Array.from({ length: 6 }).map((_, i) => (
               // biome-ignore lint/suspicious/noArrayIndexKey: skeleton statis, tidak pernah reorder
-              <div key={i} className="chamfer-lg h-52 animate-pulse bg-white/70" />
+              <div key={i} className="chamfer-lg h-52 animate-pulse bg-white/[0.06]" />
             ))}
           </div>
         ) : items.length === 0 ? (

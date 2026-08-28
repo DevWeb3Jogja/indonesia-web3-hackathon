@@ -16,7 +16,7 @@ export default function MarkdownEditor({ value, onChange, t, rows = 14 }: Props)
 
   const tabClass = (target: typeof tab) =>
     `chamfer-sm px-4 py-1.5 text-[11px] font-medium uppercase tracking-[0.14em] transition ${
-      tab === target ? "bg-teal text-white" : "text-ink/60 hover:text-teal"
+      tab === target ? "bg-white text-black" : "text-ink/60 hover:text-teal"
     }`;
 
   return (
@@ -30,7 +30,7 @@ export default function MarkdownEditor({ value, onChange, t, rows = 14 }: Props)
             {t.preview}
           </button>
         </div>
-        <span className="hidden pr-2 text-[10px] uppercase tracking-[0.14em] text-teal/60 sm:block">
+        <span className="hidden pr-2 text-[10px] uppercase tracking-[0.14em] text-teal/80 sm:block">
           {t.markdownHint}
         </span>
       </div>

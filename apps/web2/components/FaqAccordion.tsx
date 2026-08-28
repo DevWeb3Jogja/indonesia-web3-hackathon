@@ -22,7 +22,7 @@ export default function FaqAccordion({ items }: { items: Item[] }) {
               aria-expanded={open === i}
               className="flex w-full items-center gap-5 px-6 py-5 text-left transition hover:bg-haze"
             >
-              <span className="text-[11px] font-medium tracking-[0.18em] text-teal/60">
+              <span className="text-[11px] font-medium tracking-[0.18em] text-teal/80">
                 {String(i + 1).padStart(2, "0")}
               </span>
               <span className="flex-1 font-medium text-ink">{item.q}</span>

@@ -254,7 +254,7 @@ function Inner({ locale, t, form }: { locale: string; t: T; form: FormDict }) {
               onClick={() => setMode(m)}
               className={`chamfer-lg p-6 text-left transition ${
                 mode === m
-                  ? "bg-teal text-white"
+                  ? "bg-white text-black"
                   : "border border-teal/25 bg-white/[0.04] hover:bg-haze"
               }`}
             >
