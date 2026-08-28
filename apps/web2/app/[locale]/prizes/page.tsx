@@ -38,7 +38,7 @@ export default async function PrizesPage(props: { params: Promise<{ locale: stri
 
         {/* Penghargaan lintas track */}
         <div className="mt-14 grid gap-5 md:grid-cols-2">
-          <Panel clip="chamfer-lg">
+          <Panel clip="chamfer-lg" tone="bg-white/[0.07]" soft>
             <div className="p-8 md:p-10">
               <p className="eyebrow">{t.grandPrize}</p>
               <p className="grad-text mt-6 font-firs text-[56px] font-semibold uppercase leading-none md:text-[72px]">
@@ -48,7 +48,7 @@ export default async function PrizesPage(props: { params: Promise<{ locale: stri
             </div>
           </Panel>
 
-          <Panel clip="chamfer-lg" tone="bg-white/[0.05]" soft>
+          <Panel clip="chamfer-lg" tone="bg-white/[0.02]">
             <div className="p-8 md:p-10">
               <p className="eyebrow">{t.communityChoice}</p>
               <p className="mt-6 font-firs text-[56px] font-semibold uppercase leading-none text-ink md:text-[72px]">
@@ -62,7 +62,11 @@ export default async function PrizesPage(props: { params: Promise<{ locale: stri
         {/* Podium per track */}
         <div className="mt-5 grid gap-5 md:grid-cols-3">
           {TRACKS.map((tr) => (
-            <Panel key={tr.code} className="transition duration-200 hover:-translate-y-0.5">
+            <Panel
+              key={tr.code}
+              tone="bg-white/[0.02]"
+              className="transition duration-200 hover:-translate-y-0.5"
+            >
               <div className="p-7">
                 <div className="flex items-baseline justify-between">
                   <p className="text-[11px] font-medium uppercase tracking-[0.24em] text-teal/70">
@@ -97,7 +101,7 @@ export default async function PrizesPage(props: { params: Promise<{ locale: stri
         </div>
 
         {/* Rekap */}
-        <Panel clip="chamfer-lg" className="mt-5">
+        <Panel clip="chamfer-lg" tone="bg-white/[0.02]" className="mt-5">
           <div className="overflow-x-auto p-6 md:p-8">
             <p className="eyebrow mb-6">{t.recapTitle}</p>
             <table className="w-full min-w-[560px] text-sm">
