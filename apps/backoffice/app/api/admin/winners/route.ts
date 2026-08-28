@@ -26,7 +26,7 @@ export async function PUT(req: Request) {
   }
 
   const project = await getProjectById(db, projectId);
-  if (!project || project.status !== "submitted") {
+  if (project?.status !== "submitted") {
     return NextResponse.json({ error: "Project tidak valid" }, { status: 404 });
   }
   await setWinner(db, prizeId, projectId);

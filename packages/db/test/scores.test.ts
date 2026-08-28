@@ -4,8 +4,11 @@ import { ensureUser } from "../src/queries";
 import {
   clearWinner,
   getJudgeScores,
+  getJudgeTracks,
+  listJudgeAssignments,
   listWinners,
   projectRankings,
+  setJudgeTracks,
   setWinner,
   upsertScores,
 } from "../src/scores";
@@ -86,6 +89,21 @@ describe("scores & judging (integration)", () => {
     await expect(
       upsertScores(db, projectIds[0], judge, [{ criterionId: "c1", score: 11 }])
     ).rejects.toThrow();
+  });
+
+  it("judge tracks: set (replace) + list", async () => {
+    await db.run(
+      `INSERT INTO tracks (id, hackathon_id, code, name) VALUES ('fin','${H}','T2','Fin')`
+    );
+    await setJudgeTracks(db, H, judge, ["ai", "fin"]);
+    expect((await getJudgeTracks(db, H, judge)).sort()).toEqual(["ai", "fin"]);
+    await setJudgeTracks(db, H, judge, ["ai"]); // replace
+    expect(await getJudgeTracks(db, H, judge)).toEqual(["ai"]);
+    const all = await listJudgeAssignments(db, H);
+    expect(all).toHaveLength(1);
+    expect(all[0]).toMatchObject({ judgeAddress: judge, trackId: "ai" });
+    await setJudgeTracks(db, H, judge, []); // clear
+    expect(await getJudgeTracks(db, H, judge)).toHaveLength(0);
   });
 
   it("winner: set, replace, clear", async () => {

@@ -3,12 +3,15 @@ import {
   getCurrentHackathon,
   getUser,
   listAllProjects,
+  listJudgeAssignments,
   listPrizes,
+  listTracks,
   listUsers,
   listWinners,
   projectRankings,
   recentAuditLogs,
 } from "@iw3h/db";
+import JudgeTracks from "@/components/JudgeTracks";
 import PhaseControl from "@/components/PhaseControl";
 import ProjectActions from "@/components/ProjectActions";
 import RoleSelect from "@/components/RoleSelect";
@@ -30,15 +33,21 @@ export default async function Dashboard() {
   if (user?.role !== "admin") return <SignInGate reason="forbidden" />;
 
   const hackathon = await getCurrentHackathon(db);
-  const [stats, users, logs, projects, rankings, prizes, winners] = await Promise.all([
-    adminStats(db),
-    listUsers(db, 100),
-    recentAuditLogs(db, 25),
-    hackathon ? listAllProjects(db, hackathon.id) : Promise.resolve([]),
-    hackathon ? projectRankings(db, hackathon.id) : Promise.resolve([]),
-    hackathon ? listPrizes(db, hackathon.id) : Promise.resolve([]),
-    listWinners(db),
-  ]);
+  const [stats, users, logs, projects, rankings, prizes, winners, tracks, judgeAssign] =
+    await Promise.all([
+      adminStats(db),
+      listUsers(db, 100),
+      recentAuditLogs(db, 25),
+      hackathon ? listAllProjects(db, hackathon.id) : Promise.resolve([]),
+      hackathon ? projectRankings(db, hackathon.id) : Promise.resolve([]),
+      hackathon ? listPrizes(db, hackathon.id) : Promise.resolve([]),
+      listWinners(db),
+      hackathon ? listTracks(db, hackathon.id) : Promise.resolve([]),
+      hackathon ? listJudgeAssignments(db, hackathon.id) : Promise.resolve([]),
+    ]);
+  const judges = users.filter((u) => u.role === "judge" || u.role === "admin");
+  const tracksOf = (addr: string) =>
+    judgeAssign.filter((a) => a.judgeAddress === addr).map((a) => a.trackId);
   const winnerOf = (prizeId: string) =>
     winners.find((w) => w.prizeId === prizeId)?.projectId ?? null;
   const rankOptions = rankings.map((r) => ({
@@ -108,6 +117,37 @@ export default async function Dashboard() {
               <td>{p.status}</td>
               <td>
                 <ProjectActions id={p.id} status={p.status} />
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      <h2>Assign juri → track</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Juri</th>
+            <th>Track dinilai (kosong = semua)</th>
+          </tr>
+        </thead>
+        <tbody>
+          {judges.length === 0 && (
+            <tr>
+              <td colSpan={2}>Belum ada user ber-role juri. Set role di tabel Users.</td>
+            </tr>
+          )}
+          {judges.map((j) => (
+            <tr key={j.address}>
+              <td>
+                {j.username ?? <code>{short(j.address)}</code>} <small>({j.role})</small>
+              </td>
+              <td>
+                <JudgeTracks
+                  judgeAddress={j.address}
+                  tracks={tracks.map((t) => ({ id: t.id, name: t.name }))}
+                  assigned={tracksOf(j.address)}
+                />
               </td>
             </tr>
           ))}

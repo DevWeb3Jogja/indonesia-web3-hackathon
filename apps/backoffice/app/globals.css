@@ -121,3 +121,25 @@ td button {
   padding: 6px 12px;
   font-size: 11px;
 }
+
+.tracks {
+  display: inline-flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: #154359;
+}
+.tracks .all {
+  font-size: 11px;
+  color: #5b7684;
+  font-style: italic;
+}
+small {
+  color: #5b7684;
+}
