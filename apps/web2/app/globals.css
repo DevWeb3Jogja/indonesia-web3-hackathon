@@ -1,0 +1,245 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Skin "evolve": monokrom gelap + display font pixel. Nama class dipertahankan
+   dari web (chamfer/btn-teal/card/dst) tapi tampilannya di-restyle jadi evolve. */
+@font-face {
+  font-family: "Geist Pixel Circle";
+  src: url("/media/fonts/geist-pixel-circle.woff2") format("woff2");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  --bg: #000000;
+  --ink: #ffffff;
+  --muted: #8e8e8e;
+  --stroke: rgba(255, 255, 255, 0.16);
+  --stroke-soft: rgba(255, 255, 255, 0.08);
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+html,
+body {
+  font-family: var(--font-body), "Inter", system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: var(--bg);
+  color: var(--ink);
+}
+
+::selection {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+@layer utilities {
+  .font-firs {
+    font-family: "Geist Pixel Circle", var(--font-body), monospace;
+    letter-spacing: -0.02em;
+  }
+
+  .no-scrollbar {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* "chamfer" web = sudut potong; di evolve → sudut membulat (pill/rounded). */
+  .chamfer {
+    border-radius: 12px;
+  }
+  .chamfer-sm {
+    border-radius: 8px;
+  }
+  .chamfer-lg {
+    border-radius: 18px;
+  }
+  .clip-stat-a,
+  .clip-stat-b,
+  .clip-stat-c {
+    border-radius: 18px;
+  }
+
+  .hairline {
+    background-color: var(--stroke);
+    padding: 1px;
+  }
+  .hairline-soft {
+    background-color: var(--stroke-soft);
+    padding: 1px;
+  }
+
+  .grad-text {
+    background: linear-gradient(180deg, #ffffff 0%, #9a9a9a 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* Fade bawah section → menyatu ke hitam. */
+  .fade-haze {
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.7) 60%, #000 100%);
+  }
+
+  /* Glow putih ala evolve CTA. */
+  .glow {
+    box-shadow:
+      0 0 0 1px rgba(255, 255, 255, 0.15),
+      0 0 22px rgba(255, 255, 255, 0.22),
+      0 0 44px rgba(255, 255, 255, 0.1);
+  }
+}
+
+@layer components {
+  .eyebrow {
+    @apply text-[11px] font-medium uppercase tracking-[0.3em] text-white/50 sm:text-xs;
+  }
+
+  .page-wrap {
+    @apply mx-auto max-w-7xl px-6 pb-20 pt-28 sm:px-10 sm:pt-32;
+  }
+
+  .page-title {
+    @apply font-firs text-[38px] font-normal uppercase leading-[1] tracking-tight text-white sm:text-[52px] lg:text-[60px];
+  }
+
+  .section-title {
+    @apply font-firs text-[28px] font-normal uppercase leading-[1.05] tracking-tight text-white sm:text-[38px];
+  }
+
+  /* Primary CTA — pill putih dengan glow (evolve). */
+  .btn-teal {
+    @apply inline-flex items-center justify-center gap-2 rounded-full bg-white px-6 py-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-black transition duration-200 hover:-translate-y-px disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0;
+    box-shadow:
+      0 0 0 1px rgba(255, 255, 255, 0.15),
+      0 0 22px rgba(255, 255, 255, 0.2);
+  }
+  .btn-teal:hover:not(:disabled) {
+    box-shadow:
+      0 0 0 1px rgba(255, 255, 255, 0.25),
+      0 0 30px rgba(255, 255, 255, 0.34);
+  }
+
+  /* Secondary — pill gelap translusen. */
+  .btn-ink {
+    @apply inline-flex items-center justify-center gap-2 rounded-full border border-white/15 bg-white/10 px-6 py-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-white transition duration-200 hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .btn-outline {
+    @apply inline-flex items-center justify-center gap-2 rounded-full border border-white/25 bg-transparent px-6 py-3 text-[11px] font-medium uppercase tracking-[0.14em] text-white transition duration-200 hover:border-white/50 hover:bg-white/5;
+  }
+
+  .input-field {
+    @apply w-full rounded-lg border border-white/15 bg-white/[0.04] px-4 py-3 text-[15px] text-white outline-none transition placeholder:text-white/30 focus:border-white/40 focus:bg-white/[0.06];
+  }
+
+  .label-field {
+    @apply mb-1.5 block text-[11px] font-medium uppercase tracking-[0.14em] text-white/50;
+  }
+
+  .tag {
+    @apply inline-flex items-center rounded-full border border-white/20 px-3 py-1 text-[10px] font-medium uppercase tracking-[0.14em] text-white/80;
+  }
+
+  .link-chip {
+    @apply inline-flex items-center gap-2 rounded-full border border-white/20 px-4 py-2 text-sm font-medium text-white transition hover:border-white/50 hover:bg-white/5;
+  }
+}
+
+/* =====================================================================
+   Markdown prose (gelap)
+   ===================================================================== */
+
+.md-body {
+  @apply leading-[1.7] text-white/85;
+  word-wrap: break-word;
+}
+.md-body h1 {
+  @apply mb-4 mt-8 border-b border-white/15 pb-2 font-firs text-2xl font-normal uppercase tracking-tight text-white;
+}
+.md-body h2 {
+  @apply mb-3 mt-8 font-firs text-xl font-normal uppercase tracking-tight text-white;
+}
+.md-body h3 {
+  @apply mb-2 mt-6 font-firs text-lg font-normal text-white;
+}
+.md-body h4 {
+  @apply mb-2 mt-4 font-semibold text-white;
+}
+.md-body p {
+  @apply mb-4;
+}
+.md-body a {
+  @apply text-white underline underline-offset-2 hover:opacity-70;
+}
+.md-body ul {
+  @apply mb-4 list-disc space-y-1 pl-6;
+}
+.md-body ol {
+  @apply mb-4 list-decimal space-y-1 pl-6;
+}
+.md-body blockquote {
+  @apply mb-4 border-l-2 border-white/40 bg-white/5 px-4 py-2 italic text-white/70;
+}
+.md-body code {
+  @apply rounded bg-white/10 px-1.5 py-0.5 font-mono text-sm text-white;
+}
+.md-body pre {
+  @apply chamfer-sm mb-4 overflow-x-auto bg-white/5 p-4;
+}
+.md-body pre code {
+  @apply bg-transparent p-0 text-white;
+}
+.md-body table {
+  @apply mb-4 w-full border-collapse text-sm;
+}
+.md-body th {
+  @apply border border-white/15 bg-white/5 px-3 py-2 text-left font-semibold;
+}
+.md-body td {
+  @apply border border-white/15 px-3 py-2;
+}
+.md-body img {
+  @apply chamfer-sm my-4 max-w-full;
+}
+.md-body hr {
+  @apply my-6 border-white/15;
+}
+.md-body .mermaid-diagram {
+  @apply chamfer-sm my-6 flex justify-center overflow-x-auto border border-white/15 bg-white/5 p-4;
+}
+.md-body .mermaid-diagram svg {
+  max-width: 100%;
+  height: auto;
+}
+
+/* =====================================================================
+   Motion
+   ===================================================================== */
+
+@media (prefers-reduced-motion: no-preference) {
+  .rise {
+    opacity: 0;
+    transform: translateY(14px);
+    animation: rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+  .rise-1 {
+    animation-delay: 0.08s;
+  }
+  .rise-2 {
+    animation-delay: 0.16s;
+  }
+  .rise-3 {
+    animation-delay: 0.24s;
+  }
+}
+@keyframes rise {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
