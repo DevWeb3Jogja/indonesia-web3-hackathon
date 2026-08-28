@@ -18,21 +18,28 @@
   z-index: 40;
   display: flex;
   justify-content: center;
-  padding: 20px clamp(12px, 3vw, 28px) 0;
+  padding: 20px 0 0;
   transition: transform 0.35s var(--ev-ease);
 }
 .ev-navbar.ev-hidden {
   transform: translateY(-130%);
 }
+/* Lebar & padding samakan dengan .page-wrap (max-w-7xl px-6 sm:px-10) supaya
+   logo & CTA sejajar dengan konten. */
 .ev-navbar-inner {
   position: relative;
   width: 100%;
-  max-width: 1120px;
+  max-width: 80rem;
   height: 56px;
   display: flex;
   align-items: center;
   gap: 14px;
-  padding: 0 8px 0 18px;
+  padding: 0 24px;
+}
+@media (min-width: 640px) {
+  .ev-navbar-inner {
+    padding: 0 40px;
+  }
 }
 /* Chrome pill: transparan di atas hero, blur gelap saat sudah scroll. */
 .ev-chrome {
@@ -492,7 +499,6 @@
   }
   .ev-navbar-inner {
     justify-content: space-between;
-    padding: 0 6px;
   }
   .ev-burger {
     display: grid;
