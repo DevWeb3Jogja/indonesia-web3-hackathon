@@ -78,11 +78,14 @@ export default function HomePage({ params }: { params: { locale: string } }) {
       <section className="relative flex min-h-[calc(100dvh-24px)] flex-col overflow-hidden sm:min-h-[calc(100dvh-40px)]">
         {/* bg-haze menahan sebelum frame pertama termuat, dan tetap jadi latar
             yang layak kalau video gagal dimuat sama sekali. */}
+        {/* poster (16KB) tampil instan → LCP cepat, video 412KB menyusul. */}
         <video
           autoPlay
           loop
           muted
           playsInline
+          preload="auto"
+          poster={ASSETS.heroPoster}
           className="absolute inset-0 h-full w-full bg-haze object-cover"
           aria-hidden
         >
@@ -155,11 +158,13 @@ export default function HomePage({ params }: { params: { locale: string } }) {
             <h2 className="font-firs text-[44px] font-semibold uppercase tracking-tight text-ink sm:text-[54px]">
               {t.submissions.title}
             </h2>
+            {/* Di bawah lipatan — preload none supaya tidak menyaingi hero. */}
             <video
               autoPlay
               loop
               muted
               playsInline
+              preload="none"
               className="mt-6 h-[220px] w-[220px] object-cover sm:mt-8 sm:h-[380px] sm:w-[380px] lg:h-[460px] lg:w-[460px]"
               aria-hidden
             >
