@@ -2,7 +2,7 @@ export { type Auth, type AuthOptions, clientIp, createAuth, type SessionData } f
 export { serverEnv } from "./env";
 export {
   checkWalletSybil,
-  sybilPolicyFromEnv,
   type SybilPolicy,
   type SybilResult,
+  sybilPolicyFromEnv,
 } from "./sybil";
