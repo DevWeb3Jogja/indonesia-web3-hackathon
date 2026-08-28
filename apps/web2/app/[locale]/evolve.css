@@ -70,19 +70,18 @@
   font-weight: 500;
   font-size: clamp(12px, 1.3vw, 14px);
   letter-spacing: -0.01em;
-  color: #2e2e2e;
-  opacity: 0.55;
+  color: #4b4b4f; /* kontras AA di atas pill putih (dulu abu terlalu terang) */
   transition:
-    opacity 0.2s,
+    color 0.2s,
     background 0.2s;
 }
 .ev-nav-links a:hover {
-  opacity: 0.85;
+  color: #111;
 }
 /* Aktif = pill halus, TANPA titik 3. */
 .ev-nav-links a.active {
-  opacity: 1;
-  background: #f0f0f0;
+  color: #111;
+  background: #ededed;
 }
 .ev-div {
   flex: none;
@@ -104,7 +103,7 @@
   text-transform: uppercase;
   letter-spacing: 0.06em;
   text-decoration: none;
-  color: #8a8a8a;
+  color: #5f5f5f; /* kontras AA di atas putih */
   transition:
     background 0.2s,
     color 0.2s;
