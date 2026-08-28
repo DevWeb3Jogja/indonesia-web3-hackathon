@@ -1,4 +1,4 @@
-import { clientIp } from "@iw3h/auth";
+import { checkWalletSybil, clientIp, sybilPolicyFromEnv } from "@iw3h/auth";
 import {
   canManageTeam,
   createTeam,
@@ -37,6 +37,15 @@ export async function POST(req: Request) {
 
   const limit = await rateLimit(db, `team:${clientIp(req)}`, 10, 300);
   if (!limit.ok) return NextResponse.json({ error: "Terlalu banyak percobaan" }, { status: 429 });
+
+  // Anti-sybil: gate reputasi on-chain (opt-in via SYBIL_MIN_TX).
+  const sybil = await checkWalletSybil(auth.address as `0x${string}`, sybilPolicyFromEnv());
+  if (!sybil.ok) {
+    return NextResponse.json(
+      { error: "Wallet belum memenuhi aktivitas on-chain minimum untuk buat tim" },
+      { status: 403 }
+    );
+  }
 
   const parsed = createSchema.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: "Nama tim tidak valid" }, { status: 400 });

@@ -19,46 +19,6 @@ export const NETWORKS = [
 
 export type NetworkId = (typeof NETWORKS)[number]["id"];
 
-export interface TeamMember {
-  name: string;
-  role: string;
-  social: string; // link X/LinkedIn/Telegram
-}
-
-export interface ExtraLink {
-  label: string;
-  url: string;
-}
-
-export interface Submission {
-  id: string;
-  createdAt: string;
-  updatedAt: string;
-  projectName: string;
-  tagline: string;
-  teamName: string;
-  tracks: TrackId[];
-  contractAddress: string;
-  network: NetworkId;
-  problemStatement: string;
-  solution: string;
-  description: string; // markdown, support mermaid
-  githubUrl: string;
-  demoVideoUrl: string;
-  demoUrl: string;
-  teamMembers: TeamMember[];
-  extraLinks: ExtraLink[];
-  email: string;
-  logoUrl: string;
-}
-
-/** Submission plus secret hash, never sent to client */
-export interface StoredSubmission extends Submission {
-  editCodeHash: string;
-}
-
-export type SubmissionInput = Omit<Submission, "id" | "createdAt" | "updatedAt">;
-
 /** Bentuk kartu project dari Turso untuk galeri publik (GET /api/projects). */
 export interface PublicProjectCard {
   id: string;
