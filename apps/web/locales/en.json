@@ -232,7 +232,15 @@
     "submitCta": "Submit project",
     "count": "projects registered",
     "by": "by",
-    "solo": "Solo"
+    "solo": "Solo",
+    "sortLabel": "Sort",
+    "sortNewest": "Newest",
+    "sortOldest": "Oldest",
+    "sortName": "Name (A-Z)",
+    "prev": "Previous",
+    "next": "Next",
+    "pageOf": "Page {page} of {total}",
+    "loading": "Loading…"
   },
   "projectDetail": {
     "back": "← All projects",
