@@ -1,6 +1,7 @@
 import { desc, eq, inArray, sql } from "drizzle-orm";
 import type { Db } from "./client";
-import { auditLogs, projects, registrations, scores, users } from "./schema";
+import type { HackathonPhase } from "./phase";
+import { auditLogs, hackathons, projects, registrations, scores, users } from "./schema";
 
 export type Role = "participant" | "judge" | "admin";
 
@@ -71,6 +72,18 @@ export async function setUserRole(db: Db, address: string, role: Role) {
     .update(users)
     .set({ role, updatedAt: sql`(datetime('now'))` })
     .where(eq(users.address, address));
+}
+
+export const HACKATHON_PHASES: HackathonPhase[] = [
+  "draft",
+  "registration",
+  "submission",
+  "judging",
+  "completed",
+];
+
+export async function setHackathonStatus(db: Db, hackathonId: string, status: HackathonPhase) {
+  await db.update(hackathons).set({ status }).where(eq(hackathons.id, hackathonId));
 }
 
 export async function adminStats(db: Db) {
