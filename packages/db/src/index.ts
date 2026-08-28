@@ -1,4 +1,6 @@
 export { createDb, type Db } from "./client";
+export * from "./config";
+export * from "./paginate";
 export * from "./phase";
 export * from "./projects";
 export * from "./queries";

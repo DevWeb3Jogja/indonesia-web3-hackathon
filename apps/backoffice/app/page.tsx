@@ -2,20 +2,22 @@ import {
   adminStats,
   getCurrentHackathon,
   getUser,
-  listAllProjects,
+  listCriteria,
   listJudgeAssignments,
   listPrizes,
   listTracks,
   listUsers,
   listWinners,
   projectRankings,
-  recentAuditLogs,
 } from "@iw3h/db";
+import AuditPanel from "@/components/AuditPanel";
+import ConfigEditor from "@/components/ConfigEditor";
+import HackathonSettings from "@/components/HackathonSettings";
 import JudgeTracks from "@/components/JudgeTracks";
 import PhaseControl from "@/components/PhaseControl";
-import ProjectActions from "@/components/ProjectActions";
-import RoleSelect from "@/components/RoleSelect";
+import ProjectsPanel from "@/components/ProjectsPanel";
 import SignInGate from "@/components/SignInGate";
+import UsersPanel from "@/components/UsersPanel";
 import WinnerPicker from "@/components/WinnerPicker";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/turso";
@@ -33,16 +35,15 @@ export default async function Dashboard() {
   if (user?.role !== "admin") return <SignInGate reason="forbidden" />;
 
   const hackathon = await getCurrentHackathon(db);
-  const [stats, users, logs, projects, rankings, prizes, winners, tracks, judgeAssign] =
+  const [stats, users, rankings, prizes, winners, tracks, criteria, judgeAssign] =
     await Promise.all([
       adminStats(db),
-      listUsers(db, 100),
-      recentAuditLogs(db, 25),
-      hackathon ? listAllProjects(db, hackathon.id) : Promise.resolve([]),
+      listUsers(db, 100), // hanya untuk daftar juri (subset kecil)
       hackathon ? projectRankings(db, hackathon.id) : Promise.resolve([]),
       hackathon ? listPrizes(db, hackathon.id) : Promise.resolve([]),
       listWinners(db),
       hackathon ? listTracks(db, hackathon.id) : Promise.resolve([]),
+      hackathon ? listCriteria(db, hackathon.id) : Promise.resolve([]),
       hackathon ? listJudgeAssignments(db, hackathon.id) : Promise.resolve([]),
     ]);
   const judges = users.filter((u) => u.role === "judge" || u.role === "admin");
@@ -55,6 +56,7 @@ export default async function Dashboard() {
     name: r.name,
     avgScore: r.avgScore,
   }));
+  const trackOptions = tracks.map((t) => ({ value: t.id, label: t.name }));
 
   return (
     <main>
@@ -89,39 +91,50 @@ export default async function Dashboard() {
             {hackathon.name} · fase sekarang: <b>{hackathon.status}</b>
           </p>
           <PhaseControl current={hackathon.status} />
+
+          <h2>Setting edisi</h2>
+          <HackathonSettings current={hackathon as unknown as Record<string, unknown>} />
+
+          <h2>Konfigurasi</h2>
+          <ConfigEditor
+            title="Tracks"
+            endpoint="/api/admin/tracks"
+            items={tracks}
+            fields={[
+              { key: "code", label: "Kode" },
+              { key: "name", label: "Nama" },
+              { key: "description", label: "Deskripsi" },
+              { key: "sort", label: "Urutan", type: "number" },
+            ]}
+          />
+          <ConfigEditor
+            title="Kriteria penilaian"
+            endpoint="/api/admin/criteria"
+            items={criteria}
+            fields={[
+              { key: "name", label: "Nama" },
+              { key: "weight", label: "Bobot", type: "number" },
+              { key: "description", label: "Deskripsi" },
+              { key: "sort", label: "Urutan", type: "number" },
+            ]}
+          />
+          <ConfigEditor
+            title="Prizes"
+            endpoint="/api/admin/prizes"
+            items={prizes}
+            fields={[
+              { key: "name", label: "Nama" },
+              { key: "amountUsd", label: "Nilai (USD)", type: "number" },
+              { key: "sponsor", label: "Sponsor" },
+              { key: "trackId", label: "Track", type: "select", options: trackOptions },
+              { key: "sort", label: "Urutan", type: "number" },
+            ]}
+          />
         </>
       )}
 
-      <h2>Projects ({projects.length})</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Nama</th>
-            <th>Tim / Solo</th>
-            <th>Tracks</th>
-            <th>Status</th>
-            <th>Aksi</th>
-          </tr>
-        </thead>
-        <tbody>
-          {projects.length === 0 && (
-            <tr>
-              <td colSpan={5}>Belum ada project.</td>
-            </tr>
-          )}
-          {projects.map((p) => (
-            <tr key={p.id} className={p.status === "disqualified" ? "dq" : ""}>
-              <td>{p.name}</td>
-              <td>{p.team ? p.team.name : "Solo"}</td>
-              <td>{p.trackIds.join(", ")}</td>
-              <td>{p.status}</td>
-              <td>
-                <ProjectActions id={p.id} status={p.status} />
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <h2>Projects</h2>
+      <ProjectsPanel />
 
       <h2>Assign juri → track</h2>
       <table>
@@ -209,58 +222,11 @@ export default async function Dashboard() {
         </tbody>
       </table>
 
-      <h2>Users ({users.length})</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Address</th>
-            <th>Username</th>
-            <th>Role</th>
-          </tr>
-        </thead>
-        <tbody>
-          {users.map((u) => (
-            <tr key={u.address}>
-              <td>
-                <code>{short(u.address)}</code>
-              </td>
-              <td>{u.username ?? "—"}</td>
-              <td>
-                <RoleSelect address={u.address} role={u.role} />
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <h2>Users</h2>
+      <UsersPanel />
 
       <h2>Audit log</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Waktu</th>
-            <th>Aktor</th>
-            <th>Aksi</th>
-            <th>Target</th>
-          </tr>
-        </thead>
-        <tbody>
-          {logs.length === 0 && (
-            <tr>
-              <td colSpan={4}>Belum ada aksi tercatat.</td>
-            </tr>
-          )}
-          {logs.map((l) => (
-            <tr key={l.id}>
-              <td>{l.createdAt}</td>
-              <td>
-                <code>{short(l.actorAddress)}</code>
-              </td>
-              <td>{l.action}</td>
-              <td>{l.target ? short(l.target) : "—"}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <AuditPanel />
     </main>
   );
 }
