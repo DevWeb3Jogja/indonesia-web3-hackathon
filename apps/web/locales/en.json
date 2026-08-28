@@ -21,7 +21,8 @@
     "switchLanguage": "Switch language",
     "scrollHint": "Scroll to discover",
     "profile": "Profile",
-    "team": "Team"
+    "team": "Team",
+    "judge": "Judge"
   },
   "home": {
     "eyebrow": "$5,000 prize pool",
@@ -470,5 +471,26 @@
     "submitCta": "Submit Project",
     "errorGeneric": "Something went wrong. Try again.",
     "errorRate": "Too many requests. Wait a moment."
+  },
+  "judge": {
+    "metaTitle": "Judging",
+    "eyebrow": "Judge Panel",
+    "title1": "Score",
+    "title2": "Projects",
+    "lead": "Score 1–10 per criterion for each project. Your scores save per project.",
+    "signInTitle": "Sign in first",
+    "signInDesc": "Connect your judge wallet and sign the message.",
+    "notJudge": "This wallet is not a judge. Ask an organizer to grant the judge role, then reload.",
+    "closed": "The judging phase is not open.",
+    "loading": "Loading…",
+    "projectsCount": "projects to score",
+    "criterion": "Criterion",
+    "commentPlaceholder": "Notes (optional)…",
+    "save": "Save scores",
+    "saving": "Saving…",
+    "saved": "Saved",
+    "scored": "Scored",
+    "pickAll": "Score all criteria first",
+    "error": "Failed to save. Try again."
   }
 }

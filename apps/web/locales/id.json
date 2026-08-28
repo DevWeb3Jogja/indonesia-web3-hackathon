@@ -21,7 +21,8 @@
     "switchLanguage": "Ganti bahasa",
     "scrollHint": "Scroll untuk menjelajah",
     "profile": "Profil",
-    "team": "Tim"
+    "team": "Tim",
+    "judge": "Juri"
   },
   "home": {
     "eyebrow": "Prize pool $5,000",
@@ -470,5 +471,26 @@
     "submitCta": "Submit Project",
     "errorGeneric": "Gagal memproses. Coba lagi.",
     "errorRate": "Terlalu sering. Tunggu sebentar."
+  },
+  "judge": {
+    "metaTitle": "Penjurian",
+    "eyebrow": "Panel Juri",
+    "title1": "Nilai",
+    "title2": "Project",
+    "lead": "Beri skor 1–10 per kriteria untuk tiap project. Skormu tersimpan otomatis per project.",
+    "signInTitle": "Sign in dulu",
+    "signInDesc": "Hubungkan wallet juri dan tanda tangani pesan.",
+    "notJudge": "Wallet ini bukan juri. Minta organizer menetapkan role juri, lalu muat ulang.",
+    "closed": "Fase penjurian belum/ sudah tidak dibuka.",
+    "loading": "Memuat…",
+    "projectsCount": "project untuk dinilai",
+    "criterion": "Kriteria",
+    "commentPlaceholder": "Catatan (opsional)…",
+    "save": "Simpan skor",
+    "saving": "Menyimpan…",
+    "saved": "Tersimpan",
+    "scored": "Sudah dinilai",
+    "pickAll": "Isi semua kriteria dulu",
+    "error": "Gagal menyimpan. Coba lagi."
   }
 }

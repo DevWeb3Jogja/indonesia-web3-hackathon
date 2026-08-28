@@ -3,13 +3,17 @@ import {
   getCurrentHackathon,
   getUser,
   listAllProjects,
+  listPrizes,
   listUsers,
+  listWinners,
+  projectRankings,
   recentAuditLogs,
 } from "@iw3h/db";
 import PhaseControl from "@/components/PhaseControl";
 import ProjectActions from "@/components/ProjectActions";
 import RoleSelect from "@/components/RoleSelect";
 import SignInGate from "@/components/SignInGate";
+import WinnerPicker from "@/components/WinnerPicker";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/turso";
 
@@ -26,12 +30,22 @@ export default async function Dashboard() {
   if (user?.role !== "admin") return <SignInGate reason="forbidden" />;
 
   const hackathon = await getCurrentHackathon(db);
-  const [stats, users, logs, projects] = await Promise.all([
+  const [stats, users, logs, projects, rankings, prizes, winners] = await Promise.all([
     adminStats(db),
     listUsers(db, 100),
     recentAuditLogs(db, 25),
     hackathon ? listAllProjects(db, hackathon.id) : Promise.resolve([]),
+    hackathon ? projectRankings(db, hackathon.id) : Promise.resolve([]),
+    hackathon ? listPrizes(db, hackathon.id) : Promise.resolve([]),
+    listWinners(db),
   ]);
+  const winnerOf = (prizeId: string) =>
+    winners.find((w) => w.prizeId === prizeId)?.projectId ?? null;
+  const rankOptions = rankings.map((r) => ({
+    projectId: r.projectId,
+    name: r.name,
+    avgScore: r.avgScore,
+  }));
 
   return (
     <main>
@@ -94,6 +108,61 @@ export default async function Dashboard() {
               <td>{p.status}</td>
               <td>
                 <ProjectActions id={p.id} status={p.status} />
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      <h2>Ranking penjurian</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Project</th>
+            <th>Skor rata-rata</th>
+            <th>Jumlah juri</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rankings.length === 0 && (
+            <tr>
+              <td colSpan={4}>Belum ada skor.</td>
+            </tr>
+          )}
+          {rankings.map((r, i) => (
+            <tr key={r.projectId}>
+              <td>{i + 1}</td>
+              <td>{r.name}</td>
+              <td>{r.judges > 0 ? r.avgScore.toFixed(2) : "—"}</td>
+              <td>{r.judges}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      <h2>Pemenang</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Prize</th>
+            <th>Project pemenang</th>
+          </tr>
+        </thead>
+        <tbody>
+          {prizes.length === 0 && (
+            <tr>
+              <td colSpan={2}>Belum ada prize dikonfigurasi.</td>
+            </tr>
+          )}
+          {prizes.map((pz) => (
+            <tr key={pz.id}>
+              <td>
+                {pz.name}
+                {pz.amountUsd ? ` · $${pz.amountUsd.toLocaleString()}` : ""}
+              </td>
+              <td>
+                <WinnerPicker prizeId={pz.id} current={winnerOf(pz.id)} options={rankOptions} />
               </td>
             </tr>
           ))}

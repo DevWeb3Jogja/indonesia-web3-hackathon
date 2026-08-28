@@ -47,3 +47,9 @@ INSERT OR IGNORE INTO project_tracks (project_id, track_id) VALUES
   ('proj_demo_4', 'finance-commerce'),
   ('proj_demo_5', 'consumer-apps'),
   ('proj_demo_6', 'consumer-apps');
+
+-- Prizes (untuk winner selection di backoffice)
+INSERT OR IGNORE INTO prizes (id, hackathon_id, track_id, name, amount_usd, sort) VALUES
+  ('pz_grand', 'iw3h-2026', NULL, 'Grand Prize', 3000, 1),
+  ('pz_ai', 'iw3h-2026', 'ai-agents', 'Best AI Agent', 1000, 2),
+  ('pz_fin', 'iw3h-2026', 'finance-commerce', 'Best Finance', 1000, 3);
