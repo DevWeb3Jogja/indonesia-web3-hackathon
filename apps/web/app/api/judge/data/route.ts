@@ -28,7 +28,8 @@ export async function GET() {
   // { [projectId]: { [criterionId]: {score, comment} } }
   const scores: Record<string, Record<string, { score: number; comment: string | null }>> = {};
   for (const s of myScores) {
-    (scores[s.projectId] ??= {})[s.criterionId] = { score: s.score, comment: s.comment };
+    if (!scores[s.projectId]) scores[s.projectId] = {};
+    scores[s.projectId][s.criterionId] = { score: s.score, comment: s.comment };
   }
 
   return NextResponse.json({
