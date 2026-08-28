@@ -100,7 +100,7 @@ body {
   }
 
   .page-wrap {
-    @apply mx-auto max-w-7xl px-6 pb-20 pt-28 sm:px-10 sm:pt-32;
+    @apply mx-auto max-w-7xl px-6 pb-20 pt-10 sm:px-10 sm:pt-14;
   }
 
   .page-title {
