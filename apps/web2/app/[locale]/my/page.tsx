@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
-import ProjectSubmit from "@/components/ProjectSubmit";
+import Link from "next/link";
 import TeamPanel from "@/components/TeamPanel";
-import { getDict } from "@/lib/i18n";
+import { ArrowUpRight } from "@/components/ui";
+import { getDict, localePath } from "@/lib/i18n";
 
 export async function generateMetadata(props: {
   params: Promise<{ locale: string }>;
@@ -10,7 +11,7 @@ export async function generateMetadata(props: {
   return { title: getDict(params.locale).submit.metaTitle, robots: { index: false } };
 }
 
-/** "My Projects" — submit & manage project + manage team, satu tempat (khusus wallet connected). */
+/** "My Projects" — ringkas: tombol submit (→ halaman fokus /submit) + kelola tim. */
 export default async function MyPage(props: { params: Promise<{ locale: string }> }) {
   const { locale } = await props.params;
   const dict = getDict(locale);
@@ -24,10 +25,12 @@ export default async function MyPage(props: { params: Promise<{ locale: string }
           Submit and manage your project, and manage your team — all in one place.
         </p>
 
-        <section className="mt-12">
-          <h2 className="section-title mb-6">{dict.submit.title2 || "Project"}</h2>
-          <ProjectSubmit locale={locale} t={dict.psubmit} form={dict.form} />
-        </section>
+        <div className="mt-8">
+          <Link href={localePath(locale, "/submit")} className="btn-teal">
+            {dict.psubmit.openCta}
+            <ArrowUpRight />
+          </Link>
+        </div>
 
         <section className="mt-16 border-t border-white/10 pt-12">
           <h2 className="section-title mb-2">{dict.team.title2 || "Team"}</h2>

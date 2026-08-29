@@ -470,6 +470,10 @@
     "viewGallery": "View all projects",
     "savedEdit": "Changes saved.",
     "submitCta": "Submit Project",
+    "stepType": "Type",
+    "stepTeam": "Team",
+    "stepDetails": "Details",
+    "openCta": "Submit a project",
     "errorGeneric": "Something went wrong. Try again.",
     "errorRate": "Too many requests. Wait a moment."
   },

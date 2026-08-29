@@ -5,6 +5,7 @@ import "../globals.css";
 import "./evolve.css";
 import EvolveNav from "@/components/EvolveNav";
 import Footer from "@/components/Footer";
+import HideChrome from "@/components/HideChrome";
 import Web3Provider from "@/components/Web3Provider";
 import { getDict, isLocale, LOCALES } from "@/lib/i18n";
 
@@ -87,9 +88,13 @@ export default async function LocaleLayout(props: {
                 id="scroll-root"
                 className="no-scrollbar absolute inset-0 overflow-y-auto overflow-x-hidden"
               >
-                <EvolveNav nav={dict.nav} logo="/logo.png" />
+                <HideChrome>
+                  <EvolveNav nav={dict.nav} logo="/logo.png" />
+                </HideChrome>
                 {children}
-                <Footer locale={params.locale} dict={dict} />
+                <HideChrome>
+                  <Footer locale={params.locale} dict={dict} />
+                </HideChrome>
               </div>
             </div>
           </div>

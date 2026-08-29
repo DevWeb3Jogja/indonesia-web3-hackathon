@@ -470,6 +470,10 @@
     "viewGallery": "Lihat semua project",
     "savedEdit": "Perubahan tersimpan.",
     "submitCta": "Submit Project",
+    "stepType": "Tipe",
+    "stepTeam": "Tim",
+    "stepDetails": "Detail",
+    "openCta": "Kirim proyek",
     "errorGeneric": "Gagal memproses. Coba lagi.",
     "errorRate": "Terlalu sering. Tunggu sebentar."
   },
