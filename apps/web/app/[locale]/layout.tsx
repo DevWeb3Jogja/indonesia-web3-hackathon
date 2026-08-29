@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import { notFound } from "next/navigation";
 import "../globals.css";
 import "./evolve.css";
+import { GoogleAnalytics } from "@next/third-parties/google";
 import EvolveNav from "@/components/EvolveNav";
 import Footer from "@/components/Footer";
 import HideChrome from "@/components/HideChrome";
@@ -110,6 +111,7 @@ export default async function LocaleLayout(props: {
           </div>
         </Web3Provider>
       </body>
+      {process.env.NODE_ENV === "production" && <GoogleAnalytics gaId="G-LRVJKZTV5T" />}
     </html>
   );
 }

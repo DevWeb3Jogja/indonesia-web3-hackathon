@@ -4,7 +4,7 @@ import path from "node:path";
 // endpoint — persempit ke daftar domain final setelah daftar RPC produksi terkunci.
 const csp = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://challenges.cloudflare.com",
+  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://challenges.cloudflare.com https://www.googletagmanager.com",
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "font-src 'self' data: https://fonts.gstatic.com https://fonts.reown.com",
   "img-src * data: blob:",

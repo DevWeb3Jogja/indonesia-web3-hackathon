@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
 import { Panel } from "@/components/ui";
 import { getDict } from "@/lib/i18n";
+import { ogMeta } from "@/lib/og-meta";
 
 export async function generateMetadata(props: {
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const params = await props.params;
-  return { title: getDict(params.locale).prizes.metaTitle };
+  const title = getDict(params.locale).prizes.metaTitle;
+  return { title, ...ogMeta("prizes", `${title} · Indonesia Web3 Hackathon 2026`) };
 }
 
 const TRACKS = [

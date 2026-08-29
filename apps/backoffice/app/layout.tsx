@@ -6,7 +6,17 @@ import Web3Provider from "@/components/Web3Provider";
 
 export const metadata: Metadata = {
   title: "Backoffice IW3H",
+  description: "Panel admin Indonesia Web3 Hackathon 2026.",
   robots: { index: false, follow: false },
+  icons: {
+    icon: [
+      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+      { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+    ],
+    shortcut: "/favicon.ico",
+    apple: "/apple-touch-icon.png",
+  },
+  manifest: "/site.webmanifest",
 };
 
 // Terapkan tema sebelum paint (hindari flash). Server-rendered di <head> →

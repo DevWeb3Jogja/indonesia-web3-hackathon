@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
 import ProjectsBrowser from "@/components/ProjectsBrowser";
 import { getDict } from "@/lib/i18n";
+import { ogMeta } from "@/lib/og-meta";
 
 export async function generateMetadata(props: {
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const params = await props.params;
-  return { title: getDict(params.locale).projects.metaTitle };
+  const title = getDict(params.locale).projects.metaTitle;
+  return { title, ...ogMeta("projects", `${title} · Indonesia Web3 Hackathon 2026`) };
 }
 
 export default async function ProjectsPage(props: { params: Promise<{ locale: string }> }) {

@@ -26,6 +26,7 @@ ENV NODE_ENV=production \
 
 COPY --from=builder /app/apps/backoffice/.next/standalone ./
 COPY --from=builder /app/apps/backoffice/.next/static ./apps/backoffice/.next/static
+COPY --from=builder /app/apps/backoffice/public ./apps/backoffice/public
 
 # Native binding libsql (musl) di-load lewat require dinamis → tak ikut ter-trace
 # ke standalone. Salin manual ke lokasi resolve-nya. Update versi kalau `libsql`
