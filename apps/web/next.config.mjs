@@ -1,3 +1,5 @@
+import path from "node:path";
+
 // CSP: connect-src masih https:/wss: menyeluruh karena WalletConnect/RPC memakai banyak
 // endpoint — persempit ke daftar domain final setelah daftar RPC produksi terkunci.
 const csp = [
@@ -30,6 +32,9 @@ const securityHeaders = [
 const nextConfig = {
   reactStrictMode: true,
   transpilePackages: ["@iw3h/db", "@iw3h/auth"],
+  // Docker (Coolify): output minimal + trace dari root monorepo.
+  output: "standalone",
+  outputFileTracingRoot: path.join(import.meta.dirname, "../.."),
   // Next 16: pindah dari experimental.serverComponentsExternalPackages.
   // libsql punya native binding — jangan dibundel.
   serverExternalPackages: ["@libsql/client", "libsql"],

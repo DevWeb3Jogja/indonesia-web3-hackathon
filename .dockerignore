@@ -1,0 +1,13 @@
+.git
+**/node_modules
+**/.next
+**/.turbo
+**/dist
+**/*.tsbuildinfo
+**/.env
+**/.env.*
+!**/.env.example
+**/AGENTS.md
+**/CLAUDE.md
+**/.DS_Store
+npm-debug.log*

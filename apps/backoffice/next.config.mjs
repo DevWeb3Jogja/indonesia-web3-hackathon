@@ -1,3 +1,5 @@
+import path from "node:path";
+
 const securityHeaders = [
   { key: "X-Frame-Options", value: "DENY" },
   { key: "X-Content-Type-Options", value: "nosniff" },
@@ -25,6 +27,9 @@ const securityHeaders = [
 const nextConfig = {
   reactStrictMode: true,
   transpilePackages: ["@iw3h/db", "@iw3h/auth"],
+  // Docker (Coolify): output minimal + trace dari root monorepo.
+  output: "standalone",
+  outputFileTracingRoot: path.join(import.meta.dirname, "../.."),
   // Next 16: pindah dari experimental.serverComponentsExternalPackages.
   serverExternalPackages: ["@libsql/client", "libsql"],
   async headers() {
