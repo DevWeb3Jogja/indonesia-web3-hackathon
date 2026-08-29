@@ -24,7 +24,6 @@ interface Profile {
 const EMPTY = {
   username: "",
   email: "",
-  avatarUrl: "",
   bio: "",
   githubUrl: "",
   twitterUrl: "",
@@ -80,7 +79,6 @@ function Inner({ t }: { t: T }) {
       setForm({
         username: data.username ?? "",
         email: data.email ?? "",
-        avatarUrl: data.avatarUrl ?? "",
         bio: data.bio ?? "",
         githubUrl: data.githubUrl ?? "",
         twitterUrl: data.twitterUrl ?? "",
@@ -172,7 +170,9 @@ function Inner({ t }: { t: T }) {
           value={form.username}
           onChange={set("username")}
           placeholder={t.usernamePlaceholder}
+          minLength={3}
           maxLength={32}
+          required
         />
         <p className="mt-1 text-[11px] text-ink/50">{t.usernameHint}</p>
       </div>
@@ -188,20 +188,7 @@ function Inner({ t }: { t: T }) {
           value={form.email}
           onChange={set("email")}
           placeholder={t.emailPlaceholder}
-        />
-      </div>
-
-      <div>
-        <label className="label-field" htmlFor="avatarUrl">
-          {t.avatarLabel}
-        </label>
-        <input
-          id="avatarUrl"
-          type="url"
-          className="input-field"
-          value={form.avatarUrl}
-          onChange={set("avatarUrl")}
-          placeholder={t.avatarPlaceholder}
+          required
         />
       </div>
 

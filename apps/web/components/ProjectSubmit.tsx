@@ -37,6 +37,7 @@ interface Mine {
   hasTeam: boolean;
   teamName: string | null;
   canSubmit: boolean;
+  profileComplete: boolean;
 }
 
 function toInitial(p: Project): ProjectData {
@@ -278,6 +279,22 @@ function Inner({ locale, t, form }: { locale: string; t: T; form: FormDict }) {
         <Alert />
         {t.closed}
       </p>
+    );
+  }
+
+  // ---------- Wajib lengkapi profil dulu ----------
+  if (!mine.profileComplete) {
+    return (
+      <Panel clip="chamfer-lg" className="max-w-md">
+        <div className="p-8">
+          <h2 className="section-title">{t.profileRequiredTitle}</h2>
+          <p className="mt-3 text-sm leading-relaxed text-ink/70">{t.profileRequiredDesc}</p>
+          <Link href={localePath(locale, "/profile")} className="btn-teal mt-6">
+            {t.profileRequiredCta}
+            <ArrowUpRight />
+          </Link>
+        </div>
+      </Panel>
     );
   }
 

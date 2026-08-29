@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 import { LOCALES } from "@/lib/locale";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://indonesia-web3-hackathon.vercel.app";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://indonesiaweb3hack.xyz";
 
 // Halaman publik (profile/team dikecualikan — butuh wallet, noindex).
 const PUBLIC_PATHS = ["", "/projects", "/prizes", "/schedule", "/faq", "/submit"];

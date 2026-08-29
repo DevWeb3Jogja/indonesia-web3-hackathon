@@ -19,7 +19,7 @@ export function generateStaticParams() {
   return LOCALES.map((locale) => ({ locale }));
 }
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://indonesia-web3-hackathon.vercel.app";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://indonesiaweb3hack.xyz";
 
 export async function generateMetadata(props: {
   params: Promise<{ locale: string }>;
@@ -40,8 +40,18 @@ export async function generateMetadata(props: {
       description: t.ogDescription,
       type: "website",
       siteName: "Indonesia Web3 Hackathon 2026",
+      url: `${SITE_URL}/${params.locale}`,
+      locale: params.locale === "id" ? "id_ID" : "en_US",
+      images: [{ url: "/og.png", width: 1200, height: 630, alt: "Indonesia Web3 Hackathon 2026" }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "Indonesia Web3 Hackathon 2026",
+      description: t.ogDescription,
+      images: ["/og.png"],
     },
     alternates: {
+      canonical: `${SITE_URL}/${params.locale}`,
       languages: Object.fromEntries(LOCALES.map((l) => [l, `/${l}`])),
     },
     icons: {

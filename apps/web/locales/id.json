@@ -474,6 +474,9 @@
     "stepTeam": "Tim",
     "stepDetails": "Detail",
     "openCta": "Kirim proyek",
+    "profileRequiredTitle": "Lengkapi profil dulu",
+    "profileRequiredDesc": "Kamu harus mengisi username dan email kontak di profil sebelum bisa submit project.",
+    "profileRequiredCta": "Lengkapi profil",
     "errorGeneric": "Gagal memproses. Coba lagi.",
     "errorRate": "Terlalu sering. Tunggu sebentar."
   },

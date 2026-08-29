@@ -474,6 +474,9 @@
     "stepTeam": "Team",
     "stepDetails": "Details",
     "openCta": "Submit a project",
+    "profileRequiredTitle": "Complete your profile first",
+    "profileRequiredDesc": "You need a username and a contact email on your profile before you can submit a project.",
+    "profileRequiredCta": "Complete profile",
     "errorGeneric": "Something went wrong. Try again.",
     "errorRate": "Too many requests. Wait a moment."
   },

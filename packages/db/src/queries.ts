@@ -23,6 +23,13 @@ export async function ensureUser(db: Db, address: string) {
   await db.insert(users).values({ address }).onConflictDoNothing();
 }
 
+/** Profil dianggap lengkap kalau username & email terisi — syarat submit project. */
+export function isProfileComplete(
+  user: { username: string | null; email: string | null } | null
+): boolean {
+  return Boolean(user?.username && user?.email);
+}
+
 export interface ProfileInput {
   username?: string | null;
   email?: string | null;

@@ -5,6 +5,8 @@ import {
   createProject,
   getCurrentHackathon,
   getMyTeam,
+  getUser,
+  isProfileComplete,
   listProjectsPaged,
   ProjectError,
   type ProjectSort,
@@ -66,6 +68,18 @@ export async function POST(req: Request) {
 
   const limit = await rateLimit(db, `project:${clientIp(req)}`, 10, 300);
   if (!limit.ok) return NextResponse.json({ error: "Terlalu banyak percobaan" }, { status: 429 });
+
+  // Wajib lengkapi profil (username & email) sebelum submit — backstop server;
+  // UI juga menahan di depan (lihat mine.profileComplete).
+  if (!isProfileComplete(await getUser(db, auth.address))) {
+    return NextResponse.json(
+      {
+        error: "Lengkapi profil (username & email) dulu sebelum submit",
+        code: "profile_incomplete",
+      },
+      { status: 400 }
+    );
+  }
 
   // Anti-sybil: gate reputasi on-chain (opt-in via SYBIL_MIN_TX).
   const sybil = await checkWalletSybil(auth.address as `0x${string}`, sybilPolicyFromEnv());
