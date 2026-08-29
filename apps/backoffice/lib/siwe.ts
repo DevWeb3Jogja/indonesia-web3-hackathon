@@ -40,4 +40,13 @@ export const siweConfig = createSIWEConfig({
     const res = await fetch("/api/auth/signout", { method: "POST" });
     return res.ok;
   },
+  // Session di-set server-side saat verify; layout dashboard gate-nya server-side.
+  // Reload setelah SIWE benar-benar sukses supaya server re-check role → dashboard
+  // (bukan saat wallet connect, yang masih sebelum tanda tangan).
+  onSignIn: () => {
+    if (typeof window !== "undefined") window.location.reload();
+  },
+  onSignOut: () => {
+    if (typeof window !== "undefined") window.location.reload();
+  },
 });

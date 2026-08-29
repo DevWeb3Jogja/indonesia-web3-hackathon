@@ -7,22 +7,34 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-const FIELDS: { key: string; label: string; type: "text" | "number" }[] = [
+const FIELDS: { key: string; label: string; type: "text" | "number" | "date" }[] = [
   { key: "name", label: "Nama", type: "text" },
   { key: "year", label: "Tahun", type: "number" },
-  { key: "registrationOpensAt", label: "Registrasi buka", type: "text" },
-  { key: "registrationClosesAt", label: "Registrasi tutup", type: "text" },
-  { key: "submissionOpensAt", label: "Submission buka", type: "text" },
-  { key: "submissionClosesAt", label: "Submission tutup", type: "text" },
-  { key: "judgingClosesAt", label: "Penjurian tutup", type: "text" },
-  { key: "winnersAnnouncedAt", label: "Pengumuman pemenang", type: "text" },
+  { key: "registrationOpensAt", label: "Registrasi buka", type: "date" },
+  { key: "registrationClosesAt", label: "Registrasi tutup", type: "date" },
+  { key: "submissionOpensAt", label: "Submission buka", type: "date" },
+  { key: "submissionClosesAt", label: "Submission tutup", type: "date" },
+  { key: "judgingClosesAt", label: "Penjurian tutup", type: "date" },
+  { key: "winnersAnnouncedAt", label: "Pengumuman pemenang", type: "date" },
 ];
+
+/** Native <input type=date> butuh "YYYY-MM-DD"; nilai tersimpan bisa ISO penuh. */
+function toDateInput(v: unknown): string {
+  return v == null ? "" : String(v).slice(0, 10);
+}
 
 export default function HackathonSettings({ current }: { current: Record<string, unknown> }) {
   const router = useRouter();
   const [vals, setVals] = useState<Record<string, string>>(
     Object.fromEntries(
-      FIELDS.map((f) => [f.key, current[f.key] == null ? "" : String(current[f.key])])
+      FIELDS.map((f) => [
+        f.key,
+        f.type === "date"
+          ? toDateInput(current[f.key])
+          : current[f.key] == null
+            ? ""
+            : String(current[f.key]),
+      ])
     )
   );
   const [busy, setBusy] = useState(false);
@@ -55,7 +67,7 @@ export default function HackathonSettings({ current }: { current: Record<string,
   return (
     <div className="space-y-4">
       <p className="text-xs text-muted-foreground">
-        Deadline: format bebas — tanggal (2026-10-01) atau ISO. Kosong = tanpa deadline.
+        Pilih tanggal lewat date picker. Kosong = tanpa deadline (deadline dihitung akhir hari).
       </p>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {FIELDS.map((f) => (
@@ -65,7 +77,8 @@ export default function HackathonSettings({ current }: { current: Record<string,
             </Label>
             <Input
               id={`hs-${f.key}`}
-              type={f.type === "number" ? "number" : "text"}
+              type={f.type}
+              className={f.type === "date" ? "[color-scheme:dark]" : undefined}
               value={vals[f.key]}
               onChange={(e) => setVals((s) => ({ ...s, [f.key]: e.target.value }))}
               disabled={busy}

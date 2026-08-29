@@ -39,6 +39,7 @@ interface Meta {
 }
 
 const ALL = "__all__";
+const SKELETON_ROWS = ["sk1", "sk2", "sk3", "sk4", "sk5"];
 
 /** Tabel data-banyak: search + filter + sort + paginasi (page; API juga cursor). */
 export default function PagedList<T>({
@@ -171,20 +172,31 @@ export default function PagedList<T>({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {items.length === 0 && state === "ready" && (
+              {state === "loading" &&
+                SKELETON_ROWS.map((sk) => (
+                  <TableRow key={sk}>
+                    {columns.map((c) => (
+                      <TableCell key={c.header}>
+                        <div className="h-4 w-24 max-w-full animate-pulse rounded bg-muted" />
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))}
+              {state !== "loading" && items.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={columns.length} className="text-center text-muted-foreground">
                     Tidak ada data.
                   </TableCell>
                 </TableRow>
               )}
-              {items.map((row) => (
-                <TableRow key={rowKey(row)}>
-                  {columns.map((c) => (
-                    <TableCell key={c.header}>{c.cell(row, load)}</TableCell>
-                  ))}
-                </TableRow>
-              ))}
+              {state !== "loading" &&
+                items.map((row) => (
+                  <TableRow key={rowKey(row)}>
+                    {columns.map((c) => (
+                      <TableCell key={c.header}>{c.cell(row, load)}</TableCell>
+                    ))}
+                  </TableRow>
+                ))}
             </TableBody>
           </Table>
         </div>

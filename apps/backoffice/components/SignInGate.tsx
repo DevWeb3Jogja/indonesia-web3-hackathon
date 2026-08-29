@@ -2,22 +2,13 @@
 
 import { useAppKit } from "@reown/appkit/react";
 import { ShieldAlert, Wallet } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
-import { useAccount } from "wagmi";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
-/** Halaman gerbang: connect + SIWE via modal, lalu refresh supaya server re-check role. */
+/** Gerbang: connect + SIWE via modal. Reload otomatis setelah sign-in sukses
+ *  (siweConfig.onSignIn) supaya server re-check role → dashboard. */
 export default function SignInGate({ reason }: { reason: "signin" | "forbidden" }) {
   const { open } = useAppKit();
-  const { isConnected } = useAccount();
-  const router = useRouter();
-
-  useEffect(() => {
-    if (isConnected) router.refresh();
-  }, [isConnected, router]);
-
   const forbidden = reason === "forbidden";
 
   return (
