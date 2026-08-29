@@ -14,6 +14,7 @@ const NAV = [
   { path: "/prizes", key: "prizes" },
   { path: "/schedule", key: "schedule" },
   { path: "/faq", key: "faq" },
+  { path: "/my", key: "myProjects" },
 ] as const;
 
 function remember(locale: string) {

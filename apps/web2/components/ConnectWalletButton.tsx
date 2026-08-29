@@ -76,9 +76,6 @@ function Inner({ className, locale }: { className: string; locale?: string }) {
             </div>
           </div>
           <div className="ev-wm-group">
-            <Link href={to("/my")} onClick={() => setMenu(false)} className="ev-wm-item">
-              My Projects
-            </Link>
             <Link href={to("/profile")} onClick={() => setMenu(false)} className="ev-wm-item">
               Profile
             </Link>
