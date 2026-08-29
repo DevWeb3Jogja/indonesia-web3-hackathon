@@ -60,7 +60,7 @@ export default async function ProjectDetailPage(props: {
 
   return (
     <div className="min-h-full bg-haze">
-      <div className="mx-auto max-w-3xl px-6 pb-24 pt-24 sm:px-8 sm:pt-28">
+      <div className="mx-auto max-w-4xl px-6 pb-24 pt-24 sm:px-8 sm:pt-28">
         <Link
           href={path("/projects")}
           className="inline-flex items-center gap-1.5 text-[11px] uppercase tracking-[0.2em] text-white/45 transition hover:text-white"
