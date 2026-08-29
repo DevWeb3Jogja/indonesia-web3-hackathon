@@ -57,7 +57,7 @@ export default function ProfileForm({ t }: { t: T }) {
 }
 
 function Inner({ t }: { t: T }) {
-  const { isConnected } = useAppKitAccount();
+  const { address, isConnected } = useAppKitAccount();
   const { open } = useAppKit();
 
   const [status, setStatus] = useState<"idle" | "loading" | "unauth">("loading");
@@ -87,8 +87,17 @@ function Inner({ t }: { t: T }) {
     setStatus("idle");
   }, []);
 
+  // Muat ulang saat mount, saat wallet berganti (address), dan saat sesi
+  // berubah (event dari siweConfig onSignIn/onSignOut) — bukan hanya sekali.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: address = pemicu re-fetch saat ganti wallet
   useEffect(() => {
     load();
+  }, [load, address]);
+
+  useEffect(() => {
+    const onSession = () => load();
+    window.addEventListener("iw3h:session", onSession);
+    return () => window.removeEventListener("iw3h:session", onSession);
   }, [load]);
 
   const set =

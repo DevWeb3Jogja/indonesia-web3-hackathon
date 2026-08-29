@@ -66,7 +66,6 @@ export default async function HomePage(props: { params: Promise<{ locale: string
     <>
       <EvolveHero
         trust={[
-          { src: "/logos/coinfest-asia.png", alt: "Coinfest Asia" },
           { src: "/logos/coinvestasi.webp", alt: "Coinvestasi" },
           { src: "/logo.png", alt: "BNB Chain" },
         ]}

@@ -44,4 +44,12 @@ export const siweConfig = createSIWEConfig({
     const res = await fetch("/api/auth/signout", { method: "POST" });
     return res.ok;
   },
+  // Beri tahu UI (mis. ProfileForm) saat sesi berubah supaya re-fetch data
+  // sesi baru — hindari data wallet lama nyangkut sampai refresh manual.
+  onSignIn: () => {
+    if (typeof window !== "undefined") window.dispatchEvent(new Event("iw3h:session"));
+  },
+  onSignOut: () => {
+    if (typeof window !== "undefined") window.dispatchEvent(new Event("iw3h:session"));
+  },
 });
