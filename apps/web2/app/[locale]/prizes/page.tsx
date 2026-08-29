@@ -37,15 +37,25 @@ export default async function PrizesPage(props: { params: Promise<{ locale: stri
 
         {/* Penghargaan lintas track */}
         <div className="mt-14 grid gap-5 md:grid-cols-2">
-          <Panel clip="chamfer-lg" tone="bg-white/[0.07]" soft>
-            <div className="p-8 md:p-10">
-              <p className="eyebrow">{t.grandPrize}</p>
-              <p className="grad-text mt-6 font-firs text-[56px] font-semibold uppercase leading-none md:text-[72px]">
-                $1,000
-              </p>
-              <p className="mt-4 text-sm leading-relaxed text-ink/80">{t.grandPrizeDesc}</p>
-            </div>
-          </Panel>
+          {/* Grand Prize — kartu emas berlapis (mengikuti gaya "Daily Newsletter"). */}
+          <div
+            className="group relative flex min-h-[340px] flex-col overflow-hidden rounded-3xl p-8 transition-transform duration-300 hover:-translate-y-1 md:p-10"
+            style={{
+              background:
+                "radial-gradient(circle at 12% 8%, rgba(240,205,95,0.28) 0%, transparent 42%), linear-gradient(180deg, #15100A 0%, #15100A 55%, #A97D22 82%, #F0D07A 96%, #FFF7E6 100%)",
+              boxShadow: "inset 0 -4px 15px -2px rgba(255,240,205,0.85)",
+            }}
+          >
+            <p className="text-[11px] font-medium uppercase tracking-[0.24em] text-amber-200/80">
+              {t.grandPrize}
+            </p>
+            <p className="mt-3 font-firs text-[56px] font-semibold uppercase leading-none text-[#FDF3D8] md:text-[68px]">
+              $1,000
+            </p>
+            <p className="mt-4 max-w-sm text-sm leading-relaxed text-white/70">
+              {t.grandPrizeDesc}
+            </p>
+          </div>
 
           <Panel clip="chamfer-lg" tone="bg-white/[0.02]">
             <div className="p-8 md:p-10">
