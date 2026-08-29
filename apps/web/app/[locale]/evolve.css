@@ -229,9 +229,16 @@
   color: #111;
   display: grid;
   place-items: center;
+  overflow: hidden;
   font-size: calc(var(--sz) * 0.3);
   font-weight: 700;
   font-family: var(--ev-display);
+}
+.ev-avatar > span > img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
 }
 .ev-avatar.a2 {
   margin-left: calc(var(--sz) * -0.42);

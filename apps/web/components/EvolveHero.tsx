@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { type CSSProperties, useEffect, useRef } from "react";
 
@@ -13,7 +14,7 @@ export interface EvStat {
 }
 
 interface Props {
-  trust: string[];
+  trust: { src: string; alt: string }[];
   trustPill: string;
   headline: [string, string];
   subtitle: string;
@@ -76,9 +77,11 @@ export default function EvolveHero(props: Props) {
 
       <div className="ev-hero">
         <div className="ev-trust">
-          {props.trust.map((ini, i) => (
-            <span key={ini} className={`ev-avatar a${i + 1}`}>
-              <span>{ini}</span>
+          {props.trust.map((logo, i) => (
+            <span key={logo.alt} className={`ev-avatar a${i + 1}`}>
+              <span>
+                <Image src={logo.src} alt={logo.alt} width={34} height={34} />
+              </span>
             </span>
           ))}
           <span className="ev-trust-pill">{props.trustPill}</span>

@@ -65,7 +65,11 @@ export default async function HomePage(props: { params: Promise<{ locale: string
   return (
     <>
       <EvolveHero
-        trust={["BA", "BN", "CO"]}
+        trust={[
+          { src: "/logos/coinfest-asia.png", alt: "Coinfest Asia" },
+          { src: "/logos/coinvestasi.webp", alt: "Coinvestasi" },
+          { src: "/logo.png", alt: "BNB Chain" },
+        ]}
         trustPill="Co-hosted by Binance Academy · BNB Chain"
         headline={[t.title1, t.title2]}
         subtitle={t.subtitle}
