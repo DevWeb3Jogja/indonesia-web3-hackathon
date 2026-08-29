@@ -9,7 +9,7 @@ import {
   type Paged,
   type PageParams,
 } from "./paginate";
-import { projects, projectTracks, teamMembers, teams, tracks } from "./schema";
+import { projects, projectTracks, scores, teamMembers, teams, tracks, winners } from "./schema";
 import { getMyTeam } from "./teams";
 
 export class ProjectError extends Error {
@@ -269,6 +269,28 @@ export async function updateProject(
     ...trackIds.map((trackId) => db.insert(projectTracks).values({ projectId: id, trackId })),
   ]);
   return (await getProjectById(db, id)) as ProjectFull;
+}
+
+/** Admin: edit ringan (nama & tagline) tanpa menyentuh field lain / tracks. */
+export async function adminEditProject(
+  db: Db,
+  id: string,
+  input: { name: string; tagline: string | null }
+): Promise<void> {
+  await db
+    .update(projects)
+    .set({ ...input, updatedAt: new Date().toISOString() })
+    .where(eq(projects.id, id));
+}
+
+/** Admin: hapus permanen project + baris anak (winners, scores, tracks). */
+export async function deleteProject(db: Db, id: string): Promise<void> {
+  await db.batch([
+    db.delete(winners).where(eq(winners.projectId, id)),
+    db.delete(scores).where(eq(scores.projectId, id)),
+    db.delete(projectTracks).where(eq(projectTracks.projectId, id)),
+    db.delete(projects).where(eq(projects.id, id)),
+  ]);
 }
 
 /** Daftar project ter-submit untuk galeri publik. */

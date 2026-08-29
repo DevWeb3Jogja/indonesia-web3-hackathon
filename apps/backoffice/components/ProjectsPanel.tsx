@@ -6,6 +6,7 @@ import ProjectActions from "./ProjectActions";
 interface P {
   id: string;
   name: string;
+  tagline: string | null;
   team: { name: string } | null;
   trackIds: string[];
   status: string;
@@ -40,7 +41,15 @@ export default function ProjectsPanel() {
         { header: "Status", cell: (p) => p.status },
         {
           header: "Aksi",
-          cell: (p, reload) => <ProjectActions id={p.id} status={p.status} onChanged={reload} />,
+          cell: (p, reload) => (
+            <ProjectActions
+              id={p.id}
+              name={p.name}
+              tagline={p.tagline}
+              status={p.status}
+              onChanged={reload}
+            />
+          ),
         },
       ]}
     />
