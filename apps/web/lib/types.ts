@@ -27,6 +27,7 @@ export interface PublicProjectCard {
   logoUrl: string;
   trackIds: string[];
   teamName: string | null; // null = solo
+  members: { address: string; githubUrl: string | null; username: string | null }[];
 }
 
 export function explorerUrl(network: NetworkId, address: string): string {

@@ -5,6 +5,7 @@ import {
   createProject,
   getCurrentHackathon,
   getMyTeam,
+  getPublicProfiles,
   getUser,
   isProfileComplete,
   listProjectsPaged,
@@ -41,6 +42,13 @@ export async function GET(req: Request) {
       sort,
     });
 
+    // Anggota per project (tim → member, solo → submitter) untuk avatar stack.
+    const membersOf = (p: (typeof items)[number]) =>
+      p.team ? p.team.memberAddresses : [p.submitterAddress];
+    const allAddrs = [...new Set(items.flatMap(membersOf))];
+    const profiles = await getPublicProfiles(db, allAddrs);
+    const profOf = (a: string) => profiles.find((x) => x.address === a);
+
     const cards = items.map((p) => ({
       id: p.id,
       name: p.name,
@@ -48,6 +56,11 @@ export async function GET(req: Request) {
       logoUrl: p.logoUrl ?? "",
       trackIds: p.trackIds,
       teamName: p.team?.name ?? null, // null = solo
+      members: membersOf(p).map((a) => ({
+        address: a,
+        githubUrl: profOf(a)?.githubUrl ?? null,
+        username: profOf(a)?.username ?? null,
+      })),
     }));
     // Cache di CDN 30s — endpoint publik read-only, lindungi DB dari hammering (DoS).
     return NextResponse.json(

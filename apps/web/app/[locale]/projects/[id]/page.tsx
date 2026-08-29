@@ -1,7 +1,7 @@
 import { getProjectById, getPublicProfiles } from "@iw3h/db";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { GeneratedAvatar } from "@/components/GeneratedAvatar";
+import AvatarStack from "@/components/AvatarStack";
 import MarkdownRenderer from "@/components/MarkdownRenderer";
 import { ArrowUpRight } from "@/components/ui";
 import YouTubeEmbed from "@/components/YouTubeEmbed";
@@ -150,35 +150,23 @@ export default async function ProjectDetailPage(props: {
         </header>
 
         {/* ---------- Team ---------- */}
-        <section className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-4 border-y border-white/10 py-5">
-          <p className="text-[10px] uppercase tracking-[0.2em] text-white/40">
-            {p.team ? `${t.team} · ${p.team.name}` : t.solo}
-          </p>
-          {memberAddresses.map((addr) => {
-            const prof = profileOf(addr);
-            const name = prof?.username || short(addr);
-            const link = prof?.githubUrl || prof?.twitterUrl;
-            return (
-              <div key={addr} className="flex items-center gap-2.5">
-                <GeneratedAvatar name={addr} size={34} />
-                <div className="min-w-0 leading-tight">
-                  <p className="truncate text-sm font-medium text-white">{name}</p>
-                  {link ? (
-                    <a
-                      href={link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-[11px] text-white/45 transition hover:text-white"
-                    >
-                      {t.viewProfile}
-                    </a>
-                  ) : (
-                    <p className="truncate font-mono text-[11px] text-white/35">{short(addr)}</p>
-                  )}
-                </div>
-              </div>
-            );
-          })}
+        <section className="mt-8 flex flex-wrap items-center gap-x-5 gap-y-3 border-y border-white/10 py-5">
+          <AvatarStack
+            members={memberAddresses.map((addr) => ({
+              address: addr,
+              githubUrl: profileOf(addr)?.githubUrl,
+              username: profileOf(addr)?.username,
+            }))}
+            size={40}
+          />
+          <div className="min-w-0">
+            <p className="text-[10px] uppercase tracking-[0.2em] text-white/40">
+              {p.team ? `${t.team} · ${p.team.name}` : t.solo}
+            </p>
+            <p className="mt-1 truncate text-sm text-white/65">
+              {memberAddresses.map((addr) => profileOf(addr)?.username || short(addr)).join(", ")}
+            </p>
+          </div>
         </section>
 
         {/* ---------- Demo video ---------- */}

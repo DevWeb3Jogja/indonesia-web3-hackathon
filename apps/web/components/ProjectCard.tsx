@@ -2,6 +2,7 @@ import Link from "next/link";
 import { localePath } from "@/lib/locale";
 import type { PublicProjectCard } from "@/lib/types";
 import { trackLabel } from "@/lib/types";
+import AvatarStack from "./AvatarStack";
 import { ArrowUpRight } from "./ui";
 
 export default function ProjectCard({
@@ -44,7 +45,7 @@ export default function ProjectCard({
         <p className="mt-4 line-clamp-2 text-sm leading-relaxed text-white/70">{p.tagline}</p>
       )}
 
-      <div className="mt-auto flex flex-wrap items-center justify-between gap-3 pt-6">
+      <div className="mt-auto flex items-center justify-between gap-3 pt-6">
         <div className="flex flex-wrap gap-2">
           {p.trackIds.map((t) => (
             <span key={t} className="tag">
@@ -52,7 +53,10 @@ export default function ProjectCard({
             </span>
           ))}
         </div>
-        <ArrowUpRight className="h-4 w-4 shrink-0 text-white/40 transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+        <div className="flex shrink-0 items-center gap-3">
+          {p.members.length > 0 && <AvatarStack members={p.members} size={28} max={4} />}
+          <ArrowUpRight className="h-4 w-4 shrink-0 text-white/40 transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+        </div>
       </div>
     </Link>
   );
