@@ -9,13 +9,19 @@ import {
 } from "@iw3h/db";
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { impersonates, isClean } from "@/lib/filter";
 import { requireAuth } from "@/lib/session";
 import { db } from "@/lib/turso";
 
 export const dynamic = "force-dynamic";
 
 const createSchema = z.object({
-  name: z.string().trim().min(2).max(60),
+  name: z
+    .string()
+    .trim()
+    .min(2)
+    .max(60)
+    .refine((v) => isClean(v) && !impersonates(v), "Nama tim tidak diperbolehkan"),
 });
 
 export async function GET() {

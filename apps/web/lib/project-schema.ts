@@ -1,5 +1,8 @@
 import { z } from "zod";
+import { isClean } from "./filter";
 import { NETWORKS, TRACKS } from "./types";
+
+const CLEAN_MSG = "Mengandung kata yang tidak pantas";
 
 const trackIds = TRACKS.map((t) => t.id) as [string, ...string[]];
 const networkIds = NETWORKS.map((n) => n.id) as [string, ...string[]];
@@ -14,8 +17,8 @@ const optionalUrl = z
 
 /** Field project — dipakai create & update. Dipakai server (zod) dan client. */
 export const projectFields = z.object({
-  name: z.string().trim().min(2).max(80),
-  tagline: z.string().trim().max(140).nullish(),
+  name: z.string().trim().min(2).max(80).refine(isClean, CLEAN_MSG),
+  tagline: z.string().trim().max(140).refine(isClean, CLEAN_MSG).nullish(),
   tracks: z.array(z.enum(trackIds)).min(1).max(TRACKS.length),
   contractAddress: z
     .string()
@@ -23,9 +26,9 @@ export const projectFields = z.object({
     .regex(/^0x[0-9a-fA-F]{40}$/, "Alamat kontrak tidak valid")
     .nullish(),
   network: z.enum(networkIds).nullish(),
-  problemStatement: z.string().trim().max(2000).nullish(),
-  solution: z.string().trim().max(2000).nullish(),
-  description: z.string().max(20000).nullish(),
+  problemStatement: z.string().trim().max(2000).refine(isClean, CLEAN_MSG).nullish(),
+  solution: z.string().trim().max(2000).refine(isClean, CLEAN_MSG).nullish(),
+  description: z.string().max(20000).refine(isClean, CLEAN_MSG).nullish(),
   githubUrl: optionalUrl,
   demoUrl: optionalUrl,
   demoVideoUrl: optionalUrl,

@@ -1,6 +1,7 @@
 import { getUser, rateLimit, updateProfile } from "@iw3h/db";
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { impersonates, isClean } from "@/lib/filter";
 import { requireAuth } from "@/lib/session";
 import { db } from "@/lib/turso";
 
@@ -10,10 +11,11 @@ const profileSchema = z.object({
     .min(3)
     .max(32)
     .regex(/^[a-zA-Z0-9_-]+$/, "Huruf, angka, - dan _ saja")
+    .refine((v) => isClean(v) && !impersonates(v), "Username tidak diperbolehkan")
     .nullish(),
   email: z.string().email().max(254).nullish(),
   avatarUrl: z.string().url().max(2048).startsWith("https://").nullish(),
-  bio: z.string().max(500).nullish(),
+  bio: z.string().max(500).refine(isClean, "Mengandung kata yang tidak pantas").nullish(),
   githubUrl: z.string().url().max(2048).startsWith("https://github.com/").nullish(),
   twitterUrl: z.string().url().max(2048).startsWith("https://").nullish(),
 });
