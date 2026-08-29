@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { ArrowUpRight, Panel } from "@/components/ui";
-import { getDict, localePath } from "@/lib/i18n";
+import { Panel } from "@/components/ui";
+import { getDict } from "@/lib/i18n";
 
 export async function generateMetadata(props: {
   params: Promise<{ locale: string }>;
@@ -39,7 +38,7 @@ export default async function PrizesPage(props: { params: Promise<{ locale: stri
         <div className="mt-14 grid gap-5 md:grid-cols-2">
           {/* Grand Prize — kartu emas berlapis (mengikuti gaya "Daily Newsletter"). */}
           <div
-            className="group relative flex min-h-[340px] flex-col overflow-hidden rounded-3xl p-8 transition-transform duration-300 hover:-translate-y-1 md:p-10"
+            className="group relative flex flex-col overflow-hidden rounded-3xl p-8 transition-transform duration-300 hover:-translate-y-1 md:p-10"
             style={{
               background:
                 "radial-gradient(circle at 12% 8%, rgba(240,205,95,0.28) 0%, transparent 42%), linear-gradient(180deg, #15100A 0%, #15100A 55%, #A97D22 82%, #F0D07A 96%, #FFF7E6 100%)",
@@ -163,13 +162,6 @@ export default async function PrizesPage(props: { params: Promise<{ locale: stri
             </table>
           </div>
         </Panel>
-
-        <div className="mt-14 flex justify-center">
-          <Link href={localePath(params.locale, "/submit")} className="btn-teal group">
-            {t.cta}
-            <ArrowUpRight className="h-3.5 w-3.5 transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
-          </Link>
-        </div>
       </div>
     </div>
   );
