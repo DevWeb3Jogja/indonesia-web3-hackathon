@@ -74,7 +74,9 @@ export default function ProjectsBrowser({ locale, t }: { locale: string; t: Dict
                 key={tr.id}
                 onClick={() => setTrack(tr.id)}
                 className={`chamfer-sm px-4 py-2 text-[10px] font-medium uppercase tracking-[0.14em] transition ${
-                  track === tr.id ? "bg-teal text-white" : "bg-white text-ink/70 hover:text-teal"
+                  track === tr.id
+                    ? "bg-white text-black"
+                    : "bg-white/[0.04] text-ink/70 hover:text-teal"
                 }`}
               >
                 {tr.label}
@@ -84,15 +86,27 @@ export default function ProjectsBrowser({ locale, t }: { locale: string; t: Dict
           <div className="flex items-center gap-3">
             <label className="flex items-center gap-2 text-[10px] uppercase tracking-[0.14em] text-ink/50">
               {t.sortLabel}
-              <select
-                value={sort}
-                onChange={(e) => setSort(e.target.value as Sort)}
-                className="input-field !w-auto !py-2 text-xs"
-              >
-                <option value="newest">{t.sortNewest}</option>
-                <option value="oldest">{t.sortOldest}</option>
-                <option value="name">{t.sortName}</option>
-              </select>
+              <span className="relative">
+                <select
+                  value={sort}
+                  onChange={(e) => setSort(e.target.value as Sort)}
+                  className="input-field !w-auto appearance-none pr-9 text-sm"
+                >
+                  <option value="newest">{t.sortNewest}</option>
+                  <option value="oldest">{t.sortOldest}</option>
+                  <option value="name">{t.sortName}</option>
+                </select>
+                <svg
+                  className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/50"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  aria-hidden="true"
+                >
+                  <path d="m6 9 6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </span>
             </label>
             <input
               value={q}
@@ -113,7 +127,7 @@ export default function ProjectsBrowser({ locale, t }: { locale: string; t: Dict
           <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
             {Array.from({ length: 6 }).map((_, i) => (
               // biome-ignore lint/suspicious/noArrayIndexKey: skeleton statis, tidak pernah reorder
-              <div key={i} className="chamfer-lg h-52 animate-pulse bg-white/70" />
+              <div key={i} className="chamfer-lg h-52 animate-pulse bg-white/[0.06]" />
             ))}
           </div>
         ) : items.length === 0 ? (

@@ -15,6 +15,7 @@
     "prizes": "Prizes",
     "schedule": "Schedule",
     "faq": "FAQ",
+    "myProjects": "My Projects",
     "submit": "Submit",
     "openMenu": "Open menu",
     "closeMenu": "Close menu",
@@ -29,7 +30,7 @@
     "title1": "Indonesia Web3",
     "title2": "Hackathon",
     "subtitle": "Built on BNB Chain, from Indonesia to the world",
-    "cta": "Send in your project",
+    "cta": "Submit Now",
     "ctaRegister": "Register via Luma",
     "submissions": {
       "bracket": "[submissions]",
@@ -469,6 +470,10 @@
     "viewGallery": "View all projects",
     "savedEdit": "Changes saved.",
     "submitCta": "Submit Project",
+    "stepType": "Type",
+    "stepTeam": "Team",
+    "stepDetails": "Details",
+    "openCta": "Submit a project",
     "errorGeneric": "Something went wrong. Try again.",
     "errorRate": "Too many requests. Wait a moment."
   },

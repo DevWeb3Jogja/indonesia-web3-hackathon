@@ -90,7 +90,7 @@ export function Panel({
   children,
   clip = "chamfer",
   className = "",
-  tone = "bg-white",
+  tone = "bg-white/[0.04]",
   soft = false,
 }: {
   children: ReactNode;

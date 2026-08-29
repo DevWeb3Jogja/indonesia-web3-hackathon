@@ -134,8 +134,8 @@ export default function ProjectForm({
                 onClick={() => toggleTrack(tr.id)}
                 className={`chamfer-sm px-4 py-3 text-left text-sm transition ${
                   on
-                    ? "bg-teal text-white"
-                    : "border border-teal/25 bg-white text-ink hover:bg-haze"
+                    ? "bg-white text-black"
+                    : "border border-teal/25 bg-white/[0.04] text-ink hover:bg-haze"
                 }`}
               >
                 {tr.label}

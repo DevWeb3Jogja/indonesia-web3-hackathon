@@ -2,8 +2,10 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { notFound } from "next/navigation";
 import "../globals.css";
+import "./evolve.css";
+import EvolveNav from "@/components/EvolveNav";
 import Footer from "@/components/Footer";
-import ShellChrome from "@/components/ShellChrome";
+import HideChrome from "@/components/HideChrome";
 import Web3Provider from "@/components/Web3Provider";
 import { getDict, isLocale, LOCALES } from "@/lib/i18n";
 
@@ -68,10 +70,10 @@ export default async function LocaleLayout(props: {
   return (
     <html lang={params.locale} className={body.variable}>
       <head>
-        {/* Preload font display self-hosted — dipakai di judul above-the-fold. */}
+        {/* Preload font display (pixel) — dipakai di headline hero above-the-fold. */}
         <link
           rel="preload"
-          href="/media/fonts/tt-firs-neue.woff2"
+          href="/media/fonts/geist-pixel-circle.woff2"
           as="font"
           type="font/woff2"
           crossOrigin="anonymous"
@@ -80,16 +82,20 @@ export default async function LocaleLayout(props: {
       <body className="font-body antialiased">
         <Web3Provider>
           {/* Kartu inset: seluruh situs hidup di dalam container membulat ini */}
-          <div className="h-[100dvh] bg-white p-3 sm:p-5">
-            <div className="relative h-full w-full overflow-hidden rounded-[28px] bg-white sm:rounded-[36px]">
+          <div className="h-[100dvh] bg-black p-0">
+            <div className="relative h-full w-full overflow-hidden bg-black">
               <div
                 id="scroll-root"
                 className="no-scrollbar absolute inset-0 overflow-y-auto overflow-x-hidden"
               >
+                <HideChrome>
+                  <EvolveNav nav={dict.nav} logo="/logo.png" />
+                </HideChrome>
                 {children}
-                <Footer locale={params.locale} dict={dict} />
+                <HideChrome>
+                  <Footer locale={params.locale} dict={dict} />
+                </HideChrome>
               </div>
-              <ShellChrome nav={dict.nav} brand={dict.brand} submitCta={dict.home.cta} />
             </div>
           </div>
         </Web3Provider>

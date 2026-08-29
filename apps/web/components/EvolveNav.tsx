@@ -22,7 +22,7 @@ function remember(locale: string) {
   document.cookie = `NEXT_LOCALE=${locale};path=/;max-age=31536000;samesite=lax`;
 }
 
-/** Nav evolve (pill) — dipakai SEMUA halaman web2. Sign-in = connect wallet,
+/** Nav evolve (pill) — dipakai SEMUA halaman web. Sign-in = connect wallet,
  *  plus language switcher, sesuai permintaan. */
 export default function EvolveNav({ nav, logo }: { nav: Dict["nav"]; logo: string }) {
   const pathname = usePathname();

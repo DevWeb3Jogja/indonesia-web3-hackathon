@@ -18,6 +18,7 @@ export default function ProjectCard({
   return (
     <Panel
       clip="chamfer-lg"
+      tone="bg-white/[0.02]"
       className="group h-full transition duration-200 hover:-translate-y-0.5"
     >
       <Link href={localePath(locale, `/projects/${p.id}`)} className="flex h-full flex-col p-6">

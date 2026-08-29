@@ -20,7 +20,6 @@ export default async function TeamPage(props: { params: Promise<{ locale: string
         <h1 className="page-title mt-4">
           {t.title1} {t.title2}
         </h1>
-        <p className="mt-4 max-w-lg text-[17px] leading-[1.5] text-ink/80">{t.lead}</p>
         <div className="mt-10">
           <TeamPanel t={t} />
         </div>

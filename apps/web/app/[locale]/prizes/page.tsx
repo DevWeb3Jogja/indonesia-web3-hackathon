@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { ArrowUpRight, Panel } from "@/components/ui";
-import { getDict, localePath } from "@/lib/i18n";
+import { Panel } from "@/components/ui";
+import { getDict } from "@/lib/i18n";
 
 export async function generateMetadata(props: {
   params: Promise<{ locale: string }>;
@@ -33,22 +32,31 @@ export default async function PrizesPage(props: { params: Promise<{ locale: stri
             <br />
             {t.title2}
           </h1>
-          <p className="max-w-sm text-[17px] leading-[1.5] text-ink/80">{t.lead}</p>
         </div>
 
         {/* Penghargaan lintas track */}
         <div className="mt-14 grid gap-5 md:grid-cols-2">
-          <Panel clip="chamfer-lg">
-            <div className="p-8 md:p-10">
-              <p className="eyebrow">{t.grandPrize}</p>
-              <p className="grad-text mt-6 font-firs text-[56px] font-semibold uppercase leading-none md:text-[72px]">
-                $1,000
-              </p>
-              <p className="mt-4 text-sm leading-relaxed text-ink/80">{t.grandPrizeDesc}</p>
-            </div>
-          </Panel>
+          {/* Grand Prize — kartu emas berlapis (mengikuti gaya "Daily Newsletter"). */}
+          <div
+            className="group relative flex flex-col overflow-hidden rounded-3xl p-8 transition-transform duration-300 hover:-translate-y-1 md:p-10"
+            style={{
+              background:
+                "radial-gradient(circle at 12% 8%, rgba(240,205,95,0.28) 0%, transparent 42%), linear-gradient(180deg, #15100A 0%, #15100A 55%, #A97D22 82%, #F0D07A 96%, #FFF7E6 100%)",
+              boxShadow: "inset 0 -4px 15px -2px rgba(255,240,205,0.85)",
+            }}
+          >
+            <p className="text-[11px] font-medium uppercase tracking-[0.24em] text-amber-200/80">
+              {t.grandPrize}
+            </p>
+            <p className="mt-3 font-firs text-[56px] font-semibold uppercase leading-none text-[#FDF3D8] md:text-[68px]">
+              $1,000
+            </p>
+            <p className="mt-4 max-w-sm text-sm leading-relaxed text-white/70">
+              {t.grandPrizeDesc}
+            </p>
+          </div>
 
-          <Panel clip="chamfer-lg" tone="bg-white/60" soft>
+          <Panel clip="chamfer-lg" tone="bg-white/[0.02]">
             <div className="p-8 md:p-10">
               <p className="eyebrow">{t.communityChoice}</p>
               <p className="mt-6 font-firs text-[56px] font-semibold uppercase leading-none text-ink md:text-[72px]">
@@ -62,7 +70,11 @@ export default async function PrizesPage(props: { params: Promise<{ locale: stri
         {/* Podium per track */}
         <div className="mt-5 grid gap-5 md:grid-cols-3">
           {TRACKS.map((tr) => (
-            <Panel key={tr.code} className="transition duration-200 hover:-translate-y-0.5">
+            <Panel
+              key={tr.code}
+              tone="bg-white/[0.02]"
+              className="transition duration-200 hover:-translate-y-0.5"
+            >
               <div className="p-7">
                 <div className="flex items-baseline justify-between">
                   <p className="text-[11px] font-medium uppercase tracking-[0.24em] text-teal/70">
@@ -82,7 +94,7 @@ export default async function PrizesPage(props: { params: Promise<{ locale: stri
                       } ${i === 0 ? "bg-teal/[0.06]" : ""}`}
                     >
                       <span className="flex items-center gap-3 text-sm text-ink/80">
-                        <span className="text-[11px] tracking-[0.18em] text-teal/60">
+                        <span className="text-[11px] tracking-[0.18em] text-teal/80">
                           {String(i + 1).padStart(2, "0")}
                         </span>
                         {p.label}
@@ -97,7 +109,7 @@ export default async function PrizesPage(props: { params: Promise<{ locale: stri
         </div>
 
         {/* Rekap */}
-        <Panel clip="chamfer-lg" className="mt-5">
+        <Panel clip="chamfer-lg" tone="bg-white/[0.02]" className="mt-5">
           <div className="overflow-x-auto p-6 md:p-8">
             <p className="eyebrow mb-6">{t.recapTitle}</p>
             <table className="w-full min-w-[560px] text-sm">
@@ -150,13 +162,6 @@ export default async function PrizesPage(props: { params: Promise<{ locale: stri
             </table>
           </div>
         </Panel>
-
-        <div className="mt-14 flex justify-center">
-          <Link href={localePath(params.locale, "/submit")} className="btn-teal group">
-            {t.cta}
-            <ArrowUpRight className="h-3.5 w-3.5 transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
-          </Link>
-        </div>
       </div>
     </div>
   );

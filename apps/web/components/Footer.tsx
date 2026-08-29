@@ -25,13 +25,13 @@ export default function Footer({ locale, dict }: { locale: string; dict: Dict })
       <div className="mx-auto max-w-7xl">
         <div className="grid gap-10 border-t border-teal/15 pt-10 md:grid-cols-[1.5fr_1fr_1fr]">
           <div>
-            <div className="flex items-center gap-2 text-ink">
-              <BrandMark className="h-7 w-7" />
-              <span className="leading-none">
+            <div className="flex items-center gap-2.5 text-white">
+              <BrandMark className="h-8 w-8 shrink-0" />
+              <span className="leading-tight">
                 <span className="block text-[15px] font-semibold tracking-tight">
                   {dict.brand.line1}
                 </span>
-                <span className="-mt-0.5 block text-[11px] font-light opacity-80">
+                <span className="block text-[10.5px] font-medium uppercase tracking-[0.18em] text-white/55">
                   {dict.brand.line2}
                 </span>
               </span>
@@ -83,7 +83,7 @@ export default function Footer({ locale, dict }: { locale: string; dict: Dict })
         <svg
           viewBox="0 0 1000 120"
           preserveAspectRatio="xMidYMid meet"
-          className="pointer-events-none mt-14 w-full select-none text-teal/[0.07]"
+          className="pointer-events-none mt-14 w-full select-none text-white/[0.11]"
           aria-hidden
           role="presentation"
         >

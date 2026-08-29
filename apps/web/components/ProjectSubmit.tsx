@@ -2,7 +2,7 @@
 
 import { useAppKit, useAppKitAccount } from "@reown/appkit/react";
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { type ReactNode, useCallback, useEffect, useState } from "react";
 import type { Dict } from "@/lib/i18n";
 import { localePath } from "@/lib/locale";
 import { trackLabel } from "@/lib/types";
@@ -86,6 +86,45 @@ function Gate({ t, onSignIn }: { t: T; onSignIn?: () => void }) {
         </div>
       </div>
     </Panel>
+  );
+}
+
+/** Indikator langkah untuk alur submit (fokus, per-langkah). */
+function Stepper({ steps, current }: { steps: string[]; current: number }) {
+  return (
+    <ol className="flex flex-wrap items-center gap-x-3 gap-y-2">
+      {steps.map((label, i) => {
+        const done = i < current;
+        const active = i === current;
+        return (
+          <li key={label} className="flex items-center gap-3">
+            <span
+              className={`flex h-8 w-8 items-center justify-center rounded-full border text-[13px] font-semibold transition ${
+                active
+                  ? "border-white bg-white text-black"
+                  : done
+                    ? "border-white/60 text-white"
+                    : "border-white/20 text-white/40"
+              }`}
+            >
+              {done ? "✓" : i + 1}
+            </span>
+            <span
+              className={`text-sm font-medium ${
+                active ? "text-white" : done ? "text-white/70" : "text-white/40"
+              }`}
+            >
+              {label}
+            </span>
+            {i < steps.length - 1 && (
+              <span
+                className={`hidden h-px w-8 sm:block ${done ? "bg-white/50" : "bg-white/15"}`}
+              />
+            )}
+          </li>
+        );
+      })}
+    </ol>
   );
 }
 
@@ -242,8 +281,14 @@ function Inner({ locale, t, form }: { locale: string; t: T; form: FormDict }) {
     );
   }
 
+  // ---------- Alur submit (stepper) ----------
+  const steps =
+    mode === "team" ? [t.stepType, t.stepTeam, t.stepDetails] : [t.stepType, t.stepDetails];
+  const currentStep = view === "team" ? 1 : view === "form" ? steps.length - 1 : 0;
+
+  let content: ReactNode = null;
   if (view === "mode") {
-    return (
+    content = (
       <div className="max-w-xl space-y-6">
         <h2 className="section-title">{t.chooseTitle}</h2>
         <div className="grid gap-4 sm:grid-cols-2">
@@ -253,14 +298,16 @@ function Inner({ locale, t, form }: { locale: string; t: T; form: FormDict }) {
               type="button"
               onClick={() => setMode(m)}
               className={`chamfer-lg p-6 text-left transition ${
-                mode === m ? "bg-teal text-white" : "border border-teal/25 bg-white hover:bg-haze"
+                mode === m
+                  ? "bg-white text-black"
+                  : "border border-teal/25 bg-white/[0.04] hover:bg-haze"
               }`}
             >
               <span className="font-firs text-xl font-semibold">
                 {m === "solo" ? t.soloLabel : t.teamLabel}
               </span>
               <span
-                className={`mt-2 block text-sm ${mode === m ? "text-white/80" : "text-ink/60"}`}
+                className={`mt-2 block text-sm ${mode === m ? "text-black/60" : "text-ink/60"}`}
               >
                 {m === "solo" ? t.soloDesc : t.teamDesc}
               </span>
@@ -281,7 +328,7 @@ function Inner({ locale, t, form }: { locale: string; t: T; form: FormDict }) {
 
   // ---------- Langkah tim (kalau pilih Tim tapi belum punya tim) ----------
   if (view === "team") {
-    return (
+    content = (
       <div className="max-w-2xl space-y-6">
         <button
           type="button"
@@ -353,32 +400,41 @@ function Inner({ locale, t, form }: { locale: string; t: T; form: FormDict }) {
   }
 
   // ---------- Form project (create) ----------
+  if (view === "form") {
+    content = (
+      <div className="max-w-3xl space-y-5">
+        <button
+          type="button"
+          className="text-sm text-teal hover:underline"
+          onClick={() => setView("mode")}
+        >
+          ← {t.back}
+        </button>
+        <p className="text-sm text-ink/70">
+          {mode === "team" ? `${t.usingTeam}: ${mine.teamName ?? "—"}` : t.soloLabel}
+        </p>
+        {errorBox}
+        <ProjectForm
+          form={form}
+          submitLabel={t.submitCta}
+          savingLabel={form.saving}
+          busy={busy}
+          onSubmit={async (payload) => {
+            const r = await send("POST", "/api/projects", { mode, ...payload });
+            if (r) {
+              setNotice(null);
+              await load();
+            }
+          }}
+        />
+      </div>
+    );
+  }
+
   return (
-    <div className="max-w-3xl space-y-5">
-      <button
-        type="button"
-        className="text-sm text-teal hover:underline"
-        onClick={() => setView("mode")}
-      >
-        ← {t.back}
-      </button>
-      <p className="text-sm text-ink/70">
-        {mode === "team" ? `${t.usingTeam}: ${mine.teamName ?? "—"}` : t.soloLabel}
-      </p>
-      {errorBox}
-      <ProjectForm
-        form={form}
-        submitLabel={t.submitCta}
-        savingLabel={form.saving}
-        busy={busy}
-        onSubmit={async (payload) => {
-          const r = await send("POST", "/api/projects", { mode, ...payload });
-          if (r) {
-            setNotice(null);
-            await load();
-          }
-        }}
-      />
+    <div className="space-y-10">
+      <Stepper steps={steps} current={currentStep} />
+      {content}
     </div>
   );
 }
