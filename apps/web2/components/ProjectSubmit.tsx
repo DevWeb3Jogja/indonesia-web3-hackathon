@@ -307,7 +307,7 @@ function Inner({ locale, t, form }: { locale: string; t: T; form: FormDict }) {
                 {m === "solo" ? t.soloLabel : t.teamLabel}
               </span>
               <span
-                className={`mt-2 block text-sm ${mode === m ? "text-white/80" : "text-ink/60"}`}
+                className={`mt-2 block text-sm ${mode === m ? "text-black/60" : "text-ink/60"}`}
               >
                 {m === "solo" ? t.soloDesc : t.teamDesc}
               </span>
