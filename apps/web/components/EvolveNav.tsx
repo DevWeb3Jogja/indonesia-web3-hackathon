@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import type { Dict } from "@/lib/i18n";
 import { LOCALES, localePath, splitPath } from "@/lib/locale";
 import ConnectWalletButton from "./ConnectWalletButton";
+import MyProjectsLink from "./MyProjectsLink";
 
 const NAV = [
   { path: "/", key: "home" },
@@ -14,7 +15,6 @@ const NAV = [
   { path: "/prizes", key: "prizes" },
   { path: "/schedule", key: "schedule" },
   { path: "/faq", key: "faq" },
-  { path: "/my", key: "myProjects" },
 ] as const;
 
 function remember(locale: string) {
@@ -91,6 +91,11 @@ export default function EvolveNav({ nav, logo }: { nav: Dict["nav"]; logo: strin
               {nav[n.key]}
             </Link>
           ))}
+          <MyProjectsLink
+            href={to("/my")}
+            label={nav.myProjects}
+            className={active("/my") ? "active" : ""}
+          />
         </nav>
 
         <div className="ev-nav-right">
@@ -126,6 +131,11 @@ export default function EvolveNav({ nav, logo }: { nav: Dict["nav"]; logo: strin
                   {nav[n.key]}
                 </Link>
               ))}
+              <MyProjectsLink
+                href={to("/my")}
+                label={nav.myProjects}
+                className={active("/my") ? "active" : ""}
+              />
               <div className="ev-mlang">{langLinks("")}</div>
               <ConnectWalletButton className="ev-cta-pill ev-msignin" locale={locale} />
             </nav>
