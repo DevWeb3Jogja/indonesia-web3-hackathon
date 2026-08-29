@@ -3,7 +3,8 @@
 import { useAppKit } from "@reown/appkit/react";
 import { ShieldAlert, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
+import { InteractiveGridPattern } from "./interactive-grid";
 
 /** Gerbang: connect + SIWE via modal. Reload otomatis setelah sign-in sukses
  *  (siweConfig.onSignIn) supaya server re-check role → dashboard. */
@@ -12,26 +13,58 @@ export default function SignInGate({ reason }: { reason: "signin" | "forbidden" 
   const forbidden = reason === "forbidden";
 
   return (
-    <main className="flex min-h-svh items-center justify-center bg-muted/30 p-6">
-      <Card className="w-full max-w-md">
-        <CardHeader className="items-center text-center">
-          <div className="mb-2 flex size-11 items-center justify-center rounded-lg bg-primary/10 text-primary">
+    <div className="relative grid h-svh lg:grid-cols-2">
+      {/* Panel brand (selalu gelap) */}
+      <div className="relative hidden h-full flex-col overflow-hidden bg-zinc-900 p-10 text-white lg:flex">
+        <InteractiveGridPattern className="inset-x-0 inset-y-0 h-full skew-y-12 [mask-image:radial-gradient(500px_circle_at_center,white,transparent)]" />
+        <div className="relative z-20 flex items-center gap-2.5 text-lg font-semibold">
+          <div className="bg-primary text-primary-foreground flex size-8 items-center justify-center rounded-md text-xs font-bold">
+            IW3
+          </div>
+          Backoffice IW3H
+        </div>
+        <div className="relative z-20 mt-auto">
+          <blockquote className="space-y-2">
+            <p className="text-lg leading-relaxed">
+              &ldquo;Kelola submission, penjurian, dan pemenang Indonesia Web3 Hackathon 2026 dari
+              satu tempat.&rdquo;
+            </p>
+            <footer className="text-sm text-white/50">Organizer console</footer>
+          </blockquote>
+        </div>
+      </div>
+
+      {/* Panel form */}
+      <div className="flex h-full items-center justify-center p-6 lg:p-8">
+        <div className="flex w-full max-w-sm flex-col items-center space-y-6 text-center">
+          <div
+            className={cn(
+              "flex size-12 items-center justify-center rounded-xl",
+              forbidden ? "bg-destructive/10 text-destructive" : "bg-primary/10 text-primary"
+            )}
+          >
             {forbidden ? <ShieldAlert className="size-6" /> : <Wallet className="size-6" />}
           </div>
-          <CardTitle>Backoffice IW3H</CardTitle>
-          <CardDescription>
-            {forbidden
-              ? "Wallet ini bukan admin. Minta admin lain menaikkan role kamu, lalu muat ulang."
-              : "Khusus organizer. Sign in dengan wallet admin."}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="flex justify-center">
-          <Button onClick={() => open()}>
-            <Wallet />
+          <div className="space-y-2">
+            <h1 className="text-2xl font-semibold tracking-tight">
+              {forbidden ? "Akses ditolak" : "Backoffice IW3H"}
+            </h1>
+            <p className="text-muted-foreground text-sm leading-relaxed">
+              {forbidden
+                ? "Wallet ini bukan admin. Minta admin lain menaikkan role kamu, lalu coba lagi dengan wallet yang benar."
+                : "Khusus organizer. Sign in dengan wallet admin memakai SIWE (Sign-In with Ethereum)."}
+            </p>
+          </div>
+          <Button size="lg" className="w-full" onClick={() => open()}>
+            <Wallet className="mr-1 size-4" />
             {forbidden ? "Ganti wallet" : "Sign in dengan wallet"}
           </Button>
-        </CardContent>
-      </Card>
-    </main>
+          <p className="text-muted-foreground px-4 text-xs leading-relaxed">
+            Kamu akan diminta menandatangani pesan untuk membuktikan kepemilikan wallet — tanpa
+            transaksi atau biaya.
+          </p>
+        </div>
+      </div>
+    </div>
   );
 }
