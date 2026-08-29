@@ -25,7 +25,6 @@ export default async function SchedulePage(props: { params: Promise<{ locale: st
             <br />
             {t.title2}
           </h1>
-          <p className="max-w-sm text-[17px] leading-[1.5] text-ink/80">{t.lead}</p>
         </div>
 
         <div className="mt-14 space-y-3">

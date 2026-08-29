@@ -27,7 +27,6 @@ export default async function FaqPage(props: { params: Promise<{ locale: string 
               <br />
               {t.title2}
             </h1>
-            <p className="mt-5 max-w-xs text-[17px] leading-[1.5] text-ink/80">{t.lead}</p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row lg:flex-col lg:items-start">
               <Link href={localePath(params.locale, "/submit")} className="btn-teal group">
                 {t.submitCta}

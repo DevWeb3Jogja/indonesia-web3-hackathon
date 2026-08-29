@@ -33,7 +33,6 @@ export default async function PrizesPage(props: { params: Promise<{ locale: stri
             <br />
             {t.title2}
           </h1>
-          <p className="max-w-sm text-[17px] leading-[1.5] text-ink/80">{t.lead}</p>
         </div>
 
         {/* Penghargaan lintas track */}

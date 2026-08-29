@@ -21,9 +21,6 @@ export default async function MyPage(props: { params: Promise<{ locale: string }
       <div className="page-wrap">
         <p className="eyebrow">{dict.nav.profile}</p>
         <h1 className="page-title mt-4">My Projects</h1>
-        <p className="mt-4 max-w-lg text-[17px] leading-[1.5] text-white/70">
-          Submit and manage your project, and manage your team — all in one place.
-        </p>
 
         <div className="mt-8">
           <Link href={localePath(locale, "/submit")} className="btn-teal">
