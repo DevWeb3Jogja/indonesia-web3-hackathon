@@ -30,10 +30,10 @@ const nextConfig = {
   // Docker (Coolify): output minimal + trace dari root monorepo.
   output: "standalone",
   outputFileTracingRoot: path.join(import.meta.dirname, "../.."),
-  // Type-check & lint dijalankan terpisah (tsc + biome). Lewati di `next build`
-  // supaya build Docker lebih ringan/cepat & tidak OOM saat VPS ramai.
+  // Type-check dijalankan terpisah (tsc). Lewati di `next build` supaya build
+  // Docker lebih ringan/cepat & tidak OOM saat VPS ramai. (Next 16 sudah tak
+  // menjalankan ESLint saat build, jadi tak perlu opsi eslint.)
   typescript: { ignoreBuildErrors: true },
-  eslint: { ignoreDuringBuilds: true },
   // Next 16: pindah dari experimental.serverComponentsExternalPackages.
   serverExternalPackages: ["@libsql/client", "libsql"],
   async headers() {

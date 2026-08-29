@@ -1,7 +1,8 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { DEFAULT_LOCALE, LOCALES } from "@/lib/locale";
 
-export function middleware(req: NextRequest) {
+// Next 16: konvensi `middleware` diganti `proxy` (fungsi + nama file).
+export function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   if (LOCALES.some((l) => pathname === `/${l}` || pathname.startsWith(`/${l}/`))) {
