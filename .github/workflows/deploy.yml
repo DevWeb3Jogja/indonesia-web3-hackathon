@@ -1,0 +1,30 @@
+name: deploy
+
+# Auto-deploy ke Coolify (VPS) tiap push ke main. Butuh repo secret
+# COOLIFY_TOKEN (Settings → Secrets and variables → Actions). Tanpa secret,
+# step ini skip (bukan gagal), jadi tak ada silang merah di commit.
+on:
+  push:
+    branches: [main]
+
+concurrency:
+  group: deploy-main
+  cancel-in-progress: true
+
+jobs:
+  coolify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Coolify deploy (web + backoffice)
+        env:
+          COOLIFY_TOKEN: ${{ secrets.COOLIFY_TOKEN }}
+        run: |
+          if [ -z "$COOLIFY_TOKEN" ]; then
+            echo "COOLIFY_TOKEN belum di-set — auto-deploy dilewati."
+            echo "Set di repo Settings → Secrets and variables → Actions."
+            exit 0
+          fi
+          curl -fsS -X POST \
+            "http://103.150.190.91:8000/api/v1/deploy?uuid=gnnfh3as8gb9vtgdgsm6ievk,760mtjav3cckpowj7scvmil1&force=false" \
+            -H "Authorization: Bearer $COOLIFY_TOKEN"
+          echo "Deploy web + backoffice triggered."
