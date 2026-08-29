@@ -65,6 +65,7 @@ function Inner({ t }: { t: T }) {
   const [form, setForm] = useState<FormState>(EMPTY);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
+  const [uCheck, setUCheck] = useState<"idle" | "checking" | "ok" | "taken" | "invalid">("idle");
 
   const load = useCallback(async () => {
     setStatus("loading");
@@ -104,6 +105,36 @@ function Inner({ t }: { t: T }) {
     (k: keyof FormState) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
       setForm((f) => ({ ...f, [k]: e.target.value }));
 
+  // Cek ketersediaan username live (debounce) saat berbeda dari yang tersimpan.
+  useEffect(() => {
+    const u = form.username.trim();
+    if (!u || u === (profile?.username ?? "")) {
+      setUCheck("idle");
+      return;
+    }
+    if (u.length < 3 || !/^[a-zA-Z0-9_-]+$/.test(u)) {
+      setUCheck("invalid");
+      return;
+    }
+    setUCheck("checking");
+    const ctrl = new AbortController();
+    const timer = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/profile/username-check?u=${encodeURIComponent(u)}`, {
+          signal: ctrl.signal,
+        });
+        const data = await res.json();
+        setUCheck(data.invalid ? "invalid" : data.available ? "ok" : "taken");
+      } catch {
+        /* dibatalkan */
+      }
+    }, 400);
+    return () => {
+      clearTimeout(timer);
+      ctrl.abort();
+    };
+  }, [form.username, profile?.username]);
+
   async function save(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);
@@ -121,6 +152,9 @@ function Inner({ t }: { t: T }) {
       setMessage({ kind: "err", text: t.errorValidation });
     } else if (res.status === 429) {
       setMessage({ kind: "err", text: t.errorRate });
+    } else if (res.status === 409) {
+      setUCheck("taken");
+      setMessage({ kind: "err", text: "Username sudah dipakai" });
     } else if (res.status === 401) {
       setStatus("unauth");
     } else {
@@ -183,7 +217,23 @@ function Inner({ t }: { t: T }) {
           maxLength={32}
           required
         />
-        <p className="mt-1 text-[11px] text-ink/50">{t.usernameHint}</p>
+        {uCheck === "idle" ? (
+          <p className="mt-1 text-[11px] text-ink/50">{t.usernameHint}</p>
+        ) : (
+          <p
+            className={`mt-1 text-[11px] ${
+              uCheck === "ok" ? "text-teal" : uCheck === "checking" ? "text-ink/50" : "text-red-500"
+            }`}
+          >
+            {uCheck === "checking"
+              ? "Mengecek ketersediaan…"
+              : uCheck === "ok"
+                ? "✓ Username tersedia"
+                : uCheck === "taken"
+                  ? "Username sudah dipakai"
+                  : "Format username tidak valid"}
+          </p>
+        )}
       </div>
 
       <div>
@@ -255,7 +305,11 @@ function Inner({ t }: { t: T }) {
         </p>
       )}
 
-      <button type="submit" className="btn-teal" disabled={saving}>
+      <button
+        type="submit"
+        className="btn-teal"
+        disabled={saving || uCheck === "taken" || uCheck === "checking"}
+      >
         {saving ? t.saving : t.save}
       </button>
     </form>

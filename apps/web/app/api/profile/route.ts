@@ -1,4 +1,4 @@
-import { getUser, rateLimit, updateProfile } from "@iw3h/db";
+import { getUser, isUsernameTaken, rateLimit, updateProfile } from "@iw3h/db";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { impersonates, isClean } from "@/lib/filter";
@@ -42,6 +42,16 @@ export async function PUT(req: Request) {
     return NextResponse.json(
       { error: "Input tidak valid", detail: parsed.error.flatten().fieldErrors },
       { status: 400 }
+    );
+  }
+
+  // Username unik lintas wallet (cek server, backstop untuk live-checker).
+  if (parsed.data.username && (await isUsernameTaken(db, parsed.data.username, auth.address))) {
+    return NextResponse.json(
+      { error: "Username sudah dipakai", code: "username_taken" },
+      {
+        status: 409,
+      }
     );
   }
 

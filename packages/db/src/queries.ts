@@ -23,6 +23,25 @@ export async function ensureUser(db: Db, address: string) {
   await db.insert(users).values({ address }).onConflictDoNothing();
 }
 
+/** Username sudah dipakai wallet LAIN (case-insensitive)? Untuk cek ketersediaan. */
+export async function isUsernameTaken(
+  db: Db,
+  username: string,
+  exceptAddress: string
+): Promise<boolean> {
+  const rows = await db
+    .select({ a: users.address })
+    .from(users)
+    .where(
+      and(
+        sql`lower(${users.username}) = ${username.trim().toLowerCase()}`,
+        sql`${users.address} != ${exceptAddress}`
+      )
+    )
+    .limit(1);
+  return rows.length > 0;
+}
+
 /** Profil dianggap lengkap kalau username & email terisi — syarat submit project. */
 export function isProfileComplete(
   user: { username: string | null; email: string | null } | null
