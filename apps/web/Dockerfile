@@ -28,5 +28,10 @@ COPY --from=builder /app/apps/web/.next/standalone ./
 COPY --from=builder /app/apps/web/.next/static ./apps/web/.next/static
 COPY --from=builder /app/apps/web/public ./apps/web/public
 
+# Native binding libsql (musl) di-load lewat require dinamis → tak ikut ter-trace
+# ke standalone. Salin manual ke lokasi resolve-nya. Update versi kalau `libsql`
+# di pnpm-lock.yaml berubah.
+COPY --from=builder /app/node_modules/.pnpm/@libsql+linux-x64-musl@0.5.29/node_modules/@libsql/linux-x64-musl ./node_modules/.pnpm/libsql@0.5.29/node_modules/@libsql/linux-x64-musl
+
 EXPOSE 3000
 CMD ["node", "apps/web/server.js"]

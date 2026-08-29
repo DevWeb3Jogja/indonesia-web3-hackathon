@@ -27,5 +27,10 @@ ENV NODE_ENV=production \
 COPY --from=builder /app/apps/backoffice/.next/standalone ./
 COPY --from=builder /app/apps/backoffice/.next/static ./apps/backoffice/.next/static
 
+# Native binding libsql (musl) di-load lewat require dinamis → tak ikut ter-trace
+# ke standalone. Salin manual ke lokasi resolve-nya. Update versi kalau `libsql`
+# di pnpm-lock.yaml berubah.
+COPY --from=builder /app/node_modules/.pnpm/@libsql+linux-x64-musl@0.5.29/node_modules/@libsql/linux-x64-musl ./node_modules/.pnpm/libsql@0.5.29/node_modules/@libsql/linux-x64-musl
+
 EXPOSE 3000
 CMD ["node", "apps/backoffice/server.js"]
