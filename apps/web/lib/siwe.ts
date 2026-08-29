@@ -5,6 +5,7 @@ import {
   type SIWECreateMessageArgs,
   type SIWEVerifyMessageArgs,
 } from "@reown/appkit-siwe";
+import { getTurnstileToken } from "./turnstile";
 
 /**
  * One-Click Auth Reown: modal otomatis minta tanda tangan SIWE setelah connect.
@@ -19,7 +20,10 @@ export const siweConfig = createSIWEConfig({
   }),
   createMessage: ({ address, ...args }: SIWECreateMessageArgs) => formatMessage(args, address),
   getNonce: async () => {
-    const res = await fetch("/api/auth/nonce");
+    const token = await getTurnstileToken();
+    const res = await fetch("/api/auth/nonce", {
+      headers: token ? { "x-turnstile-token": token } : {},
+    });
     if (!res.ok) throw new Error("Gagal mengambil nonce");
     return res.text();
   },

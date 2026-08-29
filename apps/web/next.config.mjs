@@ -2,7 +2,7 @@
 // endpoint — persempit ke daftar domain final setelah daftar RPC produksi terkunci.
 const csp = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://challenges.cloudflare.com",
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "font-src 'self' data: https://fonts.gstatic.com https://fonts.reown.com",
   "img-src * data: blob:",
@@ -11,7 +11,7 @@ const csp = [
   "media-src 'self' https: blob:",
   "connect-src 'self' https: wss:",
   // Wallet (Reown/WalletConnect) + embed video demo project (YouTube).
-  "frame-src https://verify.walletconnect.com https://verify.walletconnect.org https://secure.walletconnect.com https://secure.reown.com https://www.youtube.com https://www.youtube-nocookie.com",
+  "frame-src https://challenges.cloudflare.com https://verify.walletconnect.com https://verify.walletconnect.org https://secure.walletconnect.com https://secure.reown.com https://www.youtube.com https://www.youtube-nocookie.com",
   "frame-ancestors 'none'",
   "base-uri 'self'",
   "form-action 'self'",

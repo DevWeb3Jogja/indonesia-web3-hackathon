@@ -6,3 +6,4 @@ export {
   type SybilResult,
   sybilPolicyFromEnv,
 } from "./sybil";
+export { turnstileEnabled, verifyTurnstile } from "./turnstile";
