@@ -11,6 +11,9 @@ export default function MarkdownRenderer({
   content: string;
   errorLabel?: string;
 }) {
+  // Normalisasi escape literal "\n"/"\r\n" (mis. dari seed) jadi baris baru asli,
+  // supaya heading/paragraf markdown tak tergabung jadi satu baris.
+  const normalized = content.replace(/\\r\\n|\\n/g, "\n");
   return (
     <div className="md-body">
       <ReactMarkdown
@@ -37,7 +40,7 @@ export default function MarkdownRenderer({
           },
         }}
       >
-        {content}
+        {normalized}
       </ReactMarkdown>
     </div>
   );

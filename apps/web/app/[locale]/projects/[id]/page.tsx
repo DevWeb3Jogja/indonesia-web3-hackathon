@@ -28,6 +28,9 @@ function parseLinks(raw: string | null | undefined): ExtraLink[] {
 
 const short = (a: string) => `${a.slice(0, 6)}…${a.slice(-4)}`;
 
+/** Escape literal "\n" (mis. seed) → baris baru asli. */
+const unescapeNewlines = (s: string) => s.replace(/\\r\\n|\\n/g, "\n");
+
 export default async function ProjectDetailPage(props: {
   params: Promise<{ id: string; locale: string }>;
 }) {
@@ -169,7 +172,7 @@ export default async function ProjectDetailPage(props: {
                     <div className="p-6 md:p-7">
                       <p className="eyebrow">{t.problem}</p>
                       <p className="mt-4 whitespace-pre-line text-sm leading-relaxed text-ink/80">
-                        {p.problemStatement}
+                        {unescapeNewlines(p.problemStatement)}
                       </p>
                     </div>
                   </Panel>
@@ -179,7 +182,7 @@ export default async function ProjectDetailPage(props: {
                     <div className="p-6 md:p-7">
                       <p className="eyebrow">{t.solution}</p>
                       <p className="mt-4 whitespace-pre-line text-sm leading-relaxed text-ink/80">
-                        {p.solution}
+                        {unescapeNewlines(p.solution)}
                       </p>
                     </div>
                   </Panel>
