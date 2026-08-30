@@ -38,6 +38,15 @@ export default function MarkdownRenderer({
               </a>
             );
           },
+          // Bungkus tabel agar scroll horizontal di dalam kartu, bukan meluber
+          // keluar (mis. tabel alamat kontrak yang panjang di mobile).
+          table({ children }) {
+            return (
+              <div className="md-table-scroll">
+                <table>{children}</table>
+              </div>
+            );
+          },
         }}
       >
         {normalized}

@@ -197,6 +197,12 @@ body {
 .md-body pre code {
   @apply bg-transparent p-0 text-white;
 }
+.md-table-scroll {
+  @apply mb-4 max-w-full overflow-x-auto;
+}
+.md-table-scroll table {
+  @apply mb-0 w-max min-w-full;
+}
 .md-body table {
   @apply mb-4 w-full border-collapse text-sm;
 }
