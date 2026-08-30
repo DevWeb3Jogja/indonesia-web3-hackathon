@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import { type ReactNode, useCallback, useEffect, useState } from "react";
 import type { Dict } from "@/lib/i18n";
 import { localePath } from "@/lib/locale";
-import { trackLabel } from "@/lib/types";
 import { projectId as wcProjectId } from "@/lib/web3";
 import ConnectWalletButton from "./ConnectWalletButton";
 import ProjectForm, { type ProjectData } from "./ProjectForm";
@@ -143,7 +142,6 @@ function Inner({ locale, t, form }: { locale: string; t: T; form: FormDict }) {
   const [mode, setMode] = useState<"solo" | "team">("solo");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [notice, setNotice] = useState<string | null>(null);
   const [teamName, setTeamName] = useState("");
   const [code, setCode] = useState("");
 
@@ -153,7 +151,8 @@ function Inner({ locale, t, form }: { locale: string; t: T; form: FormDict }) {
     if (res.status === 401) return setStatus("unauth");
     const data: Mine = await res.json();
     setMine(data);
-    setView(data.project ? "my" : "mode");
+    // Sudah punya project → langsung form edit (ringkasan project ada di /my).
+    setView(data.project ? "edit" : "mode");
     setStatus("ready");
   }, []);
 
@@ -198,63 +197,17 @@ function Inner({ locale, t, form }: { locale: string; t: T; form: FormDict }) {
     </p>
   );
 
-  // ---------- Sudah punya project ----------
-  if (view === "my" && mine.project) {
-    const p = mine.project;
-    return (
-      <div className="max-w-2xl space-y-6">
-        <Panel clip="chamfer-lg">
-          <div className="p-6">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="tag">{t.submittedBadge}</span>
-              <span className="tag">{p.teamId ? t.teamBadge : t.soloBadge}</span>
-              {p.team && <span className="text-sm text-ink/60">· {p.team.name}</span>}
-            </div>
-            <h2 className="section-title mt-3">{p.name}</h2>
-            {p.tagline && <p className="mt-2 text-ink/70">{p.tagline}</p>}
-            <div className="mt-4 flex flex-wrap gap-2">
-              {p.trackIds.map((id) => (
-                <span key={id} className="tag">
-                  {trackLabel(id)}
-                </span>
-              ))}
-            </div>
-          </div>
-        </Panel>
-        {notice && <p className="text-sm text-teal">{notice}</p>}
-        <div className="flex flex-wrap gap-3">
-          <button
-            type="button"
-            className="btn-teal"
-            disabled={!mine.canSubmit}
-            onClick={() => {
-              setNotice(null);
-              setView("edit");
-            }}
-          >
-            {t.edit}
-          </button>
-          <Link href={localePath(locale, "/projects")} className="btn-outline">
-            {t.viewGallery}
-            <ArrowUpRight />
-          </Link>
-        </div>
-      </div>
-    );
-  }
-
-  // ---------- Edit ----------
+  // ---------- Edit (project sudah ada) ----------
   if (view === "edit" && mine.project) {
     const p = mine.project;
     return (
       <div className="max-w-3xl space-y-5">
-        <button
-          type="button"
-          className="text-sm text-teal hover:underline"
-          onClick={() => setView("my")}
+        <Link
+          href={localePath(locale, "/my")}
+          className="inline-block text-sm text-teal hover:underline"
         >
           ← {t.cancelEdit}
-        </button>
+        </Link>
         {errorBox}
         <ProjectForm
           form={form}
@@ -264,10 +217,7 @@ function Inner({ locale, t, form }: { locale: string; t: T; form: FormDict }) {
           busy={busy}
           onSubmit={async (payload) => {
             const r = await send("PUT", `/api/projects/${p.id}`, payload);
-            if (r) {
-              setNotice(t.savedEdit);
-              await load();
-            }
+            if (r) router.push(localePath(locale, "/my"));
           }}
         />
       </div>

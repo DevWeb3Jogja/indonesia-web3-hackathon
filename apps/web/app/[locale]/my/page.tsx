@@ -22,7 +22,12 @@ export default async function MyPage(props: { params: Promise<{ locale: string }
         <h1 className="page-title mt-4">My Projects</h1>
 
         <div className="mt-8">
-          <MyProjectPanel locale={locale} t={dict.psubmit} />
+          <MyProjectPanel
+            locale={locale}
+            t={dict.psubmit}
+            byLabel={dict.projects.by}
+            soloLabel={dict.projects.solo}
+          />
         </div>
 
         <section className="mt-16 border-t border-white/10 pt-12">
