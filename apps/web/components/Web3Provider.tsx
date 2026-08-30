@@ -16,9 +16,13 @@ if (projectId) {
     metadata: {
       name: "Indonesia Web3 Hackathon",
       description: "Indonesia Web3 Hackathon 2026",
-      // Samakan dengan domain produksi supaya verifikasi Reown tidak warning.
-      url: "https://indonesia-web3-hackathon.vercel.app",
-      icons: [],
+      // WAJIB sama dengan origin halaman — kalau beda, redirect social login
+      // (Google, dll) & verifikasi Reown gagal. Pakai origin asli saat di client.
+      url:
+        typeof window !== "undefined"
+          ? window.location.origin
+          : (process.env.NEXT_PUBLIC_SITE_URL ?? "https://indonesiaweb3hack.xyz"),
+      icons: ["https://indonesiaweb3hack.xyz/favicon-32x32.png"],
     },
     themeVariables: {
       "--w3m-accent": "#066377",

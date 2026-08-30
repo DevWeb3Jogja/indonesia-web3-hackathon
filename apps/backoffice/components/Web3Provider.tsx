@@ -16,8 +16,10 @@ if (projectId) {
     metadata: {
       name: "Backoffice IW3H",
       description: "Indonesia Web3 Hackathon organizer panel",
-      url: "https://admin.indonesia-web3-hackathon.vercel.app",
-      icons: [],
+      // Harus sama dengan origin halaman (kalau beda, social login/verify gagal).
+      url:
+        typeof window !== "undefined" ? window.location.origin : "https://bo.indonesiaweb3hack.xyz",
+      icons: ["https://bo.indonesiaweb3hack.xyz/favicon-32x32.png"],
     },
     themeVariables: {
       "--w3m-accent": "#066377",
