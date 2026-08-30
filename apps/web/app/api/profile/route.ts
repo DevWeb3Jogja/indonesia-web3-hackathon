@@ -17,7 +17,12 @@ const profileSchema = z.object({
   avatarUrl: z.string().url().max(2048).startsWith("https://").nullish(),
   bio: z.string().max(500).refine(isClean, "Mengandung kata yang tidak pantas").nullish(),
   githubUrl: z.string().url().max(2048).startsWith("https://github.com/").nullish(),
-  twitterUrl: z.string().url().max(2048).startsWith("https://").nullish(),
+  twitterUrl: z
+    .string()
+    .url()
+    .max(2048)
+    .regex(/^https:\/\/(x|twitter)\.com\/.+/i, "Harus URL X/Twitter")
+    .nullish(),
 });
 
 export const dynamic = "force-dynamic";

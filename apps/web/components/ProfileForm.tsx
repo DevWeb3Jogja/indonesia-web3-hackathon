@@ -30,6 +30,11 @@ const EMPTY = {
 };
 type FormState = typeof EMPTY;
 
+// Validasi format (selaras dengan skema server).
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const GITHUB_RE = /^https:\/\/github\.com\/.+/i;
+const X_RE = /^https:\/\/(x|twitter)\.com\/.+/i;
+
 /** "" → null supaya lolos skema server (field opsional, bukan string kosong). */
 function toPayload(f: FormState) {
   return Object.fromEntries(
@@ -104,6 +109,11 @@ function Inner({ t }: { t: T }) {
   const set =
     (k: keyof FormState) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
       setForm((f) => ({ ...f, [k]: e.target.value }));
+
+  // Error format inline (hanya kalau field diisi).
+  const emailErr = form.email.trim() !== "" && !EMAIL_RE.test(form.email.trim());
+  const githubErr = form.githubUrl.trim() !== "" && !GITHUB_RE.test(form.githubUrl.trim());
+  const xErr = form.twitterUrl.trim() !== "" && !X_RE.test(form.twitterUrl.trim());
 
   // Cek ketersediaan username live (debounce) saat berbeda dari yang tersimpan.
   useEffect(() => {
@@ -249,6 +259,7 @@ function Inner({ t }: { t: T }) {
           placeholder={t.emailPlaceholder}
           required
         />
+        {emailErr && <p className="mt-1 text-[11px] text-red-500">Format email tidak valid</p>}
       </div>
 
       <div>
@@ -278,6 +289,9 @@ function Inner({ t }: { t: T }) {
             onChange={set("githubUrl")}
             placeholder={t.githubPlaceholder}
           />
+          {githubErr && (
+            <p className="mt-1 text-[11px] text-red-500">URL GitHub (https://github.com/…)</p>
+          )}
         </div>
         <div>
           <label className="label-field" htmlFor="twitterUrl">
@@ -291,6 +305,7 @@ function Inner({ t }: { t: T }) {
             onChange={set("twitterUrl")}
             placeholder={t.twitterPlaceholder}
           />
+          {xErr && <p className="mt-1 text-[11px] text-red-500">URL X/Twitter (https://x.com/…)</p>}
         </div>
       </div>
 
@@ -308,7 +323,9 @@ function Inner({ t }: { t: T }) {
       <button
         type="submit"
         className="btn-teal"
-        disabled={saving || uCheck === "taken" || uCheck === "checking"}
+        disabled={
+          saving || uCheck === "taken" || uCheck === "checking" || emailErr || githubErr || xErr
+        }
       >
         {saving ? t.saving : t.save}
       </button>
