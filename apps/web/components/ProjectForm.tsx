@@ -124,14 +124,29 @@ export default function ProjectForm({
       tracks: prev.tracks.includes(id) ? prev.tracks.filter((t) => t !== id) : [...prev.tracks, id],
     }));
 
+  const [tried, setTried] = useState(false);
+
+  // Validasi format (selaras dengan skema server) — biar user tahu field mana.
+  const isHttps = (v: string) => v.trim() === "" || /^https:\/\/\S+$/i.test(v.trim());
+  const nameError = d.name.trim().length < 2;
   const trackError = d.tracks.length === 0;
+  const contractError =
+    d.contractAddress.trim() !== "" && !/^0x[0-9a-fA-F]{40}$/.test(d.contractAddress.trim());
+  const githubError = !isHttps(d.githubUrl);
+  const demoError = !isHttps(d.demoUrl);
+  const videoError = !isHttps(d.demoVideoUrl);
+  const hasError =
+    nameError || trackError || contractError || githubError || demoError || videoError;
+
+  const fieldMsg = (show: boolean, msg: string) =>
+    show ? <p className="mt-1 text-[11px] text-red-500">{msg}</p> : null;
 
   return (
     <form
       className="space-y-6"
       onSubmit={(e) => {
         e.preventDefault();
-        if (trackError) return;
+        if (hasError) return setTried(true);
         onSubmit(toPayload(d));
       }}
     >
@@ -150,6 +165,7 @@ export default function ProjectForm({
             maxLength={80}
             required
           />
+          {fieldMsg(tried && nameError, form.errName)}
         </div>
         <div>
           <label className="label-field" htmlFor="p-tagline">
@@ -187,6 +203,7 @@ export default function ProjectForm({
             );
           })}
         </div>
+        {fieldMsg(tried && trackError, form.errTracks)}
       </div>
 
       <div className="grid gap-5 md:grid-cols-2">
@@ -202,6 +219,7 @@ export default function ProjectForm({
             placeholder="0x…"
           />
           <p className="mt-1 text-[11px] text-ink/50">{form.contractHint}</p>
+          {fieldMsg(contractError, form.errContract)}
         </div>
         <div>
           <label className="label-field" htmlFor="p-network">
@@ -310,6 +328,7 @@ export default function ProjectForm({
             onChange={(e) => set("githubUrl", e.target.value)}
             placeholder="https://github.com/…"
           />
+          {fieldMsg(githubError, form.errUrl)}
         </div>
         <div>
           <label className="label-field" htmlFor="p-demo">
@@ -323,6 +342,7 @@ export default function ProjectForm({
             onChange={(e) => set("demoUrl", e.target.value)}
             placeholder="https://…"
           />
+          {fieldMsg(demoError, form.errUrl)}
         </div>
         <div>
           <label className="label-field" htmlFor="p-video">
@@ -336,10 +356,12 @@ export default function ProjectForm({
             onChange={(e) => set("demoVideoUrl", e.target.value)}
             placeholder="https://youtube.com/…"
           />
+          {fieldMsg(videoError, form.errUrl)}
         </div>
       </div>
 
-      <button type="submit" className="btn-teal" disabled={busy || trackError}>
+      {tried && hasError && <p className="text-sm text-red-500">{form.errFix}</p>}
+      <button type="submit" className="btn-teal" disabled={busy}>
         {busy ? savingLabel : submitLabel}
       </button>
     </form>

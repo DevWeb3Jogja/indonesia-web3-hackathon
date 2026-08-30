@@ -186,7 +186,11 @@ function Inner({ locale, t, form }: { locale: string; t: T; form: FormDict }) {
     }
     const json = await res.json().catch(() => null);
     if (!res.ok) {
-      setError(json?.error ?? t.errorGeneric);
+      // Sertakan field yang gagal (dari zod) supaya jelas yang mana bermasalah.
+      const detail = json?.detail as Record<string, unknown> | undefined;
+      const fields = detail && typeof detail === "object" ? Object.keys(detail) : [];
+      const base = json?.error ?? t.errorGeneric;
+      setError(fields.length ? `${base}: ${fields.join(", ")}` : base);
       return null;
     }
     return json;

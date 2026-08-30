@@ -1,7 +1,7 @@
 import { randomBytes } from "node:crypto";
 import { and, asc, eq } from "drizzle-orm";
 import type { Db } from "./client";
-import { hackathons, registrations, teamMembers, teams } from "./schema";
+import { hackathons, projects, registrations, teamMembers, teams } from "./schema";
 
 export const MAX_TEAM_SIZE = 5;
 
@@ -14,7 +14,8 @@ export class TeamError extends Error {
       | "invalid_code"
       | "team_full"
       | "not_leader"
-      | "name_taken",
+      | "name_taken"
+      | "has_project",
     message: string
   ) {
     super(message);
@@ -152,6 +153,19 @@ export async function leaveTeam(db: Db, hackathonId: string, address: string): P
   if (!isLeader) {
     await db.batch([removeSelf]);
   } else if (others.length === 0) {
+    // Leader tunggal → keluar = bubarkan tim. Blok kalau tim sudah punya project
+    // (FK projects.team_id → teams.id akan pecah / project jadi yatim).
+    const hasProject = await db
+      .select({ id: projects.id })
+      .from(projects)
+      .where(eq(projects.teamId, team.id))
+      .limit(1);
+    if (hasProject.length > 0) {
+      throw new TeamError(
+        "has_project",
+        "Tim sudah submit project — tidak bisa keluar/bubar tim. Hapus project dulu."
+      );
+    }
     await db.batch([removeSelf, db.delete(teams).where(eq(teams.id, team.id))]);
   } else {
     const next = others[0].address; // terlama (members sudah diurut joinedAt)
