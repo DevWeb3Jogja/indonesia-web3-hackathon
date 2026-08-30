@@ -151,10 +151,19 @@ function Inner({ locale, t, form }: { locale: string; t: T; form: FormDict }) {
     if (res.status === 401) return setStatus("unauth");
     const data: Mine = await res.json();
     setMine(data);
-    // Sudah punya project → langsung form edit (ringkasan project ada di /my).
-    setView(data.project ? "edit" : "mode");
+    if (data.project) {
+      // Sudah submit: buka form edit HANYA kalau diminta (?edit=1, dari tombol Edit
+      // di /my). Klik "Submit" biasa → arahkan ke ringkasan /my, jangan langsung edit.
+      const wantEdit =
+        typeof window !== "undefined" &&
+        new URLSearchParams(window.location.search).get("edit") === "1";
+      if (!wantEdit) return router.replace(localePath(locale, "/my"));
+      setView("edit");
+    } else {
+      setView("mode");
+    }
     setStatus("ready");
-  }, []);
+  }, [router, locale]);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: address = pemicu re-fetch saat ganti wallet
   useEffect(() => {
@@ -252,7 +261,10 @@ function Inner({ locale, t, form }: { locale: string; t: T; form: FormDict }) {
         <div className="p-8">
           <h2 className="section-title">{t.profileRequiredTitle}</h2>
           <p className="mt-3 text-sm leading-relaxed text-ink/70">{t.profileRequiredDesc}</p>
-          <Link href={localePath(locale, "/profile")} className="btn-teal mt-6">
+          <Link
+            href={`${localePath(locale, "/profile")}?next=${encodeURIComponent(localePath(locale, "/submit"))}`}
+            className="btn-teal mt-6"
+          >
             {t.profileRequiredCta}
             <ArrowUpRight />
           </Link>

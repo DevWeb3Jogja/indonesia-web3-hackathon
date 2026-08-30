@@ -145,7 +145,7 @@ function Inner({
       </div>
 
       <div className="flex flex-wrap gap-3">
-        <Link href={localePath(locale, "/submit")} className="btn-teal">
+        <Link href={`${localePath(locale, "/submit")}?edit=1`} className="btn-teal">
           {t.edit}
           <ArrowUpRight />
         </Link>

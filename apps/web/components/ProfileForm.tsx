@@ -1,6 +1,7 @@
 "use client";
 
 import { useAppKit, useAppKitAccount } from "@reown/appkit/react";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import type { Dict } from "@/lib/i18n";
 import { projectId } from "@/lib/web3";
@@ -64,6 +65,7 @@ export default function ProfileForm({ t }: { t: T }) {
 function Inner({ t }: { t: T }) {
   const { address, isConnected } = useAppKitAccount();
   const { open } = useAppKit();
+  const router = useRouter();
 
   const [status, setStatus] = useState<"idle" | "loading" | "unauth">("loading");
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -158,6 +160,10 @@ function Inner({ t }: { t: T }) {
     if (res.ok) {
       setProfile(await res.json());
       setMessage({ kind: "ok", text: t.saved });
+      // Datang dari alur submit ("lengkapi profil dulu") → balik ke sana, jangan
+      // biarkan user nyasar di /profile. Hanya path internal (anti open-redirect).
+      const next = new URLSearchParams(window.location.search).get("next");
+      if (next?.startsWith("/") && !next.startsWith("//")) router.push(next);
     } else if (res.status === 400) {
       setMessage({ kind: "err", text: t.errorValidation });
     } else if (res.status === 429) {
