@@ -213,10 +213,6 @@ function Inner({ t }: { t: T }) {
           <p className="label-field">{t.walletLabel}</p>
           <p className="font-mono text-sm text-ink">{profile?.address}</p>
         </div>
-        <div>
-          <p className="label-field">{t.roleLabel}</p>
-          <p className="text-sm capitalize text-ink">{profile?.role}</p>
-        </div>
       </div>
 
       <div>
