@@ -51,13 +51,13 @@ export default function UsersPanel() {
     });
     setBusy(false);
     if (res.ok) {
-      toast.success("User ditambahkan");
+      toast.success("User added");
       setOpen(false);
       setAddress("");
       setRole("participant");
       setRefreshKey((k) => k + 1);
     } else {
-      toast.error((await res.json().catch(() => null))?.error ?? "Gagal");
+      toast.error((await res.json().catch(() => null))?.error ?? "Failed");
     }
   }
 
@@ -74,7 +74,7 @@ export default function UsersPanel() {
         key={refreshKey}
         endpoint="/api/admin/users"
         rowKey={(u) => u.address}
-        searchPlaceholder="Cari address / username / email…"
+        searchPlaceholder="Search address / username / email…"
         filters={[
           {
             key: "role",
@@ -87,8 +87,8 @@ export default function UsersPanel() {
           },
         ]}
         sorts={[
-          { value: "newest", label: "Terbaru" },
-          { value: "oldest", label: "Terlama" },
+          { value: "newest", label: "Newest" },
+          { value: "oldest", label: "Oldest" },
         ]}
         columns={[
           { header: "Address", cell: (u) => <code>{short(u.address)}</code> },
@@ -105,9 +105,9 @@ export default function UsersPanel() {
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Tambah user</DialogTitle>
+            <DialogTitle>Add user</DialogTitle>
             <DialogDescription>
-              Pra-daftar wallet (belum perlu sign-in) dan set role-nya.
+              Pre-register a wallet (no sign-in needed) and set its role.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
@@ -122,9 +122,7 @@ export default function UsersPanel() {
                 spellCheck={false}
               />
               {address.trim() !== "" && !validAddr && (
-                <p className="text-destructive text-[11px]">
-                  Alamat wallet tidak valid (0x + 40 hex)
-                </p>
+                <p className="text-destructive text-[11px]">Invalid wallet address (0x + 40 hex)</p>
               )}
             </div>
             <div className="grid gap-1.5">

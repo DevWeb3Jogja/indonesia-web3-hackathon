@@ -16,16 +16,16 @@ export async function PUT(req: Request) {
   if (auth instanceof Response) return auth;
 
   const parsed = schema.safeParse(await req.json().catch(() => null));
-  if (!parsed.success) return NextResponse.json({ error: "Input tidak valid" }, { status: 400 });
+  if (!parsed.success) return NextResponse.json({ error: "Invalid input" }, { status: 400 });
   const { address, role } = parsed.data;
 
   // Cegah admin menurunkan role dirinya sendiri (lockout).
   if (address.toLowerCase() === auth.address.toLowerCase() && role !== "admin") {
-    return NextResponse.json({ error: "Tidak bisa menurunkan role sendiri" }, { status: 409 });
+    return NextResponse.json({ error: "Cannot demote your own role" }, { status: 409 });
   }
 
   const user = await getUser(db, address);
-  if (!user) return NextResponse.json({ error: "User belum pernah sign-in" }, { status: 404 });
+  if (!user) return NextResponse.json({ error: "User has never signed in" }, { status: 404 });
 
   await setUserRole(db, address, role);
   await audit(db, {

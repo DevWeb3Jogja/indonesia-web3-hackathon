@@ -26,8 +26,8 @@ export default function SignInGate({ reason }: { reason: "signin" | "forbidden" 
         <div className="relative z-20 mt-auto">
           <blockquote className="space-y-2">
             <p className="text-lg leading-relaxed">
-              &ldquo;Kelola submission, penjurian, dan pemenang Indonesia Web3 Hackathon 2026 dari
-              satu tempat.&rdquo;
+              &ldquo;Manage submissions, judging, and winners for Indonesia Web3 Hackathon 2026 in
+              one place.&rdquo;
             </p>
             <footer className="text-sm text-white/50">Organizer console</footer>
           </blockquote>
@@ -47,21 +47,21 @@ export default function SignInGate({ reason }: { reason: "signin" | "forbidden" 
           </div>
           <div className="space-y-2">
             <h1 className="text-2xl font-semibold tracking-tight">
-              {forbidden ? "Akses ditolak" : "Backoffice IW3H"}
+              {forbidden ? "Access denied" : "Backoffice IW3H"}
             </h1>
             <p className="text-muted-foreground text-sm leading-relaxed">
               {forbidden
-                ? "Wallet ini bukan admin. Minta admin lain menaikkan role kamu, lalu coba lagi dengan wallet yang benar."
-                : "Khusus organizer. Sign in dengan wallet admin memakai SIWE (Sign-In with Ethereum)."}
+                ? "This wallet is not an admin. Ask another admin to grant your role, then try again with the right wallet."
+                : "Organizers only. Sign in with an admin wallet using SIWE (Sign-In with Ethereum)."}
             </p>
           </div>
           <Button size="lg" className="w-full" onClick={() => open()}>
             <Wallet className="mr-1 size-4" />
-            {forbidden ? "Ganti wallet" : "Sign in dengan wallet"}
+            {forbidden ? "Switch wallet" : "Sign in with wallet"}
           </Button>
           <p className="text-muted-foreground px-4 text-xs leading-relaxed">
-            Kamu akan diminta menandatangani pesan untuk membuktikan kepemilikan wallet — tanpa
-            transaksi atau biaya.
+            You&rsquo;ll be asked to sign a message to prove wallet ownership — no transaction or
+            fees.
           </p>
         </div>
       </div>

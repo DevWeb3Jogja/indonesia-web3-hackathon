@@ -47,15 +47,15 @@ export default async function JudgingPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-semibold">Penjurian</h1>
-        <p className="text-sm text-muted-foreground">Assign juri, ranking, dan pemenang.</p>
+        <h1 className="text-xl font-semibold">Judging</h1>
+        <p className="text-sm text-muted-foreground">Assign judges, ranking, and winners.</p>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Assign juri → track</CardTitle>
-            <CardDescription>Kosong = juri menilai semua track.</CardDescription>
+            <CardTitle>Assign judges → track</CardTitle>
+            <CardDescription>Empty = a judge scores all tracks.</CardDescription>
           </CardHeader>
           <CardContent>
             {judges.length === 0 ? (
@@ -89,7 +89,7 @@ export default async function JudgingPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Ranking penjurian</CardTitle>
+            <CardTitle>Judging ranking</CardTitle>
           </CardHeader>
           <CardContent>
             <Table>
@@ -97,8 +97,8 @@ export default async function JudgingPage() {
                 <TableRow>
                   <TableHead className="w-8">#</TableHead>
                   <TableHead>Project</TableHead>
-                  <TableHead className="text-right">Skor</TableHead>
-                  <TableHead className="text-right">Juri</TableHead>
+                  <TableHead className="text-right">Score</TableHead>
+                  <TableHead className="text-right">Judge</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -127,11 +127,11 @@ export default async function JudgingPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Pemenang</CardTitle>
+          <CardTitle>Winners</CardTitle>
         </CardHeader>
         <CardContent>
           {prizes.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Belum ada prize dikonfigurasi.</p>
+            <p className="text-sm text-muted-foreground">No prizes configured yet.</p>
           ) : (
             <div className="space-y-3">
               {prizes.map((pz) => (

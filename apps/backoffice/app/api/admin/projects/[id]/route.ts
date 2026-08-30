@@ -18,10 +18,10 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
   const { id } = await params;
 
   const parsed = editSchema.safeParse(await req.json().catch(() => null));
-  if (!parsed.success) return NextResponse.json({ error: "Input tidak valid" }, { status: 400 });
+  if (!parsed.success) return NextResponse.json({ error: "Invalid input" }, { status: 400 });
 
   const project = await getProjectById(db, id);
-  if (!project) return NextResponse.json({ error: "Project tidak ditemukan" }, { status: 404 });
+  if (!project) return NextResponse.json({ error: "Project not found" }, { status: 404 });
 
   await adminEditProject(db, id, { name: parsed.data.name, tagline: parsed.data.tagline ?? null });
   await audit(db, {
@@ -40,7 +40,7 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
   const { id } = await params;
 
   const project = await getProjectById(db, id);
-  if (!project) return NextResponse.json({ error: "Project tidak ditemukan" }, { status: 404 });
+  if (!project) return NextResponse.json({ error: "Project not found" }, { status: 404 });
 
   await deleteProject(db, id);
   await audit(db, {

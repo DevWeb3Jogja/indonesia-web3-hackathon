@@ -16,10 +16,10 @@ export async function PUT(req: Request) {
   if (auth instanceof Response) return auth;
 
   const parsed = schema.safeParse(await req.json().catch(() => null));
-  if (!parsed.success) return NextResponse.json({ error: "Input tidak valid" }, { status: 400 });
+  if (!parsed.success) return NextResponse.json({ error: "Invalid input" }, { status: 400 });
 
   const hackathon = await getCurrentHackathon(db);
-  if (!hackathon) return NextResponse.json({ error: "Tidak ada hackathon" }, { status: 404 });
+  if (!hackathon) return NextResponse.json({ error: "No hackathon" }, { status: 404 });
 
   const target = await getUser(db, parsed.data.judgeAddress);
   if (!target || (target.role !== "judge" && target.role !== "admin")) {

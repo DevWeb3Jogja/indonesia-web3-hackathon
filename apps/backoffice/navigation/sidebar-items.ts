@@ -28,14 +28,14 @@ export const sidebarItems: NavGroup[] = [
     items: [
       { id: "overview", title: "Overview", url: "/", icon: LayoutDashboard },
       { id: "projects", title: "Projects", url: "/projects", icon: FolderKanban },
-      { id: "judging", title: "Penjurian", url: "/judging", icon: Trophy },
+      { id: "judging", title: "Judging", url: "/judging", icon: Trophy },
     ],
   },
   {
     id: 2,
-    label: "Kelola",
+    label: "Manage",
     items: [
-      { id: "config", title: "Konfigurasi", url: "/config", icon: SlidersHorizontal },
+      { id: "config", title: "Configuration", url: "/config", icon: SlidersHorizontal },
       { id: "users", title: "Users", url: "/users", icon: Users },
       { id: "audit", title: "Audit log", url: "/audit", icon: ScrollText },
     ],

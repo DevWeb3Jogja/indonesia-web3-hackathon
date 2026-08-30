@@ -28,10 +28,10 @@ export default function PhaseControl({ current }: { current: string }) {
     });
     setBusy(false);
     if (res.ok) {
-      toast.success(`Fase diubah ke "${status}"`);
+      toast.success(`Phase changed to "${status}"`);
       router.refresh();
     } else {
-      toast.error((await res.json().catch(() => null))?.error ?? "Gagal");
+      toast.error((await res.json().catch(() => null))?.error ?? "Failed");
     }
   }
 
@@ -50,7 +50,7 @@ export default function PhaseControl({ current }: { current: string }) {
         </SelectContent>
       </Select>
       <Button onClick={save} disabled={busy || status === current}>
-        {busy ? "…" : "Ubah fase"}
+        {busy ? "…" : "Change phase"}
       </Button>
     </div>
   );

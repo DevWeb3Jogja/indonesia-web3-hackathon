@@ -43,11 +43,11 @@ export default function WinnerPicker({
     });
     setBusy(false);
     if (res.ok) {
-      toast.success("Pemenang diperbarui");
+      toast.success("Winners updated");
       router.refresh();
     } else {
       setValue(prev);
-      toast.error((await res.json().catch(() => null))?.error ?? "Gagal");
+      toast.error((await res.json().catch(() => null))?.error ?? "Failed");
     }
   }
 
@@ -57,7 +57,7 @@ export default function WinnerPicker({
         <SelectValue />
       </SelectTrigger>
       <SelectContent>
-        <SelectItem value={NONE}>— belum ada —</SelectItem>
+        <SelectItem value={NONE}>— none yet —</SelectItem>
         {options.map((o) => (
           <SelectItem key={o.projectId} value={o.projectId}>
             {o.name} ({o.avgScore.toFixed(1)})

@@ -14,10 +14,10 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
   const { id } = await params;
 
   const parsed = schema.safeParse(await req.json().catch(() => null));
-  if (!parsed.success) return NextResponse.json({ error: "Status tidak valid" }, { status: 400 });
+  if (!parsed.success) return NextResponse.json({ error: "Invalid status" }, { status: 400 });
 
   const project = await getProjectById(db, id);
-  if (!project) return NextResponse.json({ error: "Project tidak ditemukan" }, { status: 404 });
+  if (!project) return NextResponse.json({ error: "Project not found" }, { status: 404 });
 
   await setProjectStatus(db, id, parsed.data.status);
   // Project yang didiskualifikasi tak boleh tetap jadi pemenang.

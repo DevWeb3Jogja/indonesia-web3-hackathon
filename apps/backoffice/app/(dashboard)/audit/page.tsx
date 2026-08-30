@@ -8,7 +8,7 @@ export default function AuditPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-xl font-semibold">Audit log</h1>
-        <p className="text-sm text-muted-foreground">Jejak semua aksi admin/juri.</p>
+        <p className="text-sm text-muted-foreground">Trail of all admin and judge actions.</p>
       </div>
       <Card>
         <CardContent className="pt-6">

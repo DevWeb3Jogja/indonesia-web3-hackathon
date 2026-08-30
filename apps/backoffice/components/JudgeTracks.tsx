@@ -37,7 +37,7 @@ export default function JudgeTracks({
     if (res.ok) router.refresh();
     else {
       setSel(prev);
-      toast.error((await res.json().catch(() => null))?.error ?? "Gagal");
+      toast.error((await res.json().catch(() => null))?.error ?? "Failed");
     }
   }
 
@@ -55,9 +55,7 @@ export default function JudgeTracks({
           {t.name}
         </Button>
       ))}
-      {sel.length === 0 && (
-        <span className="text-xs text-muted-foreground italic">semua track</span>
-      )}
+      {sel.length === 0 && <span className="text-xs text-muted-foreground italic">all tracks</span>}
     </div>
   );
 }

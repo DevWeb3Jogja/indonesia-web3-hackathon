@@ -42,7 +42,7 @@ export default function RoleSelect({
       router.refresh();
     } else {
       setValue(prev);
-      toast.error((await res.json().catch(() => null))?.error ?? "Gagal ubah role");
+      toast.error((await res.json().catch(() => null))?.error ?? "Failed to change role");
     }
   }
 

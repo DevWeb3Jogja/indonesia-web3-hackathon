@@ -11,16 +11,16 @@ export default async function OverviewPage() {
   const [stats, hackathon] = await Promise.all([adminStats(db), getCurrentHackathon(db)]);
   const cards = [
     { label: "Users", value: stats.users },
-    { label: "Registrasi", value: stats.registrations },
+    { label: "Registrations", value: stats.registrations },
     { label: "Projects", value: stats.projects },
-    { label: "Skor juri", value: stats.scores },
+    { label: "Judge scores", value: stats.scores },
   ];
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-xl font-semibold">Overview</h1>
-        <p className="text-sm text-muted-foreground">Ringkasan & kontrol fase hackathon.</p>
+        <p className="text-sm text-muted-foreground">Summary & hackathon phase controls.</p>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -37,22 +37,22 @@ export default async function OverviewPage() {
       {hackathon ? (
         <Card>
           <CardHeader>
-            <CardTitle>Fase hackathon</CardTitle>
+            <CardTitle>Hackathon phase</CardTitle>
             <CardDescription>
-              {hackathon.name} · fase sekarang:{" "}
+              {hackathon.name} · current phase:{" "}
               <Badge variant="secondary">{hackathon.status}</Badge>
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <PhaseControl current={hackathon.status} />
             <div>
-              <h3 className="mb-3 text-sm font-semibold">Setting edisi</h3>
+              <h3 className="mb-3 text-sm font-semibold">Edition settings</h3>
               <HackathonSettings current={hackathon as unknown as Record<string, unknown>} />
             </div>
           </CardContent>
         </Card>
       ) : (
-        <p className="text-sm text-muted-foreground">Belum ada hackathon.</p>
+        <p className="text-sm text-muted-foreground">No hackathon yet.</p>
       )}
     </div>
   );

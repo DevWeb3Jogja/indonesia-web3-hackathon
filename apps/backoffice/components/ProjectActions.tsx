@@ -48,14 +48,14 @@ export default function ProjectActions({
       router.refresh();
       return true;
     }
-    toast.error((await res.json().catch(() => null))?.error ?? "Gagal");
+    toast.error((await res.json().catch(() => null))?.error ?? "Failed");
     return false;
   }
 
   async function toggleStatus() {
-    if (next === "disqualified" && !window.confirm("Disqualify project ini?")) return;
+    if (next === "disqualified" && !window.confirm("Disqualify this project?")) return;
     if (await send("PUT", `/api/admin/projects/${id}/status`, { status: next })) {
-      toast.success(next === "disqualified" ? "Project didiskualifikasi" : "Project dipulihkan");
+      toast.success(next === "disqualified" ? "Project disqualified" : "Project restored");
     }
   }
 
@@ -65,13 +65,13 @@ export default function ProjectActions({
       tagline: form.tagline.trim() || null,
     });
     if (ok) {
-      toast.success("Project tersimpan");
+      toast.success("Project saved");
       setEditOpen(false);
     }
   }
 
   async function remove() {
-    if (!window.confirm(`Hapus permanen "${name}"? Tindakan ini tidak bisa dibatalkan.`)) return;
+    if (!window.confirm(`Permanently delete "${name}"? This cannot be undone.`)) return;
     if (await send("DELETE", `/api/admin/projects/${id}`)) toast.success("Project dihapus");
   }
 
@@ -95,9 +95,9 @@ export default function ProjectActions({
         onClick={toggleStatus}
         disabled={busy}
       >
-        {next === "disqualified" ? "Disqualify" : "Pulihkan"}
+        {next === "disqualified" ? "Disqualify" : "Restore"}
       </Button>
-      <Button size="icon-xs" variant="ghost" onClick={remove} disabled={busy} title="Hapus">
+      <Button size="icon-xs" variant="ghost" onClick={remove} disabled={busy} title="Delete">
         <Trash2 className="text-destructive" />
       </Button>
 
@@ -105,11 +105,11 @@ export default function ProjectActions({
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Edit project</DialogTitle>
-            <DialogDescription>Ubah nama & tagline project.</DialogDescription>
+            <DialogDescription>Edit the project name & tagline.</DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
             <div className="grid gap-1.5">
-              <Label htmlFor="pe-name">Nama</Label>
+              <Label htmlFor="pe-name">Name</Label>
               <Input
                 id="pe-name"
                 value={form.name}

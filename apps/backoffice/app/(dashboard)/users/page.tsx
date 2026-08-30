@@ -8,7 +8,7 @@ export default function UsersPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-xl font-semibold">Users</h1>
-        <p className="text-sm text-muted-foreground">Cari, filter role, sort, atur role.</p>
+        <p className="text-sm text-muted-foreground">Search, filter roles, sort, set roles.</p>
       </div>
       <Card>
         <CardContent className="pt-6">

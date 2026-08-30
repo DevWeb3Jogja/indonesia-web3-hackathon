@@ -19,7 +19,7 @@ const ROLES: Role[] = ["participant", "judge", "admin"];
 const SORTS: UserSort[] = ["newest", "oldest"];
 
 const createSchema = z.object({
-  address: z.string().regex(/^0x[0-9a-fA-F]{40}$/, "Alamat wallet tidak valid"),
+  address: z.string().regex(/^0x[0-9a-fA-F]{40}$/, "Invalid wallet address"),
   role: z.enum(["participant", "judge", "admin"]).default("participant"),
 });
 
@@ -30,13 +30,13 @@ export async function POST(req: Request) {
 
   const parsed = createSchema.safeParse(await req.json().catch(() => null));
   if (!parsed.success || !isAddress(parsed.data.address)) {
-    return NextResponse.json({ error: "Alamat wallet tidak valid" }, { status: 400 });
+    return NextResponse.json({ error: "Invalid wallet address" }, { status: 400 });
   }
   // Checksum agar cocok dengan alamat yang disimpan SIWE saat wallet sign-in nanti.
   const address = getAddress(parsed.data.address);
 
   if (await getUser(db, address)) {
-    return NextResponse.json({ error: "User sudah ada", code: "exists" }, { status: 409 });
+    return NextResponse.json({ error: "User already exists", code: "exists" }, { status: 409 });
   }
 
   await ensureUser(db, address);

@@ -10,8 +10,8 @@ export default async function ConfigPage() {
   if (!hackathon) {
     return (
       <div className="space-y-6">
-        <h1 className="text-xl font-semibold">Konfigurasi</h1>
-        <p className="text-sm text-muted-foreground">Belum ada hackathon.</p>
+        <h1 className="text-xl font-semibold">Configuration</h1>
+        <p className="text-sm text-muted-foreground">No hackathon yet.</p>
       </div>
     );
   }
@@ -25,8 +25,8 @@ export default async function ConfigPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-semibold">Konfigurasi</h1>
-        <p className="text-sm text-muted-foreground">Tracks, kriteria penilaian, dan prizes.</p>
+        <h1 className="text-xl font-semibold">Configuration</h1>
+        <p className="text-sm text-muted-foreground">Tracks, scoring criteria, and prizes.</p>
       </div>
 
       <Card>
@@ -38,10 +38,10 @@ export default async function ConfigPage() {
             endpoint="/api/admin/tracks"
             items={tracks}
             fields={[
-              { key: "code", label: "Kode" },
-              { key: "name", label: "Nama" },
-              { key: "description", label: "Deskripsi" },
-              { key: "sort", label: "Urutan", type: "number" },
+              { key: "code", label: "Code" },
+              { key: "name", label: "Name" },
+              { key: "description", label: "Description" },
+              { key: "sort", label: "Order", type: "number" },
             ]}
           />
         </CardContent>
@@ -49,17 +49,17 @@ export default async function ConfigPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Kriteria penilaian</CardTitle>
+          <CardTitle>Scoring criteria</CardTitle>
         </CardHeader>
         <CardContent>
           <ConfigEditor
             endpoint="/api/admin/criteria"
             items={criteria}
             fields={[
-              { key: "name", label: "Nama" },
-              { key: "weight", label: "Bobot", type: "number" },
-              { key: "description", label: "Deskripsi" },
-              { key: "sort", label: "Urutan", type: "number" },
+              { key: "name", label: "Name" },
+              { key: "weight", label: "Weight", type: "number" },
+              { key: "description", label: "Description" },
+              { key: "sort", label: "Order", type: "number" },
             ]}
           />
         </CardContent>
@@ -74,11 +74,11 @@ export default async function ConfigPage() {
             endpoint="/api/admin/prizes"
             items={prizes}
             fields={[
-              { key: "name", label: "Nama" },
-              { key: "amountUsd", label: "Nilai (USD)", type: "number" },
+              { key: "name", label: "Name" },
+              { key: "amountUsd", label: "Amount (USD)", type: "number" },
               { key: "sponsor", label: "Sponsor" },
               { key: "trackId", label: "Track", type: "select", options: trackOptions },
-              { key: "sort", label: "Urutan", type: "number" },
+              { key: "sort", label: "Order", type: "number" },
             ]}
           />
         </CardContent>

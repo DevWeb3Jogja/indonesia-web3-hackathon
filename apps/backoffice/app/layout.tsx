@@ -6,7 +6,7 @@ import Web3Provider from "@/components/Web3Provider";
 
 export const metadata: Metadata = {
   title: "Backoffice IW3H",
-  description: "Panel admin Indonesia Web3 Hackathon 2026.",
+  description: "Admin panel for Indonesia Web3 Hackathon 2026.",
   robots: { index: false, follow: false },
   icons: {
     icon: [

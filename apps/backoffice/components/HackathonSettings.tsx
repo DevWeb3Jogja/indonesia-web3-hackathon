@@ -8,14 +8,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 const FIELDS: { key: string; label: string; type: "text" | "number" | "date" }[] = [
-  { key: "name", label: "Nama", type: "text" },
-  { key: "year", label: "Tahun", type: "number" },
-  { key: "registrationOpensAt", label: "Registrasi buka", type: "date" },
-  { key: "registrationClosesAt", label: "Registrasi tutup", type: "date" },
-  { key: "submissionOpensAt", label: "Submission buka", type: "date" },
-  { key: "submissionClosesAt", label: "Submission tutup", type: "date" },
-  { key: "judgingClosesAt", label: "Penjurian tutup", type: "date" },
-  { key: "winnersAnnouncedAt", label: "Pengumuman pemenang", type: "date" },
+  { key: "name", label: "Name", type: "text" },
+  { key: "year", label: "Year", type: "number" },
+  { key: "registrationOpensAt", label: "Registration opens", type: "date" },
+  { key: "registrationClosesAt", label: "Registration closes", type: "date" },
+  { key: "submissionOpensAt", label: "Submission opens", type: "date" },
+  { key: "submissionClosesAt", label: "Submission closes", type: "date" },
+  { key: "judgingClosesAt", label: "Judging closes", type: "date" },
+  { key: "winnersAnnouncedAt", label: "Winners announced", type: "date" },
 ];
 
 /** Native <input type=date> butuh "YYYY-MM-DD"; nilai tersimpan bisa ISO penuh. */
@@ -57,17 +57,17 @@ export default function HackathonSettings({ current }: { current: Record<string,
     });
     setBusy(false);
     if (res.ok) {
-      toast.success("Setting tersimpan");
+      toast.success("Settings saved");
       router.refresh();
     } else {
-      toast.error((await res.json().catch(() => null))?.error ?? "Gagal");
+      toast.error((await res.json().catch(() => null))?.error ?? "Failed");
     }
   }
 
   return (
     <div className="space-y-4">
       <p className="text-xs text-muted-foreground">
-        Pilih tanggal lewat date picker. Kosong = tanpa deadline (deadline dihitung akhir hari).
+        Pick a date. Empty = no deadline (deadlines count as end of day).
       </p>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {FIELDS.map((f) => (
@@ -87,7 +87,7 @@ export default function HackathonSettings({ current }: { current: Record<string,
         ))}
       </div>
       <Button onClick={save} disabled={busy}>
-        {busy ? "…" : "Simpan setting"}
+        {busy ? "…" : "Save settings"}
       </Button>
     </div>
   );

@@ -17,7 +17,7 @@ export default function ProjectsPanel() {
     <PagedList<P>
       endpoint="/api/admin/projects"
       rowKey={(p) => p.id}
-      searchPlaceholder="Cari nama / tagline…"
+      searchPlaceholder="Search name / tagline…"
       filters={[
         {
           key: "status",
@@ -30,17 +30,17 @@ export default function ProjectsPanel() {
         },
       ]}
       sorts={[
-        { value: "newest", label: "Terbaru" },
-        { value: "oldest", label: "Terlama" },
-        { value: "name", label: "Nama A-Z" },
+        { value: "newest", label: "Newest" },
+        { value: "oldest", label: "Oldest" },
+        { value: "name", label: "Name A-Z" },
       ]}
       columns={[
-        { header: "Nama", cell: (p) => p.name },
-        { header: "Tim / Solo", cell: (p) => p.team?.name ?? "Solo" },
+        { header: "Name", cell: (p) => p.name },
+        { header: "Team / Solo", cell: (p) => p.team?.name ?? "Solo" },
         { header: "Tracks", cell: (p) => p.trackIds.join(", ") || "—" },
         { header: "Status", cell: (p) => p.status },
         {
-          header: "Aksi",
+          header: "Actions",
           cell: (p, reload) => (
             <ProjectActions
               id={p.id}

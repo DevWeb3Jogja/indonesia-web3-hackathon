@@ -16,11 +16,11 @@ export default function AuditPanel() {
     <PagedList<L>
       endpoint="/api/admin/audit"
       rowKey={(l) => String(l.id)}
-      searchPlaceholder="Cari aksi / target / aktor…"
+      searchPlaceholder="Search action / target / actor…"
       columns={[
-        { header: "Waktu", cell: (l) => l.createdAt },
-        { header: "Aktor", cell: (l) => <code>{short(l.actorAddress)}</code> },
-        { header: "Aksi", cell: (l) => l.action },
+        { header: "Time", cell: (l) => l.createdAt },
+        { header: "Actor", cell: (l) => <code>{short(l.actorAddress)}</code> },
+        { header: "Actions", cell: (l) => l.action },
         { header: "Target", cell: (l) => (l.target ? short(l.target) : "—") },
       ]}
     />

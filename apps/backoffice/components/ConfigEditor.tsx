@@ -74,12 +74,12 @@ export default function ConfigEditor({
       router.refresh();
       return true;
     }
-    toast.error((await res.json().catch(() => null))?.error ?? "Gagal");
+    toast.error((await res.json().catch(() => null))?.error ?? "Failed");
     return false;
   }
 
   async function remove(id: string) {
-    if (!window.confirm("Hapus item ini?")) return;
+    if (!window.confirm("Delete this item?")) return;
     await send("DELETE", `${endpoint}/${id}`);
   }
 
@@ -128,7 +128,7 @@ export default function ConfigEditor({
             {fields.map((f) => (
               <TableHead key={f.key}>{f.label}</TableHead>
             ))}
-            <TableHead className="w-28 text-right">Aksi</TableHead>
+            <TableHead className="w-28 text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>

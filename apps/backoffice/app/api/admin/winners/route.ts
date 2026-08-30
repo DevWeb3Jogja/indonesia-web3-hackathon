@@ -23,14 +23,14 @@ export async function PUT(req: Request) {
   if (auth instanceof Response) return auth;
 
   const parsed = schema.safeParse(await req.json().catch(() => null));
-  if (!parsed.success) return NextResponse.json({ error: "Input tidak valid" }, { status: 400 });
+  if (!parsed.success) return NextResponse.json({ error: "Invalid input" }, { status: 400 });
   const { prizeId, projectId } = parsed.data;
 
   const hackathon = await getCurrentHackathon(db);
-  if (!hackathon) return NextResponse.json({ error: "Tidak ada hackathon" }, { status: 404 });
+  if (!hackathon) return NextResponse.json({ error: "No hackathon" }, { status: 404 });
   // Prize wajib milik hackathon aktif (cegah manipulasi lintas-hackathon).
   if (!(await prizeBelongsTo(db, prizeId, hackathon.id))) {
-    return NextResponse.json({ error: "Prize tidak valid" }, { status: 404 });
+    return NextResponse.json({ error: "Invalid prize" }, { status: 404 });
   }
 
   if (projectId === null) {
@@ -42,7 +42,7 @@ export async function PUT(req: Request) {
   const project = await getProjectById(db, projectId);
   // Project harus submitted DAN milik hackathon yang sama dengan prize.
   if (project?.status !== "submitted" || project.hackathonId !== hackathon.id) {
-    return NextResponse.json({ error: "Project tidak valid" }, { status: 404 });
+    return NextResponse.json({ error: "Invalid project" }, { status: 404 });
   }
   await setWinner(db, prizeId, projectId);
   await audit(db, {

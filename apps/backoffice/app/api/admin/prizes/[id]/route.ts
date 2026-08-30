@@ -22,14 +22,14 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
   if (auth instanceof Response) return auth;
   const { id } = await params;
   const parsed = schema.safeParse(await req.json().catch(() => null));
-  if (!parsed.success) return NextResponse.json({ error: "Input tidak valid" }, { status: 400 });
+  if (!parsed.success) return NextResponse.json({ error: "Invalid input" }, { status: 400 });
 
   const hackathon = await getCurrentHackathon(db);
-  if (!hackathon) return NextResponse.json({ error: "Tidak ada hackathon" }, { status: 404 });
+  if (!hackathon) return NextResponse.json({ error: "No hackathon" }, { status: 404 });
   if (parsed.data.trackId) {
     const tracks = await listTracks(db, hackathon.id);
     if (!tracks.some((t) => t.id === parsed.data.trackId)) {
-      return NextResponse.json({ error: "Track tidak valid" }, { status: 400 });
+      return NextResponse.json({ error: "Invalid track" }, { status: 400 });
     }
   }
 
@@ -53,7 +53,7 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
   const { id } = await params;
 
   const hackathon = await getCurrentHackathon(db);
-  if (!hackathon) return NextResponse.json({ error: "Tidak ada hackathon" }, { status: 404 });
+  if (!hackathon) return NextResponse.json({ error: "No hackathon" }, { status: 404 });
 
   try {
     await deletePrize(db, hackathon.id, id);

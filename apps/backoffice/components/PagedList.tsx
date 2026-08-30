@@ -46,7 +46,7 @@ export default function PagedList<T>({
   endpoint,
   columns,
   rowKey,
-  searchPlaceholder = "Cari…",
+  searchPlaceholder = "Search…",
   filters = [],
   sorts = [],
 }: {
@@ -149,16 +149,16 @@ export default function PagedList<T>({
         )}
         {meta && (
           <span className="ml-auto text-xs text-muted-foreground">
-            {meta.total} total{state === "loading" ? " · memuat…" : ""}
+            {meta.total} total{state === "loading" ? " · loading…" : ""}
           </span>
         )}
       </div>
 
       {state === "error" ? (
         <div className="flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm">
-          Gagal memuat.
+          Failed to load.
           <Button size="sm" variant="outline" onClick={load}>
-            Coba lagi
+            Retry
           </Button>
         </div>
       ) : (
@@ -185,7 +185,7 @@ export default function PagedList<T>({
               {state !== "loading" && items.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={columns.length} className="text-center text-muted-foreground">
-                    Tidak ada data.
+                    No data.
                   </TableCell>
                 </TableRow>
               )}
@@ -205,7 +205,7 @@ export default function PagedList<T>({
       {meta && (
         <div className="flex items-center justify-end gap-3 text-xs text-muted-foreground">
           <span>
-            Hal {meta.page} / {meta.totalPages}
+            Page {meta.page} / {meta.totalPages}
           </span>
           <Button
             size="icon-xs"

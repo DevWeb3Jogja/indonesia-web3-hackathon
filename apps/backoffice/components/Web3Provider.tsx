@@ -15,7 +15,7 @@ if (projectId) {
     projectId,
     metadata: {
       name: "Backoffice IW3H",
-      description: "Panel organizer Indonesia Web3 Hackathon",
+      description: "Indonesia Web3 Hackathon organizer panel",
       url: "https://admin.indonesia-web3-hackathon.vercel.app",
       icons: [],
     },
