@@ -132,7 +132,7 @@ function Stepper({ steps, current }: { steps: string[]; current: number }) {
 type View = "my" | "mode" | "team" | "form" | "edit";
 
 function Inner({ locale, t, form }: { locale: string; t: T; form: FormDict }) {
-  const { isConnected } = useAppKitAccount();
+  const { address, isConnected } = useAppKitAccount();
   const { open } = useAppKit();
   const router = useRouter();
 
@@ -156,8 +156,15 @@ function Inner({ locale, t, form }: { locale: string; t: T; form: FormDict }) {
     setStatus("ready");
   }, []);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: address = pemicu re-fetch saat ganti wallet
   useEffect(() => {
     load();
+  }, [load, address]);
+
+  useEffect(() => {
+    const onSession = () => load();
+    window.addEventListener("iw3h:session", onSession);
+    return () => window.removeEventListener("iw3h:session", onSession);
   }, [load]);
 
   async function send(method: "POST" | "PUT", url: string, body: unknown) {

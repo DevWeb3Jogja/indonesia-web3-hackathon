@@ -54,7 +54,7 @@ function Gate({ t, onSignIn }: { t: T; onSignIn?: () => void }) {
 }
 
 function Inner({ t }: { t: T }) {
-  const { isConnected } = useAppKitAccount();
+  const { address, isConnected } = useAppKitAccount();
   const { open } = useAppKit();
   const [status, setStatus] = useState<"loading" | "unauth" | "forbidden" | "ready" | "error">(
     "loading"
@@ -74,8 +74,15 @@ function Inner({ t }: { t: T }) {
       setStatus("error"); // network error → tampilkan retry, bukan crash
     }
   }, []);
+  // biome-ignore lint/correctness/useExhaustiveDependencies: address = pemicu re-fetch saat ganti wallet
   useEffect(() => {
     load();
+  }, [load, address]);
+
+  useEffect(() => {
+    const onSession = () => load();
+    window.addEventListener("iw3h:session", onSession);
+    return () => window.removeEventListener("iw3h:session", onSession);
   }, [load]);
 
   if (!isConnected || status === "unauth") {

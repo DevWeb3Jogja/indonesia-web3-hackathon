@@ -49,7 +49,7 @@ export default function ProjectsBrowser({ locale, t }: { locale: string; t: Dict
     const params = new URLSearchParams({ page: String(page), limit: "12", sort });
     if (track !== "all") params.set("track", track);
     if (debouncedQ) params.set("q", debouncedQ);
-    fetch(`/api/projects?${params}`)
+    fetch(`/api/projects?${params}`, { cache: "no-store" })
       .then((r) => r.json())
       .then((j) => {
         if (id !== reqId.current) return;

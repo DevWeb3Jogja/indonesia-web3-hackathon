@@ -2,7 +2,7 @@
 
 import { useAppKitAccount } from "@reown/appkit/react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { localePath } from "@/lib/locale";
 import { projectId } from "@/lib/web3";
 
@@ -21,20 +21,31 @@ export default function JudgeNavLink({
 }
 
 function Inner({ locale, label, className }: { locale: string; label: string; className: string }) {
-  const { isConnected } = useAppKitAccount();
+  const { address, isConnected } = useAppKitAccount();
   const [show, setShow] = useState(false);
 
-  useEffect(() => {
+  const check = useCallback(async () => {
     if (!isConnected) return setShow(false);
-    let alive = true;
-    fetch("/api/profile")
-      .then((r) => (r.ok ? r.json() : null))
-      .then((u) => alive && setShow(u?.role === "judge" || u?.role === "admin"))
-      .catch(() => {});
-    return () => {
-      alive = false;
-    };
+    try {
+      const r = await fetch("/api/profile");
+      const u = r.ok ? await r.json() : null;
+      setShow(u?.role === "judge" || u?.role === "admin");
+    } catch {
+      setShow(false);
+    }
   }, [isConnected]);
+
+  // Re-cek saat connect, ganti wallet (address), dan saat sesi berubah (SIWE).
+  // biome-ignore lint/correctness/useExhaustiveDependencies: address = pemicu re-cek saat ganti wallet
+  useEffect(() => {
+    check();
+  }, [check, address]);
+
+  useEffect(() => {
+    const onSession = () => check();
+    window.addEventListener("iw3h:session", onSession);
+    return () => window.removeEventListener("iw3h:session", onSession);
+  }, [check]);
 
   if (!show) return null;
   return (

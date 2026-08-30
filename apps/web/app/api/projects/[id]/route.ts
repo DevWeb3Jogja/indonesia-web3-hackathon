@@ -9,11 +9,21 @@ import {
   rateLimit,
   updateProject,
 } from "@iw3h/db";
+import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
+import { LOCALES } from "@/lib/locale";
 import { projectFields, splitFields } from "@/lib/project-schema";
 import { requireAuth } from "@/lib/session";
 import { db } from "@/lib/turso";
 import type { NetworkId } from "@/lib/types";
+
+/** Invalidate cache galeri + detail (ISR) untuk semua locale. */
+function revalidateProject(id: string) {
+  for (const l of LOCALES) {
+    revalidatePath(`/${l}/projects`);
+    revalidatePath(`/${l}/projects/${id}`);
+  }
+}
 
 export const dynamic = "force-dynamic";
 
@@ -62,6 +72,7 @@ export async function PUT(req: Request, props: { params: Promise<{ id: string }>
 
   try {
     const updated = await updateProject(db, params.id, fields, tracks);
+    revalidateProject(params.id);
     return NextResponse.json({ project: updated });
   } catch (e) {
     if (e instanceof ProjectError) return NextResponse.json({ error: e.message }, { status: 409 });

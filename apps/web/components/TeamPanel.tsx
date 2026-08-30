@@ -76,8 +76,17 @@ function Inner({ t }: { t: T }) {
     setStatus("ready");
   }, []);
 
+  // Re-load saat mount, saat wallet berganti, dan saat sesi berubah (SIWE
+  // onSignIn/onSignOut) — supaya gate "sign in" hilang setelah sign, tanpa refresh.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: address = pemicu re-fetch saat ganti wallet
   useEffect(() => {
     load();
+  }, [load, address]);
+
+  useEffect(() => {
+    const onSession = () => load();
+    window.addEventListener("iw3h:session", onSession);
+    return () => window.removeEventListener("iw3h:session", onSession);
   }, [load]);
 
   async function act(url: string, body?: unknown) {
@@ -122,7 +131,7 @@ function Inner({ t }: { t: T }) {
     const isLeader = team.leaderAddress.toLowerCase() === address?.toLowerCase();
     return (
       <div className="max-w-2xl space-y-6">
-        <Panel clip="chamfer-lg">
+        <Panel clip="chamfer-lg" tone="bg-white/[0.02]">
           <div className="p-6">
             <p className="eyebrow">{t.myTeamTitle}</p>
             <h2 className="section-title mt-1">{team.name}</h2>
@@ -211,7 +220,7 @@ function Inner({ t }: { t: T }) {
         </p>
       )}
       <div className="grid gap-6 md:grid-cols-2">
-        <Panel clip="chamfer-lg">
+        <Panel clip="chamfer-lg" tone="bg-white/[0.02]">
           <form
             className="space-y-4 p-6"
             onSubmit={(e) => {
@@ -242,7 +251,7 @@ function Inner({ t }: { t: T }) {
           </form>
         </Panel>
 
-        <Panel clip="chamfer-lg">
+        <Panel clip="chamfer-lg" tone="bg-white/[0.02]">
           <form
             className="space-y-4 p-6"
             onSubmit={(e) => {
