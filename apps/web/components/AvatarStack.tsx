@@ -13,9 +13,9 @@ function githubHandle(url: string | null | undefined): string | null {
   return url?.match(/github\.com\/([^/?#]+)/i)?.[1] ?? null;
 }
 
-/** Facepile bertumpuk: avatar GitHub kalau ada, kalau tidak generated avatar.
- *  Hover → popover berisi username GitHub (atau username/alamat). "+N" untuk sisa.
- *  CSS-only (server component) — tooltip pakai group-hover. */
+/** Facepile bertumpuk: avatar GitHub (klik → buka profil GitHub di tab baru)
+ *  kalau ada, kalau tidak generated avatar. Hover → popover username GitHub.
+ *  "+N" untuk sisa. CSS-only (server component). */
 export default function AvatarStack({
   members,
   max = 6,
@@ -35,15 +35,10 @@ export default function AvatarStack({
         const handle = githubHandle(m.githubUrl);
         const label = handle ? `@${handle}` : m.username || short(m.address);
         const src = handle ? `https://github.com/${handle}.png?size=${size * 2}` : null;
-        return (
-          <span
-            key={m.address}
-            className="group/av relative inline-flex transition-[z-index] hover:z-[60]"
-            style={{
-              marginLeft: i === 0 ? 0 : -overlap,
-              zIndex: shown.length - i,
-            }}
-          >
+        const style = { marginLeft: i === 0 ? 0 : -overlap, zIndex: shown.length - i };
+        const cls = "group/av relative inline-flex transition-[z-index] hover:z-[60]";
+        const inner = (
+          <>
             <span
               className="inline-flex overflow-hidden rounded-full bg-black ring-2 ring-black"
               style={{ width: size, height: size }}
@@ -63,6 +58,24 @@ export default function AvatarStack({
             <span className="pointer-events-none absolute bottom-full left-1/2 z-[70] mb-2 hidden -translate-x-1/2 whitespace-nowrap rounded-md bg-white px-2 py-1 text-[11px] font-semibold text-black shadow-lg group-hover/av:block">
               {label}
             </span>
+          </>
+        );
+
+        return handle ? (
+          <a
+            key={m.address}
+            href={`https://github.com/${handle}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={label}
+            className={cls}
+            style={style}
+          >
+            {inner}
+          </a>
+        ) : (
+          <span key={m.address} className={cls} style={style}>
+            {inner}
           </span>
         );
       })}
