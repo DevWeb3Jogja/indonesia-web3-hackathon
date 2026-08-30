@@ -2,6 +2,7 @@
 
 import { useAppKit, useAppKitAccount } from "@reown/appkit/react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { type ReactNode, useCallback, useEffect, useState } from "react";
 import type { Dict } from "@/lib/i18n";
 import { localePath } from "@/lib/locale";
@@ -134,6 +135,7 @@ type View = "my" | "mode" | "team" | "form" | "edit";
 function Inner({ locale, t, form }: { locale: string; t: T; form: FormDict }) {
   const { isConnected } = useAppKitAccount();
   const { open } = useAppKit();
+  const router = useRouter();
 
   const [status, setStatus] = useState<"loading" | "unauth" | "ready">("loading");
   const [mine, setMine] = useState<Mine | null>(null);
@@ -439,8 +441,8 @@ function Inner({ locale, t, form }: { locale: string; t: T; form: FormDict }) {
           onSubmit={async (payload) => {
             const r = await send("POST", "/api/projects", { mode, ...payload });
             if (r) {
-              setNotice(null);
-              await load();
+              // Setelah submit sukses → ke halaman My Projects yang menampilkan project.
+              router.push(localePath(locale, "/my"));
             }
           }}
         />

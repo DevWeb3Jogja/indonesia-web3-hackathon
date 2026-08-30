@@ -37,6 +37,35 @@ const EMPTY: ProjectData = {
   demoVideoUrl: "",
 };
 
+/** Resize gambar ke kotak `size` (cover) → data URL webp. Gratis, tanpa storage. */
+function resizeToDataUrl(file: File, size: number): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) {
+        URL.revokeObjectURL(url);
+        return reject(new Error("no canvas"));
+      }
+      const scale = Math.max(size / img.width, size / img.height);
+      const w = img.width * scale;
+      const h = img.height * scale;
+      ctx.drawImage(img, (size - w) / 2, (size - h) / 2, w, h);
+      URL.revokeObjectURL(url);
+      resolve(canvas.toDataURL("image/webp", 0.85));
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error("load fail"));
+    };
+    img.src = url;
+  });
+}
+
 /** "" → null untuk field opsional; tracks & name tetap. */
 function toPayload(d: ProjectData) {
   const opt = (v: string) => (v.trim() === "" ? null : v.trim());
@@ -72,8 +101,23 @@ export default function ProjectForm({
   onSubmit: (payload: ReturnType<typeof toPayload>) => void;
 }) {
   const [d, setD] = useState<ProjectData>({ ...EMPTY, ...initial });
+  const [logoErr, setLogoErr] = useState<string | null>(null);
   const set = <K extends keyof ProjectData>(k: K, v: ProjectData[K]) =>
     setD((prev) => ({ ...prev, [k]: v }));
+
+  async function onLogoFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    setLogoErr(null);
+    if (!file.type.startsWith("image/")) return setLogoErr(form.logoInvalid);
+    if (file.size > 5 * 1024 * 1024) return setLogoErr(form.logoTooBig);
+    try {
+      set("logoUrl", await resizeToDataUrl(file, 256));
+    } catch {
+      setLogoErr(form.logoInvalid);
+    }
+  }
   const toggleTrack = (id: string) =>
     setD((prev) => ({
       ...prev,
@@ -179,17 +223,45 @@ export default function ProjectForm({
       </div>
 
       <div>
-        <label className="label-field" htmlFor="p-logo">
-          {form.logo}
-        </label>
-        <input
-          id="p-logo"
-          type="url"
-          className="input-field"
-          value={d.logoUrl}
-          onChange={(e) => set("logoUrl", e.target.value)}
-          placeholder={form.logoPlaceholder}
-        />
+        <span className="label-field">{form.logo}</span>
+        <div className="flex items-center gap-4">
+          {d.logoUrl ? (
+            <img
+              src={d.logoUrl}
+              alt=""
+              className="h-16 w-16 shrink-0 rounded-xl object-cover ring-1 ring-white/10"
+            />
+          ) : (
+            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl border border-dashed border-white/15 text-[10px] uppercase tracking-wider text-white/30">
+              Logo
+            </div>
+          )}
+          <div className="flex flex-col items-start gap-1.5">
+            <label
+              htmlFor="p-logo"
+              className="cursor-pointer rounded-full border border-white/20 px-4 py-2 text-sm font-medium text-white transition hover:border-white/50 hover:bg-white/5"
+            >
+              {form.logoChoose}
+            </label>
+            <input
+              id="p-logo"
+              type="file"
+              accept="image/png,image/jpeg,image/webp,image/gif"
+              onChange={onLogoFile}
+              className="hidden"
+            />
+            {d.logoUrl && (
+              <button
+                type="button"
+                onClick={() => set("logoUrl", "")}
+                className="text-xs text-white/50 transition hover:text-white"
+              >
+                {form.logoRemove}
+              </button>
+            )}
+          </div>
+        </div>
+        {logoErr && <p className="mt-1 text-[11px] text-red-500">{logoErr}</p>}
       </div>
 
       <div>

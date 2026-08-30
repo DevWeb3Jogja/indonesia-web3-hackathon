@@ -34,8 +34,7 @@ export default async function SchedulePage(props: { params: Promise<{ locale: st
             <Panel
               key={item.key}
               clip="chamfer-lg"
-              tone={i < 2 ? "bg-white/[0.04]" : "bg-white/[0.08]"}
-              soft={i >= 2}
+              tone={i < 2 ? "bg-white/[0.04]" : "bg-white/[0.02]"}
             >
               <div className="grid gap-4 p-6 md:grid-cols-[70px_250px_1fr_auto] md:items-center md:gap-8 md:p-8">
                 <p

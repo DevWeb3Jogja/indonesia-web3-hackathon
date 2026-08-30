@@ -15,6 +15,16 @@ const optionalUrl = z
   .startsWith("https://", "Harus diawali https://")
   .nullish();
 
+// Logo: URL https ATAU data URL gambar (hasil upload → resize di client).
+const logoField = z
+  .string()
+  .max(300_000)
+  .refine(
+    (v) => /^https:\/\//.test(v) || /^data:image\/(png|jpe?g|webp|gif);base64,/.test(v),
+    "Logo harus URL https atau file gambar"
+  )
+  .nullish();
+
 /** Field project — dipakai create & update. Dipakai server (zod) dan client. */
 export const projectFields = z.object({
   name: z.string().trim().min(2).max(80).refine(isClean, CLEAN_MSG),
@@ -32,7 +42,7 @@ export const projectFields = z.object({
   githubUrl: optionalUrl,
   demoUrl: optionalUrl,
   demoVideoUrl: optionalUrl,
-  logoUrl: optionalUrl,
+  logoUrl: logoField,
 });
 
 export const createProjectSchema = projectFields.extend({
