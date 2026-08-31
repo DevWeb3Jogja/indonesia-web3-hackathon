@@ -4,6 +4,7 @@ import { useAppKit, useAppKitAccount } from "@reown/appkit/react";
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import type { Dict } from "@/lib/i18n";
+import { getTurnstileToken } from "@/lib/turnstile";
 import { projectId } from "@/lib/web3";
 import ConnectWalletButton from "./ConnectWalletButton";
 import { GeneratedAvatar } from "./GeneratedAvatar";
@@ -207,9 +208,13 @@ function Inner({ t }: { t: T }) {
     e.preventDefault();
     setSaving(true);
     setMessage(null);
+    const token = await getTurnstileToken(); // Turnstile invisible (anti-bot)
     const res = await fetch("/api/profile", {
       method: "PUT",
-      headers: { "content-type": "application/json" },
+      headers: {
+        "content-type": "application/json",
+        ...(token ? { "x-turnstile-token": token } : {}),
+      },
       body: JSON.stringify(toPayload(form)),
     });
     setSaving(false);
@@ -227,6 +232,8 @@ function Inner({ t }: { t: T }) {
     } else if (res.status === 409) {
       setUCheck("taken");
       setMessage({ kind: "err", text: "Username sudah dipakai" });
+    } else if (res.status === 403) {
+      setMessage({ kind: "err", text: t.errorVerify });
     } else if (res.status === 401) {
       setStatus("unauth");
     } else {

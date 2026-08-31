@@ -426,7 +426,8 @@
     "githubVerifyHint": "Verifikasi kepemilikan lewat GitHub — biar handle orang lain tak bisa dipakai.",
     "githubLinked": "GitHub terhubung.",
     "githubTaken": "Akun GitHub ini sudah ditautkan ke wallet lain.",
-    "githubError": "Gagal menghubungkan GitHub. Coba lagi."
+    "githubError": "Gagal menghubungkan GitHub. Coba lagi.",
+    "errorVerify": "Verifikasi gagal, coba lagi."
   },
   "team": {
     "metaTitle": "Tim",

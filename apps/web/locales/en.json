@@ -426,7 +426,8 @@
     "githubVerifyHint": "Verify ownership via GitHub — no more using someone else's handle.",
     "githubLinked": "GitHub connected.",
     "githubTaken": "This GitHub account is already linked to another wallet.",
-    "githubError": "Couldn't connect GitHub. Try again."
+    "githubError": "Couldn't connect GitHub. Try again.",
+    "errorVerify": "Verification failed, please try again."
   },
   "team": {
     "metaTitle": "Team",

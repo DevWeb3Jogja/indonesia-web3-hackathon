@@ -1,3 +1,4 @@
+import { clientIp, verifyTurnstile } from "@iw3h/auth";
 import { getUser, isUsernameTaken, rateLimit, updateProfile } from "@iw3h/db";
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -40,6 +41,16 @@ export async function PUT(req: Request) {
   const limit = await rateLimit(db, `profile:${auth.address}`, 10);
   if (!limit.ok) {
     return NextResponse.json({ error: "Terlalu sering, coba lagi sebentar" }, { status: 429 });
+  }
+
+  // Gate Turnstile (invisible) — anti-bot pada form konten publik. Kalau
+  // TURNSTILE_SECRET_KEY tak diset, verifyTurnstile lolos (proteksi nonaktif).
+  const human = await verifyTurnstile(req.headers.get("x-turnstile-token"), clientIp(req));
+  if (!human) {
+    return NextResponse.json(
+      { error: "Verifikasi gagal, coba lagi", code: "turnstile" },
+      { status: 403 }
+    );
   }
 
   const parsed = profileSchema.safeParse(await req.json().catch(() => null));
