@@ -1,6 +1,7 @@
 import { linkGithub } from "@iw3h/db";
 import { type NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/session";
+import { siteBase } from "@/lib/site";
 import { db } from "@/lib/turso";
 
 export const dynamic = "force-dynamic";
@@ -11,10 +12,11 @@ export const dynamic = "force-dynamic";
  * (ambil /user) lalu dibuang — tidak disimpan.
  */
 export async function GET(req: NextRequest) {
+  const base = siteBase(req);
   const url = new URL(req.url);
   const next = req.cookies.get("gh_oauth_next")?.value || "/en/profile";
   const done = (github: string) => {
-    const to = new URL(next.startsWith("/") ? next : "/en/profile", url.origin);
+    const to = new URL(next.startsWith("/") ? next : "/en/profile", base);
     to.searchParams.set("github", github);
     const res = NextResponse.redirect(to);
     res.cookies.delete("gh_oauth_state");
@@ -42,7 +44,7 @@ export async function GET(req: NextRequest) {
       client_id: clientId,
       client_secret: clientSecret,
       code,
-      redirect_uri: `${url.origin}/api/auth/github/callback`,
+      redirect_uri: `${base}/api/auth/github/callback`,
     }),
   });
   const tokenJson = (await tokenRes.json().catch(() => null)) as { access_token?: string } | null;

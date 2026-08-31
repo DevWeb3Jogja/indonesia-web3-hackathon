@@ -23,6 +23,35 @@ interface Profile {
   role: string;
 }
 
+/** Alamat ringkas (6 depan…4 belakang); hover/klik → popover alamat penuh + copy. */
+function WalletAddress({ address }: { address: string }) {
+  const [copied, setCopied] = useState(false);
+  const short = address.length > 12 ? `${address.slice(0, 6)}…${address.slice(-4)}` : address;
+  return (
+    <span className="group relative inline-block">
+      <button
+        type="button"
+        title={address}
+        onClick={async () => {
+          try {
+            await navigator.clipboard.writeText(address);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 1200);
+          } catch {
+            /* clipboard tak tersedia */
+          }
+        }}
+        className="cursor-pointer font-mono text-sm text-ink transition hover:text-white"
+      >
+        {short}
+      </button>
+      <span className="pointer-events-none absolute left-0 top-full z-20 mt-1 hidden whitespace-nowrap rounded-md border border-white/15 bg-black px-2.5 py-1.5 font-mono text-[11px] text-white shadow-lg group-hover:block group-focus-within:block">
+        {copied ? "Copied!" : address}
+      </span>
+    </span>
+  );
+}
+
 function GithubMark() {
   return (
     <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
@@ -238,7 +267,7 @@ function Inner({ t }: { t: T }) {
         )}
         <div>
           <p className="label-field">{t.walletLabel}</p>
-          <p className="font-mono text-sm text-ink">{profile?.address}</p>
+          {profile?.address && <WalletAddress address={profile.address} />}
         </div>
       </div>
 
