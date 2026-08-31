@@ -22,6 +22,7 @@ interface Props {
   secondary: { label: string; href: string };
   stats: EvStat[];
   bgVideo?: string;
+  bgVideoWebm?: string;
   bgPoster?: string;
 }
 
@@ -70,6 +71,8 @@ export default function EvolveHero(props: Props) {
       <div className="ev-bg" aria-hidden="true">
         {props.bgVideo && (
           <video autoPlay muted loop playsInline preload="none" poster={props.bgPoster}>
+            {/* webm (VP9, ~⅓ ukuran) untuk browser modern; mp4 (H.264) fallback Safari. */}
+            {props.bgVideoWebm && <source src={props.bgVideoWebm} type="video/webm" />}
             <source src={props.bgVideo} type="video/mp4" />
           </video>
         )}

@@ -15,6 +15,7 @@ import {
 } from "@iw3h/db";
 import { NextResponse } from "next/server";
 import { createProjectSchema, splitFields } from "@/lib/project-schema";
+import { cachedProjectsList, invalidateProjectsList } from "@/lib/projects-cache";
 import { requireAuth } from "@/lib/session";
 import { db } from "@/lib/turso";
 import type { NetworkId } from "@/lib/types";
@@ -22,6 +23,38 @@ import type { NetworkId } from "@/lib/types";
 export const dynamic = "force-dynamic";
 
 const SORTS: ProjectSort[] = ["newest", "oldest", "name"];
+
+interface ListOpts {
+  page: number;
+  limit: number;
+  q?: string;
+  track?: string;
+  sort: ProjectSort;
+}
+
+/** Bangun kartu galeri (list + anggota untuk avatar stack). Dibungkus cache di GET. */
+async function buildProjectCards(hackathonId: string, opts: ListOpts) {
+  const { items, meta } = await listProjectsPaged(db, hackathonId, opts);
+  const membersOf = (p: (typeof items)[number]) =>
+    p.team ? p.team.memberAddresses : [p.submitterAddress];
+  const allAddrs = [...new Set(items.flatMap(membersOf))];
+  const profiles = await getPublicProfiles(db, allAddrs);
+  const profOf = (a: string) => profiles.find((x) => x.address === a);
+  const cards = items.map((p) => ({
+    id: p.id,
+    name: p.name,
+    tagline: p.tagline ?? "",
+    logoUrl: p.logoUrl ?? "",
+    trackIds: p.trackIds,
+    teamName: p.team?.name ?? null, // null = solo
+    members: membersOf(p).map((a) => ({
+      address: a,
+      githubUrl: profOf(a)?.githubUrl ?? null,
+      username: profOf(a)?.username ?? null,
+    })),
+  }));
+  return { items: cards, meta };
+}
 
 /** Galeri publik — project ter-submit (tanpa auth), paginated + search/filter/sort. */
 export async function GET(req: Request) {
@@ -34,39 +67,20 @@ export async function GET(req: Request) {
     const sortParam = sp.get("sort");
     const sort = SORTS.includes(sortParam as ProjectSort) ? (sortParam as ProjectSort) : "newest";
 
-    const { items, meta } = await listProjectsPaged(db, hackathon.id, {
+    const opts: ListOpts = {
       page: Number(sp.get("page")) || 1,
       limit: Number(sp.get("limit")) || 12,
       q: sp.get("q") ?? undefined,
       track: sp.get("track") ?? undefined,
       sort,
+    };
+    const key = `${hackathon.id}:${JSON.stringify(opts)}`;
+    const data = await cachedProjectsList(key, () => buildProjectCards(hackathon.id, opts));
+
+    // s-maxage berguna kalau nanti dipasang CDN; TTL cache sudah lindungi DB.
+    return NextResponse.json(data, {
+      headers: { "Cache-Control": "public, s-maxage=30, stale-while-revalidate=60" },
     });
-
-    // Anggota per project (tim → member, solo → submitter) untuk avatar stack.
-    const membersOf = (p: (typeof items)[number]) =>
-      p.team ? p.team.memberAddresses : [p.submitterAddress];
-    const allAddrs = [...new Set(items.flatMap(membersOf))];
-    const profiles = await getPublicProfiles(db, allAddrs);
-    const profOf = (a: string) => profiles.find((x) => x.address === a);
-
-    const cards = items.map((p) => ({
-      id: p.id,
-      name: p.name,
-      tagline: p.tagline ?? "",
-      logoUrl: p.logoUrl ?? "",
-      trackIds: p.trackIds,
-      teamName: p.team?.name ?? null, // null = solo
-      members: membersOf(p).map((a) => ({
-        address: a,
-        githubUrl: profOf(a)?.githubUrl ?? null,
-        username: profOf(a)?.username ?? null,
-      })),
-    }));
-    // Cache di CDN 30s — endpoint publik read-only, lindungi DB dari hammering (DoS).
-    return NextResponse.json(
-      { items: cards, meta },
-      { headers: { "Cache-Control": "public, s-maxage=30, stale-while-revalidate=60" } }
-    );
   } catch (err) {
     // Alasan asli (env kurang → ZodError, token Turso invalid → 401 libsql, DB down)
     // muncul di Vercel logs; publik cukup dapat 503, bukan 500 kosong yang misterius.
@@ -151,6 +165,7 @@ export async function POST(req: Request) {
       input: fields,
       trackIds: tracks,
     });
+    invalidateProjectsList(); // project baru langsung muncul di galeri
     return NextResponse.json({ project }, { status: 201 });
   } catch (e) {
     if (e instanceof ProjectError) return NextResponse.json({ error: e.message }, { status: 409 });

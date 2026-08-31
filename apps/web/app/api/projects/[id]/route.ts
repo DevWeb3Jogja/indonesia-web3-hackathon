@@ -13,12 +13,14 @@ import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 import { LOCALES } from "@/lib/locale";
 import { projectFields, splitFields } from "@/lib/project-schema";
+import { invalidateProjectsList } from "@/lib/projects-cache";
 import { requireAuth } from "@/lib/session";
 import { db } from "@/lib/turso";
 import type { NetworkId } from "@/lib/types";
 
 /** Invalidate cache galeri + detail (ISR) untuk semua locale. */
 function revalidateProject(id: string) {
+  invalidateProjectsList(); // buang TTL cache galeri (/api/projects)
   for (const l of LOCALES) {
     revalidatePath(`/${l}/projects`);
     revalidatePath(`/${l}/projects/${id}`);

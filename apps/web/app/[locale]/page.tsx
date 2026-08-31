@@ -82,6 +82,7 @@ export default async function HomePage(props: { params: Promise<{ locale: string
           { icon: "%", target: 100, suffix: "%", label: "Free to enter" },
         ]}
         bgVideo="/media/evolve-bg.mp4"
+        bgVideoWebm="/media/evolve-bg.webm"
         bgPoster="/media/evolve-bg-poster.webp"
       />
 
