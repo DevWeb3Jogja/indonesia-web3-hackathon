@@ -93,10 +93,10 @@ export default function EvolveHero(props: Props) {
 
         <h1 className="ev-headline-particle">
           <ParticleText
-            text={props.headline.join(" ")}
+            text={props.headline.join("\n")}
             fontFamily="inherit"
             fontWeight={400}
-            fontSize="clamp(2.4rem, 8.5vw, 6rem)"
+            fontSize="clamp(2.6rem, 10vw, 6.5rem)"
             color="#ffffff"
             highlightColor="#f2f2f2"
             scatter={150}

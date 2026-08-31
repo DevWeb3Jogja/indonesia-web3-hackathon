@@ -280,36 +280,41 @@ const ParticleText = ({
       const offCtx = offscreen.getContext("2d", { willReadFrequently: true });
       if (!offCtx) return;
 
-      const content = String(text || " ");
+      // Multi-baris: "\n" memecah teks; tiap baris di-sample lalu ditumpuk (center).
+      // Judul bisa jadi 2 baris di layar sempit → font auto-fit lebih besar (responsif).
+      const lines = String(text || " ")
+        .split("\n")
+        .map((l) => l.trim() || " ");
       const maxTextWidth = width * 0.92;
       offCtx.font = font;
-      let metrics = offCtx.measureText(content);
-      const measuredWidth = Math.max(1, metrics.width);
-      if (measuredWidth > maxTextWidth) {
-        resolvedSize = Math.max(18, resolvedSize * (maxTextWidth / measuredWidth));
+      const widestLine = () => Math.max(1, ...lines.map((l) => offCtx.measureText(l).width));
+      let widest = widestLine();
+      if (widest > maxTextWidth) {
+        resolvedSize = Math.max(18, resolvedSize * (maxTextWidth / widest));
         font = `${fontWeight} ${resolvedSize}px ${resolvedFamily}`;
         await waitForFonts(font);
         if (currentBuild !== buildId) return;
         offCtx.font = font;
-        metrics = offCtx.measureText(content);
+        widest = widestLine();
       }
 
-      const left = Math.ceil(metrics.actualBoundingBoxLeft || 0);
-      const right = Math.ceil(metrics.actualBoundingBoxRight || metrics.width);
-      const ascent = Math.ceil(metrics.actualBoundingBoxAscent || resolvedSize * 0.78);
-      const descent = Math.ceil(metrics.actualBoundingBoxDescent || resolvedSize * 0.22);
+      const ascent = Math.ceil(resolvedSize * 0.78);
+      const descent = Math.ceil(resolvedSize * 0.28);
+      const lineHeight = ascent + descent;
       const padding = Math.max(12, Math.ceil(resolvedSize * 0.08));
-      const textWidth = Math.max(1, left + right);
-      const textHeight = Math.max(1, ascent + descent);
+      const textWidth = Math.ceil(widest);
+      const textHeight = lineHeight * lines.length;
 
       offscreen.width = textWidth + padding * 2;
       offscreen.height = textHeight + padding * 2;
       offCtx.clearRect(0, 0, offscreen.width, offscreen.height);
       offCtx.font = font;
-      offCtx.textAlign = "left";
+      offCtx.textAlign = "center";
       offCtx.textBaseline = "alphabetic";
       offCtx.fillStyle = "#ffffff";
-      offCtx.fillText(content, padding - left, padding + ascent);
+      lines.forEach((line, i) => {
+        offCtx.fillText(line, offscreen.width / 2, padding + ascent + i * lineHeight);
+      });
 
       const imageData = offCtx.getImageData(0, 0, offscreen.width, offscreen.height);
       const targets: Target[] = [];
