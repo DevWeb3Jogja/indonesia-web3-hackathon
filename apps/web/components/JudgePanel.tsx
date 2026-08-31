@@ -1,12 +1,14 @@
 "use client";
 
-import { useAppKit, useAppKitAccount } from "@reown/appkit/react";
+import { useAppKit } from "@reown/appkit/react";
 import { useCallback, useEffect, useState } from "react";
 import type { Dict } from "@/lib/i18n";
 import { trackLabel } from "@/lib/types";
+import { useWallet } from "@/lib/use-wallet";
 import { projectId as wcProjectId } from "@/lib/web3";
 import ConnectWalletButton from "./ConnectWalletButton";
 import { Alert, Panel } from "./ui";
+import { WalletLoading } from "./WalletLoading";
 
 type T = Dict["judge"];
 interface Criterion {
@@ -54,7 +56,7 @@ function Gate({ t, onSignIn }: { t: T; onSignIn?: () => void }) {
 }
 
 function Inner({ t }: { t: T }) {
-  const { address, isConnected } = useAppKitAccount();
+  const { address, isConnected, connecting } = useWallet();
   const { open } = useAppKit();
   const [status, setStatus] = useState<"loading" | "unauth" | "forbidden" | "ready" | "error">(
     "loading"
@@ -85,6 +87,7 @@ function Inner({ t }: { t: T }) {
     return () => window.removeEventListener("iw3h:session", onSession);
   }, [load]);
 
+  if (connecting) return <WalletLoading />;
   if (!isConnected || status === "unauth") {
     return <Gate t={t} onSignIn={isConnected ? () => open() : undefined} />;
   }

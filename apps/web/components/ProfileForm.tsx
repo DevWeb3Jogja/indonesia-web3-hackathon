@@ -1,14 +1,16 @@
 "use client";
 
-import { useAppKit, useAppKitAccount } from "@reown/appkit/react";
+import { useAppKit } from "@reown/appkit/react";
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import type { Dict } from "@/lib/i18n";
 import { getTurnstileToken } from "@/lib/turnstile";
+import { useWallet } from "@/lib/use-wallet";
 import { projectId } from "@/lib/web3";
 import ConnectWalletButton from "./ConnectWalletButton";
 import { GeneratedAvatar } from "./GeneratedAvatar";
 import { Alert, Panel } from "./ui";
+import { WalletLoading } from "./WalletLoading";
 
 type T = Dict["profile"];
 
@@ -100,7 +102,7 @@ export default function ProfileForm({ t }: { t: T }) {
 }
 
 function Inner({ t }: { t: T }) {
-  const { address, isConnected } = useAppKitAccount();
+  const { address, isConnected, connecting } = useWallet();
   const { open } = useAppKit();
   const router = useRouter();
   const pathname = usePathname();
@@ -241,6 +243,8 @@ function Inner({ t }: { t: T }) {
     }
   }
 
+  // Wallet masih reconnect → loading, jangan keburu tampilkan gate.
+  if (connecting) return <WalletLoading />;
   // Belum connect / SIWE belum jalan → gerbang sign-in.
   if (!isConnected || status === "unauth") {
     return (

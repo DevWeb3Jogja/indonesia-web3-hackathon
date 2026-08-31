@@ -292,6 +292,30 @@
   height: clamp(150px, 34vw, 300px);
   margin-bottom: clamp(14px, 2vh, 20px);
 }
+/* Kredit "Built by <logo DevWeb3 Jogja>" di bawah CTA hero. */
+.ev-builtby {
+  margin-top: clamp(20px, 3.5vh, 34px);
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  opacity: 0.72;
+  transition: opacity 0.2s var(--ev-ease);
+}
+.ev-builtby:hover {
+  opacity: 1;
+}
+.ev-builtby span {
+  font-size: 10px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.24em;
+  color: #8e8e8e;
+}
+.ev-builtby img {
+  height: clamp(22px, 3.4vw, 30px);
+  width: auto;
+  display: block;
+}
 .ev-sub {
   max-width: min(560px, 92%);
   font-size: clamp(15px, 1.6vw, 18px);

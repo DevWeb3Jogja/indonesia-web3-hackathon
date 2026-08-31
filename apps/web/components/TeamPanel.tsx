@@ -1,11 +1,13 @@
 "use client";
 
-import { useAppKit, useAppKitAccount } from "@reown/appkit/react";
+import { useAppKit } from "@reown/appkit/react";
 import { useCallback, useEffect, useState } from "react";
 import type { Dict } from "@/lib/i18n";
+import { useWallet } from "@/lib/use-wallet";
 import { projectId } from "@/lib/web3";
 import ConnectWalletButton from "./ConnectWalletButton";
 import { Alert, Panel } from "./ui";
+import { WalletLoading } from "./WalletLoading";
 
 type T = Dict["team"];
 
@@ -57,7 +59,7 @@ function Gate({ t, onSignIn }: { t: T; onSignIn?: () => void }) {
 }
 
 function Inner({ t }: { t: T }) {
-  const { isConnected, address } = useAppKitAccount();
+  const { isConnected, address, connecting } = useWallet();
   const { open } = useAppKit();
 
   const [status, setStatus] = useState<"loading" | "unauth" | "ready">("loading");
@@ -113,6 +115,7 @@ function Inner({ t }: { t: T }) {
     return false;
   }
 
+  if (connecting) return <WalletLoading />;
   if (!isConnected || status === "unauth") {
     return <Gate t={t} onSignIn={isConnected ? () => open() : undefined} />;
   }

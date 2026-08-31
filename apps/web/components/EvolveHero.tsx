@@ -125,6 +125,16 @@ export default function EvolveHero(props: Props) {
             {props.secondary.label}
           </a>
         </div>
+
+        <a
+          className="ev-builtby"
+          href="https://github.com/DevWeb3Jogja"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <span>Built by</span>
+          <img src="/logos/devweb3-full.webp" alt="DevWeb3 Jogja" />
+        </a>
       </div>
 
       <div className="ev-stats">

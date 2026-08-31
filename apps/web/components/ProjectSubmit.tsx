@@ -1,15 +1,17 @@
 "use client";
 
-import { useAppKit, useAppKitAccount } from "@reown/appkit/react";
+import { useAppKit } from "@reown/appkit/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { type ReactNode, useCallback, useEffect, useState } from "react";
 import type { Dict } from "@/lib/i18n";
 import { localePath } from "@/lib/locale";
+import { useWallet } from "@/lib/use-wallet";
 import { projectId as wcProjectId } from "@/lib/web3";
 import ConnectWalletButton from "./ConnectWalletButton";
 import ProjectForm, { type ProjectData } from "./ProjectForm";
 import { Alert, ArrowUpRight, Panel } from "./ui";
+import { WalletLoading } from "./WalletLoading";
 
 type T = Dict["psubmit"];
 type FormDict = Dict["form"];
@@ -132,7 +134,7 @@ function Stepper({ steps, current }: { steps: string[]; current: number }) {
 type View = "my" | "mode" | "team" | "form" | "edit";
 
 function Inner({ locale, t, form }: { locale: string; t: T; form: FormDict }) {
-  const { address, isConnected } = useAppKitAccount();
+  const { address, isConnected, connecting } = useWallet();
   const { open } = useAppKit();
   const router = useRouter();
 
@@ -207,6 +209,7 @@ function Inner({ locale, t, form }: { locale: string; t: T; form: FormDict }) {
     return json;
   }
 
+  if (connecting) return <WalletLoading label={t.loading} />;
   if (!isConnected || status === "unauth") {
     return <Gate t={t} onSignIn={isConnected ? () => open() : undefined} />;
   }

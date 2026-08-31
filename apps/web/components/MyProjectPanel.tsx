@@ -1,11 +1,11 @@
 "use client";
 
-import { useAppKitAccount } from "@reown/appkit/react";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import type { Dict } from "@/lib/i18n";
 import { localePath } from "@/lib/locale";
 import { trackLabel } from "@/lib/types";
+import { useWallet } from "@/lib/use-wallet";
 import { projectId } from "@/lib/web3";
 import { ArrowUpRight } from "./ui";
 
@@ -79,7 +79,7 @@ function Inner({
   byLabel: string;
   soloLabel: string;
 }) {
-  const { address, isConnected } = useAppKitAccount();
+  const { address, isConnected, connecting } = useWallet();
   const [state, setState] = useState<"loading" | "ready" | "unauth">("loading");
   const [project, setProject] = useState<Project | null>(null);
 
@@ -103,7 +103,7 @@ function Inner({
     return () => window.removeEventListener("iw3h:session", onSession);
   }, [load]);
 
-  if (state === "loading" && isConnected) return <CardSkeleton />;
+  if (connecting || (state === "loading" && isConnected)) return <CardSkeleton />;
   if (!isConnected || state === "unauth") return <SubmitButton locale={locale} t={t} />;
   if (!project) return <SubmitButton locale={locale} t={t} />;
 
