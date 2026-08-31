@@ -34,4 +34,7 @@ COPY --from=builder /app/apps/backoffice/public ./apps/backoffice/public
 COPY --from=builder /app/node_modules/.pnpm/@libsql+linux-x64-musl@0.5.29/node_modules/@libsql/linux-x64-musl ./node_modules/.pnpm/libsql@0.5.29/node_modules/@libsql/linux-x64-musl
 
 EXPOSE 3000
+# Healthcheck: sehat hanya kalau HTTP melayani (bukan sekadar proses hidup).
+HEALTHCHECK --interval=15s --timeout=4s --start-period=25s --retries=3 \
+  CMD node -e "require('http').get('http://127.0.0.1:3000/',r=>process.exit(r.statusCode<500?0:1)).on('error',()=>process.exit(1))"
 CMD ["node", "apps/backoffice/server.js"]
