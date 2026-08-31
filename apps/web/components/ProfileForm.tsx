@@ -1,7 +1,7 @@
 "use client";
 
 import { useAppKit, useAppKitAccount } from "@reown/appkit/react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import type { Dict } from "@/lib/i18n";
 import { projectId } from "@/lib/web3";
@@ -18,22 +18,29 @@ interface Profile {
   avatarUrl: string | null;
   bio: string | null;
   githubUrl: string | null;
+  githubLogin: string | null;
   twitterUrl: string | null;
   role: string;
+}
+
+function GithubMark() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+      <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z" />
+    </svg>
+  );
 }
 
 const EMPTY = {
   username: "",
   email: "",
   bio: "",
-  githubUrl: "",
   twitterUrl: "",
 };
 type FormState = typeof EMPTY;
 
 // Validasi format (selaras dengan skema server).
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const GITHUB_RE = /^https:\/\/github\.com\/.+/i;
 const X_RE = /^https:\/\/(x|twitter)\.com\/.+/i;
 
 /** "" → null supaya lolos skema server (field opsional, bukan string kosong). */
@@ -66,6 +73,7 @@ function Inner({ t }: { t: T }) {
   const { address, isConnected } = useAppKitAccount();
   const { open } = useAppKit();
   const router = useRouter();
+  const pathname = usePathname();
 
   const [status, setStatus] = useState<"idle" | "loading" | "unauth">("loading");
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -88,7 +96,6 @@ function Inner({ t }: { t: T }) {
         username: data.username ?? "",
         email: data.email ?? "",
         bio: data.bio ?? "",
-        githubUrl: data.githubUrl ?? "",
         twitterUrl: data.twitterUrl ?? "",
       });
     }
@@ -108,13 +115,33 @@ function Inner({ t }: { t: T }) {
     return () => window.removeEventListener("iw3h:session", onSession);
   }, [load]);
 
+  // Hasil OAuth GitHub (?github=ok|taken|error|unconfigured) → pesan, lalu
+  // bersihkan query dari URL biar tidak muncul lagi saat refresh.
+  useEffect(() => {
+    const p = new URLSearchParams(window.location.search).get("github");
+    if (!p) return;
+    const msg: Record<string, { kind: "ok" | "err"; text: string }> = {
+      ok: { kind: "ok", text: t.githubLinked },
+      taken: { kind: "err", text: t.githubTaken },
+      error: { kind: "err", text: t.githubError },
+      unconfigured: { kind: "err", text: t.githubError },
+    };
+    if (msg[p]) setMessage(msg[p]);
+    window.history.replaceState({}, "", window.location.pathname);
+  }, [t]);
+
+  async function disconnectGithub() {
+    if (!confirm(t.githubDisconnectConfirm)) return;
+    await fetch("/api/auth/github/disconnect", { method: "POST" });
+    load();
+  }
+
   const set =
     (k: keyof FormState) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
       setForm((f) => ({ ...f, [k]: e.target.value }));
 
   // Error format inline (hanya kalau field diisi).
   const emailErr = form.email.trim() !== "" && !EMAIL_RE.test(form.email.trim());
-  const githubErr = form.githubUrl.trim() !== "" && !GITHUB_RE.test(form.githubUrl.trim());
   const xErr = form.twitterUrl.trim() !== "" && !X_RE.test(form.twitterUrl.trim());
 
   // Cek ketersediaan username live (debounce) saat berbeda dari yang tersimpan.
@@ -278,23 +305,39 @@ function Inner({ t }: { t: T }) {
         />
       </div>
 
+      <div>
+        <span className="label-field">{t.githubLabel}</span>
+        {profile?.githubLogin ? (
+          <div className="flex items-center gap-3">
+            <a
+              href={`https://github.com/${profile.githubLogin}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 text-sm text-ink hover:opacity-80"
+            >
+              <GithubMark />@{profile.githubLogin}
+              <span className="text-teal" title="verified" aria-hidden="true">
+                ✓
+              </span>
+            </a>
+            <button
+              type="button"
+              onClick={disconnectGithub}
+              className="text-xs text-white/50 transition hover:text-white"
+            >
+              {t.githubDisconnect}
+            </button>
+          </div>
+        ) : (
+          <a href={`/api/auth/github?next=${encodeURIComponent(pathname)}`} className="link-chip">
+            <GithubMark />
+            {t.githubConnect}
+          </a>
+        )}
+        <p className="mt-1.5 text-[11px] text-ink/50">{t.githubVerifyHint}</p>
+      </div>
+
       <div className="grid gap-5 sm:grid-cols-2">
-        <div>
-          <label className="label-field" htmlFor="githubUrl">
-            {t.githubLabel}
-          </label>
-          <input
-            id="githubUrl"
-            type="url"
-            className="input-field"
-            value={form.githubUrl}
-            onChange={set("githubUrl")}
-            placeholder={t.githubPlaceholder}
-          />
-          {githubErr && (
-            <p className="mt-1 text-[11px] text-red-500">URL GitHub (https://github.com/…)</p>
-          )}
-        </div>
         <div>
           <label className="label-field" htmlFor="twitterUrl">
             {t.twitterLabel}
@@ -325,9 +368,7 @@ function Inner({ t }: { t: T }) {
       <button
         type="submit"
         className="btn-teal"
-        disabled={
-          saving || uCheck === "taken" || uCheck === "checking" || emailErr || githubErr || xErr
-        }
+        disabled={saving || uCheck === "taken" || uCheck === "checking" || emailErr || xErr}
       >
         {saving ? t.saving : t.save}
       </button>

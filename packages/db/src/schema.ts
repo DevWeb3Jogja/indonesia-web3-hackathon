@@ -19,6 +19,10 @@ export const users = sqliteTable("users", {
   bio: text("bio"),
   role: text("role").notNull().default("participant"),
   githubUrl: text("github_url"),
+  // Identitas GitHub terverifikasi via OAuth. githubId (numeric id GitHub, immutable)
+  // unik lintas wallet → satu akun GitHub cuma bisa dipakai satu wallet.
+  githubId: text("github_id").unique(),
+  githubLogin: text("github_login"),
   twitterUrl: text("twitter_url"),
   createdAt: text("created_at").notNull().default(now),
   updatedAt: text("updated_at").notNull().default(now),

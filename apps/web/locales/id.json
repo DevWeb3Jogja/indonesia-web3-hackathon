@@ -414,7 +414,14 @@
     "saved": "Profil tersimpan.",
     "errorGeneric": "Gagal menyimpan. Coba lagi.",
     "errorValidation": "Ada isian yang belum valid — cek lagi format email/URL.",
-    "errorRate": "Terlalu sering. Tunggu sebentar."
+    "errorRate": "Terlalu sering. Tunggu sebentar.",
+    "githubConnect": "Hubungkan GitHub",
+    "githubDisconnect": "Putuskan",
+    "githubDisconnectConfirm": "Putuskan akun GitHub kamu?",
+    "githubVerifyHint": "Verifikasi kepemilikan lewat GitHub — biar handle orang lain tak bisa dipakai.",
+    "githubLinked": "GitHub terhubung.",
+    "githubTaken": "Akun GitHub ini sudah ditautkan ke wallet lain.",
+    "githubError": "Gagal menghubungkan GitHub. Coba lagi."
   },
   "team": {
     "metaTitle": "Tim",

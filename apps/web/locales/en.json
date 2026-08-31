@@ -414,7 +414,14 @@
     "saved": "Profile saved.",
     "errorGeneric": "Failed to save. Try again.",
     "errorValidation": "Some fields aren't valid — check email/URL formats.",
-    "errorRate": "Too many requests. Wait a moment."
+    "errorRate": "Too many requests. Wait a moment.",
+    "githubConnect": "Connect GitHub",
+    "githubDisconnect": "Disconnect",
+    "githubDisconnectConfirm": "Disconnect your GitHub account?",
+    "githubVerifyHint": "Verify ownership via GitHub — no more using someone else's handle.",
+    "githubLinked": "GitHub connected.",
+    "githubTaken": "This GitHub account is already linked to another wallet.",
+    "githubError": "Couldn't connect GitHub. Try again."
   },
   "team": {
     "metaTitle": "Team",

@@ -66,6 +66,46 @@ export async function updateProfile(db: Db, address: string, input: ProfileInput
   return getUser(db, address);
 }
 
+/**
+ * Tautkan identitas GitHub terverifikasi (dari OAuth) ke wallet. Gagal kalau
+ * githubId sudah dipakai wallet lain (anti reuse akun GitHub lintas wallet).
+ */
+export async function linkGithub(
+  db: Db,
+  address: string,
+  gh: { id: string; login: string }
+): Promise<{ ok: true } | { ok: false; reason: "taken" }> {
+  const clash = await db
+    .select({ a: users.address })
+    .from(users)
+    .where(and(eq(users.githubId, gh.id), sql`${users.address} != ${address}`))
+    .limit(1);
+  if (clash.length > 0) return { ok: false, reason: "taken" };
+  await db
+    .update(users)
+    .set({
+      githubId: gh.id,
+      githubLogin: gh.login,
+      githubUrl: `https://github.com/${gh.login}`,
+      updatedAt: sql`(datetime('now'))`,
+    })
+    .where(eq(users.address, address));
+  return { ok: true };
+}
+
+/** Lepas tautan GitHub dari wallet. */
+export async function unlinkGithub(db: Db, address: string) {
+  await db
+    .update(users)
+    .set({
+      githubId: null,
+      githubLogin: null,
+      githubUrl: null,
+      updatedAt: sql`(datetime('now'))`,
+    })
+    .where(eq(users.address, address));
+}
+
 export async function audit(
   db: Db,
   entry: { actor: string; action: string; target?: string; detail?: unknown }

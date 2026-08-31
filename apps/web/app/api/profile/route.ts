@@ -16,7 +16,7 @@ const profileSchema = z.object({
   email: z.string().email().max(254).nullish(),
   avatarUrl: z.string().url().max(2048).startsWith("https://").nullish(),
   bio: z.string().max(500).refine(isClean, "Mengandung kata yang tidak pantas").nullish(),
-  githubUrl: z.string().url().max(2048).startsWith("https://github.com/").nullish(),
+  // githubUrl TIDAK diterima dari klien lagi — di-set hanya lewat OAuth (terverifikasi).
   twitterUrl: z
     .string()
     .url()
