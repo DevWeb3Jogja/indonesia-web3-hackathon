@@ -367,7 +367,12 @@
     "markdownHint": "Markdown + mermaid",
     "previewEmpty": "Belum ada konten untuk dipreview.",
     "mermaidError": "Diagram mermaid tidak valid",
-    "descriptionTemplate": "## Overview\n\nJelaskan project kamu secara singkat di sini.\n\n## Fitur Utama\n\n- Fitur 1\n- Fitur 2\n- Fitur 3\n\n## Arsitektur\n\n```mermaid\nflowchart LR\n  User --> Frontend --> SmartContract[Smart Contract di BNB Chain]\n  SmartContract --> BscScan\n```\n\n## Tech Stack\n\n| Layer | Teknologi |\n|-------|-----------|\n| Smart Contract | Solidity |\n| Frontend | Next.js |\n\n## Cara Menjalankan\n\n1. Clone repo\n2. `npm install`\n3. `npm run dev`\n"
+    "descriptionTemplate": "## Overview\n\nJelaskan project kamu secara singkat di sini.\n\n## Fitur Utama\n\n- Fitur 1\n- Fitur 2\n- Fitur 3\n\n## Arsitektur\n\n```mermaid\nflowchart LR\n  User --> Frontend --> SmartContract[Smart Contract di BNB Chain]\n  SmartContract --> BscScan\n```\n\n## Tech Stack\n\n| Layer | Teknologi |\n|-------|-----------|\n| Smart Contract | Solidity |\n| Frontend | Next.js |\n\n## Cara Menjalankan\n\n1. Clone repo\n2. `npm install`\n3. `npm run dev`\n",
+    "imgInsert": "Gambar",
+    "imgUploading": "Mengunggah…",
+    "imgInvalid": "Pilih file gambar",
+    "imgTooBig": "Gambar terlalu besar (maks 15MB)",
+    "imgError": "Gagal mengunggah gambar, coba lagi"
   },
   "footer": {
     "tagline": "#WhereBuildersBuild. Co-hosted oleh Binance Academy, BNB Chain, dan Coinvestasi. Dimentori Dev Web3 Jogja. Dibangun di atas BNB Chain.",

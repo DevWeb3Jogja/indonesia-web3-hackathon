@@ -367,7 +367,12 @@
     "markdownHint": "Markdown + mermaid",
     "previewEmpty": "Nothing to preview yet.",
     "mermaidError": "Invalid mermaid diagram",
-    "descriptionTemplate": "## Overview\n\nBriefly describe your project here.\n\n## Key Features\n\n- Feature 1\n- Feature 2\n- Feature 3\n\n## Architecture\n\n```mermaid\nflowchart LR\n  User --> Frontend --> SmartContract[Smart Contract on BNB Chain]\n  SmartContract --> BscScan\n```\n\n## Tech Stack\n\n| Layer | Technology |\n|-------|-----------|\n| Smart Contract | Solidity |\n| Frontend | Next.js |\n\n## Running It\n\n1. Clone the repo\n2. `npm install`\n3. `npm run dev`\n"
+    "descriptionTemplate": "## Overview\n\nBriefly describe your project here.\n\n## Key Features\n\n- Feature 1\n- Feature 2\n- Feature 3\n\n## Architecture\n\n```mermaid\nflowchart LR\n  User --> Frontend --> SmartContract[Smart Contract on BNB Chain]\n  SmartContract --> BscScan\n```\n\n## Tech Stack\n\n| Layer | Technology |\n|-------|-----------|\n| Smart Contract | Solidity |\n| Frontend | Next.js |\n\n## Running It\n\n1. Clone the repo\n2. `npm install`\n3. `npm run dev`\n",
+    "imgInsert": "Image",
+    "imgUploading": "Uploading…",
+    "imgInvalid": "Please choose an image file",
+    "imgTooBig": "Image too large (max 15MB)",
+    "imgError": "Image upload failed, try again"
   },
   "footer": {
     "tagline": "#WhereBuildersBuild. Co-hosted by Binance Academy, BNB Chain and Coinvestasi. Mentored by Dev Web3 Jogja. Built on BNB Chain.",

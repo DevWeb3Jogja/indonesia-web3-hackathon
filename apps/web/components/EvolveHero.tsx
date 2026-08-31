@@ -98,14 +98,14 @@ export default function EvolveHero(props: Props) {
             fontWeight={400}
             fontSize="clamp(2.4rem, 8.5vw, 6rem)"
             color="#ffffff"
-            highlightColor="#9a9a9a"
+            highlightColor="#f2f2f2"
             scatter={150}
             gatherDuration={1500}
             stagger={360}
             pointerRepel={36}
             repelRadius={130}
             idleDrift={0}
-            trigger="hover"
+            trigger="mount"
             glow
           />
         </h1>
