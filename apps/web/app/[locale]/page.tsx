@@ -82,6 +82,7 @@ export default async function HomePage(props: { params: Promise<{ locale: string
           { icon: "%", target: 100, suffix: "%", label: "Free to enter" },
         ]}
         bgVideo="/media/evolve-bg.mp4"
+        bgPoster="/media/evolve-bg-poster.webp"
       />
 
       {/* ========================= SUBMISSIONS (dari web) ========================= */}
@@ -106,6 +107,7 @@ export default async function HomePage(props: { params: Promise<{ locale: string
               muted
               playsInline
               preload="none"
+              poster="/media/submissions-poster.webp"
               className="mt-6 h-[220px] w-[220px] object-cover opacity-90 sm:mt-8 sm:h-[380px] sm:w-[380px] lg:h-[460px] lg:w-[460px]"
               aria-hidden
             >

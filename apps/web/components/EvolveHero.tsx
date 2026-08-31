@@ -69,7 +69,7 @@ export default function EvolveHero(props: Props) {
     <section className="ev-hero-section">
       <div className="ev-bg" aria-hidden="true">
         {props.bgVideo && (
-          <video autoPlay muted loop playsInline poster={props.bgPoster}>
+          <video autoPlay muted loop playsInline preload="none" poster={props.bgPoster}>
             <source src={props.bgVideo} type="video/mp4" />
           </video>
         )}

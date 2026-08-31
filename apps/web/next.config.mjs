@@ -31,6 +31,10 @@ const securityHeaders = [
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  // Best-practice: jangan bocorkan stack (X-Powered-By) + emit source map produksi
+  // (Lighthouse "valid source maps" & debugging error produksi).
+  poweredByHeader: false,
+  productionBrowserSourceMaps: true,
   transpilePackages: ["@iw3h/db", "@iw3h/auth"],
   // Docker (Coolify): output minimal + trace dari root monorepo.
   output: "standalone",
