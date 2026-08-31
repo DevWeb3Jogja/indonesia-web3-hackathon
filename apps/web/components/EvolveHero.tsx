@@ -104,7 +104,7 @@ export default function EvolveHero(props: Props) {
             stagger={360}
             pointerRepel={36}
             repelRadius={130}
-            idleDrift={0.6}
+            idleDrift={0}
             trigger="hover"
             glow
           />

@@ -162,6 +162,7 @@ const ParticleText = ({
 
       gatherStart = now;
       gathering = true;
+      ensureRenderLoop(); // bangunkan loop kalau sedang beku
     };
 
     const drawParticle = (particle: Particle): void => {
@@ -192,6 +193,7 @@ const ParticleText = ({
       pointer.smoothY += (pointer.y - pointer.smoothY) * 0.18;
 
       let complete = true;
+      let maxMove = 0;
 
       particles.forEach((particle) => {
         let baseX = particle.targetX;
@@ -226,6 +228,7 @@ const ParticleText = ({
         const follow = reducedMotion ? 1 : 0.22;
         particle.x += (baseX - particle.x) * follow;
         particle.y += (baseY - particle.y) * follow;
+        maxMove = Math.max(maxMove, Math.abs(baseX - particle.x) + Math.abs(baseY - particle.y));
 
         ctx.globalAlpha = clamp(0.35 + progress * 0.65, 0, 1);
         drawParticle(particle);
@@ -236,7 +239,13 @@ const ParticleText = ({
 
       if (gathering && complete) gathering = false;
 
-      animationFrame = window.requestAnimationFrame(render);
+      // Freeze-when-idle: berhenti menjadwalkan frame begitu teks terbentuk,
+      // kursor tak aktif, dan partikel sudah diam → CPU idle ~0 (lindungi skor
+      // Lighthouse). Loop di-restart via ensureRenderLoop() saat hover/gather.
+      const pointerSettled =
+        Math.abs(pointer.x - pointer.smoothX) < 0.5 && Math.abs(pointer.y - pointer.smoothY) < 0.5;
+      const idle = !gathering && !pointer.active && maxMove < 0.3 && pointerSettled;
+      animationFrame = idle ? null : window.requestAnimationFrame(render);
     };
 
     const ensureRenderLoop = (): void => {
@@ -385,6 +394,7 @@ const ParticleText = ({
       pointer.x = event.clientX - rect.left;
       pointer.y = event.clientY - rect.top;
       pointer.active = true;
+      ensureRenderLoop(); // hover di atas teks beku → hidupkan repel
     };
 
     const handlePointerLeave = (): void => {
