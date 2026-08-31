@@ -334,7 +334,6 @@ function Inner({ t }: { t: T }) {
             {t.githubConnect}
           </a>
         )}
-        <p className="mt-1.5 text-[11px] text-ink/50">{t.githubVerifyHint}</p>
       </div>
 
       <div className="grid gap-5 sm:grid-cols-2">

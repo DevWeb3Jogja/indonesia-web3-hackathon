@@ -494,7 +494,8 @@
     "profileRequiredDesc": "Kamu harus mengisi username dan email kontak di profil sebelum bisa submit project.",
     "profileRequiredCta": "Lengkapi profil",
     "errorGeneric": "Gagal memproses. Coba lagi.",
-    "errorRate": "Terlalu sering. Tunggu sebentar."
+    "errorRate": "Terlalu sering. Tunggu sebentar.",
+    "soloInstead": "Mau submit solo? Keluar tim dulu →"
   },
   "judge": {
     "metaTitle": "Penjurian",

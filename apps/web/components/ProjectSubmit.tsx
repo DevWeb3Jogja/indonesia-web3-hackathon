@@ -160,6 +160,8 @@ function Inner({ locale, t, form }: { locale: string; t: T; form: FormDict }) {
       if (!wantEdit) return router.replace(localePath(locale, "/my"));
       setView("edit");
     } else {
+      // Sudah tergabung tim → wajib submit sebagai tim itu (opsi solo disembunyikan).
+      if (data.hasTeam) setMode("team");
       setView("mode");
     }
     setStatus("ready");
@@ -275,7 +277,9 @@ function Inner({ locale, t, form }: { locale: string; t: T; form: FormDict }) {
 
   // ---------- Alur submit (stepper) ----------
   const steps =
-    mode === "team" ? [t.stepType, t.stepTeam, t.stepDetails] : [t.stepType, t.stepDetails];
+    mode === "team" && !mine.hasTeam
+      ? [t.stepType, t.stepTeam, t.stepDetails]
+      : [t.stepType, t.stepDetails];
   const currentStep = view === "team" ? 1 : view === "form" ? steps.length - 1 : 0;
 
   let content: ReactNode = null;
@@ -283,29 +287,45 @@ function Inner({ locale, t, form }: { locale: string; t: T; form: FormDict }) {
     content = (
       <div className="max-w-xl space-y-6">
         <h2 className="section-title">{t.chooseTitle}</h2>
-        <div className="grid gap-4 sm:grid-cols-2">
-          {(["solo", "team"] as const).map((m) => (
-            <button
-              key={m}
-              type="button"
-              onClick={() => setMode(m)}
-              className={`chamfer-lg p-6 text-left transition ${
-                mode === m
-                  ? "bg-white text-black"
-                  : "border border-teal/25 bg-white/[0.04] hover:bg-haze"
-              }`}
+        {mine.hasTeam ? (
+          // Sudah punya tim → kunci ke mode tim, tidak boleh pilih solo.
+          <div className="chamfer-lg border border-teal/25 bg-white/[0.04] p-6">
+            <span className="font-firs text-xl font-semibold">{t.teamLabel}</span>
+            <span className="mt-2 block text-sm text-ink/60">
+              {t.usingTeam}: {mine.teamName ?? "—"}
+            </span>
+            <Link
+              href={localePath(locale, "/team")}
+              className="mt-3 inline-block text-sm text-teal hover:underline"
             >
-              <span className="font-firs text-xl font-semibold">
-                {m === "solo" ? t.soloLabel : t.teamLabel}
-              </span>
-              <span
-                className={`mt-2 block text-sm ${mode === m ? "text-black/60" : "text-ink/60"}`}
+              {t.soloInstead}
+            </Link>
+          </div>
+        ) : (
+          <div className="grid gap-4 sm:grid-cols-2">
+            {(["solo", "team"] as const).map((m) => (
+              <button
+                key={m}
+                type="button"
+                onClick={() => setMode(m)}
+                className={`chamfer-lg p-6 text-left transition ${
+                  mode === m
+                    ? "bg-white text-black"
+                    : "border border-teal/25 bg-white/[0.04] hover:bg-haze"
+                }`}
               >
-                {m === "solo" ? t.soloDesc : t.teamDesc}
-              </span>
-            </button>
-          ))}
-        </div>
+                <span className="font-firs text-xl font-semibold">
+                  {m === "solo" ? t.soloLabel : t.teamLabel}
+                </span>
+                <span
+                  className={`mt-2 block text-sm ${mode === m ? "text-black/60" : "text-ink/60"}`}
+                >
+                  {m === "solo" ? t.soloDesc : t.teamDesc}
+                </span>
+              </button>
+            ))}
+          </div>
+        )}
         <button
           type="button"
           className="btn-teal"
