@@ -9,6 +9,7 @@ minimumReleaseAge: 0
 # Jangan jalankan pre-check install tiap `pnpm run` (bikin turbo gagal).
 verifyDepsBeforeRun: false
 allowBuilds:
+  '@heroui/shared-utils': set this to true or false
   '@reown/appkit': true
   bufferutil: true
   esbuild: true
