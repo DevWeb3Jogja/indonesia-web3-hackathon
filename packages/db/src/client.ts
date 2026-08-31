@@ -7,6 +7,19 @@ export type Db = RealDb;
 
 function build(url: string, authToken?: string) {
   if (!url) throw new Error("TURSO_DATABASE_URL kosong — cek .env (lihat .env.example)");
+
+  // Embedded replica (opt-in via TURSO_REPLICA_PATH): baca dari file SQLite LOKAL
+  // (instan + tetap melayani baca walau Turso ngeblip/limit), tulis diteruskan ke
+  // Turso (syncUrl) dengan read-your-writes, dan sync berkala untuk menangkap
+  // perubahan dari app lain (mis. backoffice). Tanpa env → remote-only (default).
+  const replicaPath = process.env.TURSO_REPLICA_PATH?.trim();
+  if (replicaPath) {
+    const syncInterval = Number(process.env.TURSO_SYNC_INTERVAL ?? "60") || 60;
+    return drizzle(
+      createClient({ url: `file:${replicaPath}`, syncUrl: url, authToken, syncInterval }),
+      { schema }
+    );
+  }
   return drizzle(createClient({ url, authToken }), { schema });
 }
 

@@ -1,6 +1,7 @@
 import { randomBytes } from "node:crypto";
 import { rateLimit } from "@iw3h/db";
 import { NextResponse } from "next/server";
+import { localUploadsDir, saveLocalUpload } from "@/lib/local-uploads";
 import { r2Configured, uploadToR2 } from "@/lib/r2";
 import { requireAuth } from "@/lib/session";
 import { db } from "@/lib/turso";
@@ -18,7 +19,7 @@ const EXT: Record<string, string> = {
 export async function POST(req: Request) {
   const auth = await requireAuth();
   if (auth instanceof Response) return auth;
-  if (!r2Configured()) {
+  if (!r2Configured() && !localUploadsDir()) {
     return NextResponse.json({ error: "Upload belum dikonfigurasi" }, { status: 503 });
   }
 
@@ -35,11 +36,23 @@ export async function POST(req: Request) {
   }
 
   const key = `desc/${auth.address.toLowerCase()}/${randomBytes(12).toString("hex")}.${ext}`;
-  try {
-    const url = await uploadToR2(key, buf, contentType);
-    return NextResponse.json({ url });
-  } catch (e) {
-    console.error("[POST /api/uploads/image] R2 gagal:", e);
-    return NextResponse.json({ error: "Upload gagal, coba lagi" }, { status: 502 });
+
+  // Utamakan R2 (CDN, tak membebani VPS). Kalau R2 gagal/limit → fallback disk VPS.
+  if (r2Configured()) {
+    try {
+      const url = await uploadToR2(key, buf, contentType);
+      return NextResponse.json({ url });
+    } catch (e) {
+      console.error("[POST /api/uploads/image] R2 gagal, coba fallback lokal:", e);
+    }
   }
+
+  try {
+    const localUrl = await saveLocalUpload(key, buf);
+    if (localUrl) return NextResponse.json({ url: localUrl });
+  } catch (e) {
+    console.error("[POST /api/uploads/image] fallback lokal gagal:", e);
+  }
+
+  return NextResponse.json({ error: "Upload gagal, coba lagi" }, { status: 502 });
 }
