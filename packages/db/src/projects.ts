@@ -198,14 +198,26 @@ export async function createProject(
 ): Promise<ProjectFull> {
   const { hackathonId, submitterAddress, teamId, input, trackIds } = opts;
 
-  if (await getProjectForUser(db, hackathonId, submitterAddress)) {
-    throw new ProjectError("already_has_project", "Kamu/tim sudah punya project di edisi ini");
-  }
   if (teamId) {
     const team = await getMyTeam(db, hackathonId, submitterAddress);
     if (!team || team.id !== teamId) {
       throw new ProjectError("not_team_member", "Kamu bukan anggota tim ini");
     }
+    // Satu akun = satu project. TIAP anggota tim tidak boleh sudah terikat project
+    // lain (solo atau via tim lain) — kalau tidak, anggota itu terdaftar ganda.
+    // (Cek submitter saja tidak cukup: anggota lain bisa punya project solo sendiri.)
+    for (const m of team.members) {
+      if (await getProjectForUser(db, hackathonId, m.address)) {
+        throw new ProjectError(
+          "already_has_project",
+          m.address === submitterAddress
+            ? "Kamu sudah punya project di edisi ini"
+            : "Ada anggota tim yang sudah punya project sendiri — dia harus keluar/hapus project itu dulu"
+        );
+      }
+    }
+  } else if (await getProjectForUser(db, hackathonId, submitterAddress)) {
+    throw new ProjectError("already_has_project", "Kamu sudah punya project di edisi ini");
   }
   await assertTracks(db, hackathonId, trackIds);
 

@@ -52,6 +52,31 @@ describe("projects (integration)", () => {
     expect((await getProjectForUser(db, H, addr(1)))?.id).toBe(p.id);
   });
 
+  it("tim tidak bisa submit kalau ada anggota yang sudah punya project solo (anti daftar-ganda)", async () => {
+    // Reproduksi bug: user1 submit solo → bikin tim → user2 join → user2 submit tim.
+    await createProject(db, {
+      hackathonId: H,
+      submitterAddress: addr(1),
+      teamId: null,
+      input: baseInput,
+      trackIds: ["ai"],
+    });
+    const team = await createTeam(db, H, addr(1), "Rocket");
+    await joinTeam(db, H, addr(2), team.inviteCode);
+    await expect(
+      createProject(db, {
+        hackathonId: H,
+        submitterAddress: addr(2),
+        teamId: team.id,
+        input: { name: "Second", tagline: "x" },
+        trackIds: ["fin"],
+      })
+    ).rejects.toMatchObject({ code: "already_has_project" });
+    // user1 tetap hanya di 1 project (solo), tim tidak punya project.
+    expect((await getProjectForUser(db, H, addr(1)))?.teamId).toBeNull();
+    expect(await getProjectForUser(db, H, addr(2))).toBeNull();
+  });
+
   it("tim: create oleh anggota, semua anggota bisa edit, non-anggota tidak", async () => {
     const team = await createTeam(db, H, addr(1), "Rocket");
     await joinTeam(db, H, addr(2), team.inviteCode);
