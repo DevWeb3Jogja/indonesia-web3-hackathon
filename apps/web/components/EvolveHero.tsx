@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { type CSSProperties, useEffect, useRef } from "react";
+import ParticleText from "./ParticleText";
 
 export interface EvStat {
   icon: string;
@@ -90,9 +91,23 @@ export default function EvolveHero(props: Props) {
           <span className="ev-trust-pill">{props.trustPill}</span>
         </div>
 
-        <h1 className="ev-headline">
-          <span style={{ "--hd": "0.12s" } as CSSProperties}>{props.headline[0]}</span>
-          <span style={{ "--hd": "0.3s" } as CSSProperties}>{props.headline[1]}</span>
+        <h1 className="ev-headline-particle">
+          <ParticleText
+            text={props.headline.join(" ")}
+            fontFamily="inherit"
+            fontWeight={400}
+            fontSize="clamp(2.4rem, 8.5vw, 6rem)"
+            color="#ffffff"
+            highlightColor="#9a9a9a"
+            scatter={150}
+            gatherDuration={1500}
+            stagger={360}
+            pointerRepel={36}
+            repelRadius={130}
+            idleDrift={0.6}
+            trigger="hover"
+            glow
+          />
         </h1>
 
         <p className="ev-sub">{props.subtitle}</p>

@@ -281,6 +281,16 @@
   animation: ev-headlineFade 0.85s var(--ev-ease) forwards;
   animation-delay: var(--hd, 0s);
 }
+/* Judul partikel (ParticleText). font-family di sini = sumber sampling glyph
+   (ParticleText fontFamily="inherit"). Tinggi tetap supaya canvas punya ukuran. */
+.ev-headline-particle {
+  font-family: var(--ev-display);
+  font-weight: 400;
+  width: 100%;
+  max-width: 1100px;
+  height: clamp(110px, 22vw, 200px);
+  margin-bottom: clamp(14px, 2vh, 20px);
+}
 .ev-sub {
   max-width: min(560px, 92%);
   font-size: clamp(15px, 1.6vw, 18px);
