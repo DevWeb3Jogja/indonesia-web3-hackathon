@@ -4,6 +4,7 @@ import {
   createTeam,
   getCurrentHackathon,
   getMyTeam,
+  getPublicProfiles,
   rateLimit,
   TeamError,
 } from "@iw3h/db";
@@ -30,8 +31,25 @@ export async function GET() {
   const hackathon = await getCurrentHackathon(db);
   if (!hackathon) return NextResponse.json({ team: null, hackathon: null });
   const team = await getMyTeam(db, hackathon.id, auth.address);
+  // Lengkapi tiap anggota dengan username + githubUrl (buat avatar + nama di UI).
+  let teamOut = team as unknown;
+  if (team) {
+    const profiles = await getPublicProfiles(
+      db,
+      team.members.map((m) => m.address)
+    );
+    const byAddr = new Map(profiles.map((p) => [p.address, p]));
+    teamOut = {
+      ...team,
+      members: team.members.map((m) => ({
+        ...m,
+        username: byAddr.get(m.address)?.username ?? null,
+        githubUrl: byAddr.get(m.address)?.githubUrl ?? null,
+      })),
+    };
+  }
   return NextResponse.json({
-    team,
+    team: teamOut,
     hackathon: { id: hackathon.id, name: hackathon.name, status: hackathon.status },
     canManage: canManageTeam(hackathon),
   });

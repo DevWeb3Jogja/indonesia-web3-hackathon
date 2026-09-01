@@ -6,6 +6,7 @@ import type { Dict } from "@/lib/i18n";
 import { useWallet } from "@/lib/use-wallet";
 import { projectId } from "@/lib/web3";
 import ConnectWalletButton from "./ConnectWalletButton";
+import { GeneratedAvatar } from "./GeneratedAvatar";
 import { Alert, Panel } from "./ui";
 import { WalletLoading } from "./WalletLoading";
 
@@ -15,6 +16,8 @@ interface Member {
   address: string;
   role: string;
   joinedAt: string;
+  username?: string | null;
+  githubUrl?: string | null;
 }
 interface Team {
   id: string;
@@ -173,13 +176,33 @@ function Inner({ t }: { t: T }) {
               <ul className="mt-2 space-y-2">
                 {team.members.map((m) => {
                   const you = m.address.toLowerCase() === address?.toLowerCase();
+                  const handle = m.githubUrl?.match(/github\.com\/([^/?#]+)/i)?.[1] ?? null;
+                  const name = m.username || handle || short(m.address);
                   return (
                     <li
                       key={m.address}
-                      className="flex items-center justify-between border-b border-teal/10 py-2 last:border-0"
+                      className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/[0.02] p-3 transition hover:border-white/20 hover:bg-white/[0.04]"
                     >
-                      <span className="font-mono text-sm text-ink">{short(m.address)}</span>
-                      <span className="flex items-center gap-2">
+                      <span className="inline-flex size-10 shrink-0 overflow-hidden rounded-full bg-black ring-1 ring-white/10">
+                        {handle ? (
+                          <img
+                            src={`https://github.com/${handle}.png?size=80`}
+                            alt=""
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          <GeneratedAvatar name={m.address} size={40} />
+                        )}
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-semibold text-ink">{name}</p>
+                        {m.username && (
+                          <p className="truncate font-mono text-[11px] text-ink/40">
+                            {short(m.address)}
+                          </p>
+                        )}
+                      </div>
+                      <span className="flex shrink-0 items-center gap-2">
                         {you && <span className="tag">{t.youBadge}</span>}
                         <span className="tag">
                           {m.role === "leader" ? t.leaderBadge : t.memberBadge}
