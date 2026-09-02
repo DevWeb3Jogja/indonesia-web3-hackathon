@@ -19,7 +19,9 @@ const optionalUrl = z
 const requiredUrl = z.string().url().max(2048).startsWith("https://", "Harus diawali https://");
 
 const isLogo = (v: string) =>
-  /^https:\/\//.test(v) || /^data:image\/(png|jpe?g|webp|gif);base64,/.test(v);
+  /^https:\/\//.test(v) ||
+  /^\/api\/uploads\//.test(v) || // hasil upload same-origin (R2 / fallback lokal)
+  /^data:image\/(png|jpe?g|webp|gif);base64,/.test(v); // legacy: logo lama data URL
 // Logo: URL https ATAU data URL gambar (hasil upload → resize di client).
 const logoField = z
   .string()

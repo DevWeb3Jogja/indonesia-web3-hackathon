@@ -54,8 +54,9 @@ function toExtraLinks(d: ProjectData) {
     .map((e) => ({ label: e.label, url: e.url.trim() }));
 }
 
-/** Resize gambar ke kotak `size` (cover) → data URL webp. Gratis, tanpa storage. */
-function resizeToDataUrl(file: File, size: number): Promise<string> {
+/** Resize gambar ke kotak `size` (cover) → Blob webp untuk diupload ke R2.
+ *  Logo tak lagi disimpan sebagai data URL (membebani row DB + JSON galeri). */
+function resizeToWebpBlob(file: File, size: number): Promise<Blob> {
   return new Promise((resolve, reject) => {
     const url = URL.createObjectURL(file);
     const img = new Image();
@@ -73,7 +74,11 @@ function resizeToDataUrl(file: File, size: number): Promise<string> {
       const h = img.height * scale;
       ctx.drawImage(img, (size - w) / 2, (size - h) / 2, w, h);
       URL.revokeObjectURL(url);
-      resolve(canvas.toDataURL("image/webp", 0.85));
+      canvas.toBlob(
+        (b) => (b ? resolve(b) : reject(new Error("encode failed"))),
+        "image/webp",
+        0.85
+      );
     };
     img.onerror = () => {
       URL.revokeObjectURL(url);
@@ -153,6 +158,7 @@ export default function ProjectForm({
     }
   }, [d, isEdit]);
   const [logoErr, setLogoErr] = useState<string | null>(null);
+  const [logoUploading, setLogoUploading] = useState(false);
   const set = <K extends keyof ProjectData>(k: K, v: ProjectData[K]) =>
     setD((prev) => ({ ...prev, [k]: v }));
 
@@ -163,10 +169,21 @@ export default function ProjectForm({
     setLogoErr(null);
     if (!file.type.startsWith("image/")) return setLogoErr(form.logoInvalid);
     if (file.size > 5 * 1024 * 1024) return setLogoErr(form.logoTooBig);
+    setLogoUploading(true);
     try {
-      set("logoUrl", await resizeToDataUrl(file, 256));
+      const blob = await resizeToWebpBlob(file, 256);
+      const res = await fetch("/api/uploads/image", {
+        method: "POST",
+        headers: { "content-type": "image/webp" },
+        body: blob,
+      });
+      if (!res.ok) throw new Error(String(res.status));
+      const { url } = (await res.json()) as { url: string };
+      set("logoUrl", url);
     } catch {
-      setLogoErr(form.logoInvalid);
+      setLogoErr(form.imgError);
+    } finally {
+      setLogoUploading(false);
     }
   }
   const toggleTrack = (id: string) =>
@@ -189,10 +206,15 @@ export default function ProjectForm({
   const xError = !isHttps(d.xUrl);
   const linkedinError = !isHttps(d.linkedinUrl);
   const pitchError = !isHttps(d.pitchDeckUrl);
-  // Wajib untuk submission BARU (create). Edit tak dipaksa (submitter lama).
-  const logoMissing = !isEdit && d.logoUrl.trim() === "";
-  const websiteMissing = !isEdit && d.demoUrl.trim() === "";
-  const videoMissing = !isEdit && d.demoVideoUrl.trim() === "";
+  // Field wajib. Create → selalu wajib. Edit → wajib hanya kalau sudah pernah
+  // terisi (tak boleh dikosongkan); project lama yang belum punya tak dipaksa.
+  const wasSet = (k: keyof ProjectData) => {
+    const v = initial?.[k];
+    return typeof v === "string" && v.trim() !== "";
+  };
+  const logoMissing = (isEdit ? wasSet("logoUrl") : true) && d.logoUrl.trim() === "";
+  const websiteMissing = (isEdit ? wasSet("demoUrl") : true) && d.demoUrl.trim() === "";
+  const videoMissing = (isEdit ? wasSet("demoVideoUrl") : true) && d.demoVideoUrl.trim() === "";
   const hasError =
     nameError ||
     trackError ||
@@ -328,13 +350,14 @@ export default function ProjectForm({
               htmlFor="p-logo"
               className="cursor-pointer rounded-full border border-white/20 px-4 py-2 text-sm font-medium text-white transition hover:border-white/50 hover:bg-white/5"
             >
-              {form.logoChoose}
+              {logoUploading ? form.imgUploading : form.logoChoose}
             </label>
             <input
               id="p-logo"
               type="file"
               accept="image/png,image/jpeg,image/webp,image/gif"
               onChange={onLogoFile}
+              disabled={logoUploading}
               className="hidden"
             />
             {d.logoUrl && (
@@ -478,7 +501,7 @@ export default function ProjectForm({
       </div>
 
       {tried && hasError && <p className="text-sm text-red-500">{form.errFix}</p>}
-      <button type="submit" className="btn-teal" disabled={busy}>
+      <button type="submit" className="btn-teal" disabled={busy || logoUploading}>
         {busy ? savingLabel : submitLabel}
       </button>
     </form>

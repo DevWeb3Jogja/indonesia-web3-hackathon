@@ -96,8 +96,8 @@ export async function POST(req: Request) {
   const limit = await rateLimit(db, `project:${clientIp(req)}`, 10, 300);
   if (!limit.ok) return NextResponse.json({ error: "Terlalu banyak percobaan" }, { status: 429 });
 
-  // Wajib lengkapi profil (username & email) sebelum submit — backstop server;
-  // UI juga menahan di depan (lihat mine.profileComplete).
+  // Wajib lengkapi profil (username, email & GitHub) sebelum submit — backstop
+  // server; UI juga menahan di depan (lihat mine.profileComplete).
   if (!isProfileComplete(await getUser(db, auth.address))) {
     return NextResponse.json(
       {

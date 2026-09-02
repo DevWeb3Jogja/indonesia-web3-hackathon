@@ -72,6 +72,20 @@ export async function PUT(req: Request, props: { params: Promise<{ id: string }>
   }
   const { tracks, fields } = splitFields(parsed.data);
 
+  // Jaga invariant: field wajib (logo, website, demo video) yang SUDAH terisi tak
+  // boleh dikosongkan lewat edit. Project lama yang belum punya tak dipaksa isi.
+  const cleared = [
+    project.logoUrl && !fields.logoUrl && "logo",
+    project.demoUrl && !fields.demoUrl && "website",
+    project.demoVideoUrl && !fields.demoVideoUrl && "demo video",
+  ].filter(Boolean);
+  if (cleared.length) {
+    return NextResponse.json(
+      { error: `Tidak boleh mengosongkan: ${cleared.join(", ")}`, code: "required_cleared" },
+      { status: 400 }
+    );
+  }
+
   if (fields.contractAddress && fields.network) {
     const deployed = await isContract(
       fields.network as NetworkId,
