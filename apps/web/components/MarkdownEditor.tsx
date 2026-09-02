@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import type { Dict } from "@/lib/i18n";
+import { resizeToWebp, uploadImage } from "@/lib/image";
 import MarkdownRenderer from "./MarkdownRenderer";
 
 interface Props {
@@ -9,39 +10,6 @@ interface Props {
   onChange: (v: string) => void;
   t: Dict["form"];
   rows?: number;
-}
-
-/** Resize gambar ke dalam kotak `max` (jaga aspek, tak upscale) → Blob webp. */
-function resizeToWebpBlob(file: File, max: number, quality = 0.82): Promise<Blob> {
-  return new Promise((resolve, reject) => {
-    const url = URL.createObjectURL(file);
-    const img = new Image();
-    img.onload = () => {
-      const scale = Math.min(1, max / Math.max(img.width, img.height));
-      const w = Math.max(1, Math.round(img.width * scale));
-      const h = Math.max(1, Math.round(img.height * scale));
-      const canvas = document.createElement("canvas");
-      canvas.width = w;
-      canvas.height = h;
-      const ctx = canvas.getContext("2d");
-      if (!ctx) {
-        URL.revokeObjectURL(url);
-        return reject(new Error("no canvas"));
-      }
-      ctx.drawImage(img, 0, 0, w, h);
-      URL.revokeObjectURL(url);
-      canvas.toBlob(
-        (b) => (b ? resolve(b) : reject(new Error("encode failed"))),
-        "image/webp",
-        quality
-      );
-    };
-    img.onerror = () => {
-      URL.revokeObjectURL(url);
-      reject(new Error("load fail"));
-    };
-    img.src = url;
-  });
 }
 
 export default function MarkdownEditor({ value, onChange, t, rows = 14 }: Props) {
@@ -82,15 +50,8 @@ export default function MarkdownEditor({ value, onChange, t, rows = 14 }: Props)
     if (file.size > 15 * 1024 * 1024) return setErr(t.imgTooBig);
     setUploading(true);
     try {
-      const blob = await resizeToWebpBlob(file, 1600);
-      const res = await fetch("/api/uploads/image", {
-        method: "POST",
-        headers: { "content-type": "image/webp" },
-        body: blob,
-      });
-      if (!res.ok) throw new Error(String(res.status));
-      const { url } = (await res.json()) as { url: string };
-      insertAtCursor(`\n\n![](${url})\n\n`);
+      const blob = await resizeToWebp(file, 1600, "contain", 0.82);
+      insertAtCursor(`\n\n![](${await uploadImage(blob)})\n\n`);
     } catch {
       setErr(t.imgError);
     } finally {

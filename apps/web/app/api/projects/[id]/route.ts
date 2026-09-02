@@ -74,11 +74,14 @@ export async function PUT(req: Request, props: { params: Promise<{ id: string }>
 
   // Jaga invariant: field wajib (logo, website, demo video) yang SUDAH terisi tak
   // boleh dikosongkan lewat edit. Project lama yang belum punya tak dipaksa isi.
-  const cleared = [
-    project.logoUrl && !fields.logoUrl && "logo",
-    project.demoUrl && !fields.demoUrl && "website",
-    project.demoVideoUrl && !fields.demoVideoUrl && "demo video",
-  ].filter(Boolean);
+  const REQUIRED_KEEP = [
+    { field: "logoUrl", label: "logo" },
+    { field: "demoUrl", label: "website" },
+    { field: "demoVideoUrl", label: "demo video" },
+  ] as const;
+  const cleared = REQUIRED_KEEP.filter((r) => project[r.field] && !fields[r.field]).map(
+    (r) => r.label
+  );
   if (cleared.length) {
     return NextResponse.json(
       { error: `Tidak boleh mengosongkan: ${cleared.join(", ")}`, code: "required_cleared" },

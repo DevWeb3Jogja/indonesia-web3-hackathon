@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import type { Dict } from "@/lib/i18n";
+import { resizeToWebp, uploadImage } from "@/lib/image";
+import { PROJECT_SOCIALS } from "@/lib/project-socials";
 import { NETWORKS, TRACKS } from "@/lib/types";
 import MarkdownEditor from "./MarkdownEditor";
 
@@ -45,47 +47,9 @@ const EMPTY: ProjectData = {
 
 /** Socials + pitch deck (opsional) → array {label,url} untuk kolom extra_links. */
 function toExtraLinks(d: ProjectData) {
-  return [
-    { label: "X", url: d.xUrl },
-    { label: "LinkedIn", url: d.linkedinUrl },
-    { label: "Pitch Deck", url: d.pitchDeckUrl },
-  ]
-    .filter((e) => e.url.trim() !== "")
-    .map((e) => ({ label: e.label, url: e.url.trim() }));
-}
-
-/** Resize gambar ke kotak `size` (cover) → Blob webp untuk diupload ke R2.
- *  Logo tak lagi disimpan sebagai data URL (membebani row DB + JSON galeri). */
-function resizeToWebpBlob(file: File, size: number): Promise<Blob> {
-  return new Promise((resolve, reject) => {
-    const url = URL.createObjectURL(file);
-    const img = new Image();
-    img.onload = () => {
-      const canvas = document.createElement("canvas");
-      canvas.width = size;
-      canvas.height = size;
-      const ctx = canvas.getContext("2d");
-      if (!ctx) {
-        URL.revokeObjectURL(url);
-        return reject(new Error("no canvas"));
-      }
-      const scale = Math.max(size / img.width, size / img.height);
-      const w = img.width * scale;
-      const h = img.height * scale;
-      ctx.drawImage(img, (size - w) / 2, (size - h) / 2, w, h);
-      URL.revokeObjectURL(url);
-      canvas.toBlob(
-        (b) => (b ? resolve(b) : reject(new Error("encode failed"))),
-        "image/webp",
-        0.85
-      );
-    };
-    img.onerror = () => {
-      URL.revokeObjectURL(url);
-      reject(new Error("load fail"));
-    };
-    img.src = url;
-  });
+  return PROJECT_SOCIALS.map((s) => ({ label: s.label, url: d[s.field].trim() })).filter(
+    (e) => e.url !== ""
+  );
 }
 
 /** "" → null untuk field opsional; tracks & name tetap. */
@@ -171,15 +135,8 @@ export default function ProjectForm({
     if (file.size > 5 * 1024 * 1024) return setLogoErr(form.logoTooBig);
     setLogoUploading(true);
     try {
-      const blob = await resizeToWebpBlob(file, 256);
-      const res = await fetch("/api/uploads/image", {
-        method: "POST",
-        headers: { "content-type": "image/webp" },
-        body: blob,
-      });
-      if (!res.ok) throw new Error(String(res.status));
-      const { url } = (await res.json()) as { url: string };
-      set("logoUrl", url);
+      const blob = await resizeToWebp(file, 256, "cover");
+      set("logoUrl", await uploadImage(blob));
     } catch {
       setLogoErr(form.imgError);
     } finally {

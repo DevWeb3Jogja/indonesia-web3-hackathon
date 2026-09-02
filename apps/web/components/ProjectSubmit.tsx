@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { type ReactNode, useCallback, useEffect, useState } from "react";
 import type { Dict } from "@/lib/i18n";
 import { localePath } from "@/lib/locale";
+import { PROJECT_SOCIALS, type ProjectSocialField } from "@/lib/project-socials";
 import { useWallet } from "@/lib/use-wallet";
 import { projectId as wcProjectId } from "@/lib/web3";
 import ConnectWalletButton from "./ConnectWalletButton";
@@ -43,15 +44,19 @@ interface Mine {
   profileComplete: boolean;
 }
 
-/** Ambil URL dari extra_links (JSON) berdasarkan label — untuk isi ulang saat edit. */
-function extraUrl(raw: string | null, label: string): string {
-  if (!raw) return "";
+/** extra_links (JSON) → nilai socials per field, untuk isi ulang form saat edit.
+ *  Label dibaca dari PROJECT_SOCIALS (sumber yang sama dengan sisi tulis). */
+function socialsFromExtra(raw: string | null): Record<ProjectSocialField, string> {
+  let links: { label?: string; url?: string }[] = [];
   try {
-    const arr = JSON.parse(raw);
-    return (Array.isArray(arr) ? arr.find((e) => e?.label === label)?.url : "") ?? "";
+    const parsed = raw ? JSON.parse(raw) : [];
+    if (Array.isArray(parsed)) links = parsed;
   } catch {
-    return "";
+    /* extra_links korup → abaikan */
   }
+  return Object.fromEntries(
+    PROJECT_SOCIALS.map((s) => [s.field, links.find((e) => e.label === s.label)?.url ?? ""])
+  ) as Record<ProjectSocialField, string>;
 }
 
 function toInitial(p: Project): ProjectData {
@@ -68,9 +73,7 @@ function toInitial(p: Project): ProjectData {
     githubUrl: p.githubUrl ?? "",
     demoUrl: p.demoUrl ?? "",
     demoVideoUrl: p.demoVideoUrl ?? "",
-    xUrl: extraUrl(p.extraLinks, "X"),
-    linkedinUrl: extraUrl(p.extraLinks, "LinkedIn"),
-    pitchDeckUrl: extraUrl(p.extraLinks, "Pitch Deck"),
+    ...socialsFromExtra(p.extraLinks),
   };
 }
 
