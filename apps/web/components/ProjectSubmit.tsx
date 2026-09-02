@@ -33,6 +33,7 @@ interface Project {
   demoUrl: string | null;
   demoVideoUrl: string | null;
   logoUrl: string | null;
+  extraLinks: string | null; // JSON [{label,url}] — socials + pitch deck
 }
 interface Mine {
   project: Project | null;
@@ -40,6 +41,17 @@ interface Mine {
   teamName: string | null;
   canSubmit: boolean;
   profileComplete: boolean;
+}
+
+/** Ambil URL dari extra_links (JSON) berdasarkan label — untuk isi ulang saat edit. */
+function extraUrl(raw: string | null, label: string): string {
+  if (!raw) return "";
+  try {
+    const arr = JSON.parse(raw);
+    return (Array.isArray(arr) ? arr.find((e) => e?.label === label)?.url : "") ?? "";
+  } catch {
+    return "";
+  }
 }
 
 function toInitial(p: Project): ProjectData {
@@ -56,6 +68,9 @@ function toInitial(p: Project): ProjectData {
     githubUrl: p.githubUrl ?? "",
     demoUrl: p.demoUrl ?? "",
     demoVideoUrl: p.demoVideoUrl ?? "",
+    xUrl: extraUrl(p.extraLinks, "X"),
+    linkedinUrl: extraUrl(p.extraLinks, "LinkedIn"),
+    pitchDeckUrl: extraUrl(p.extraLinks, "Pitch Deck"),
   };
 }
 

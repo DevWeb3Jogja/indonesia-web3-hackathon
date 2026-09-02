@@ -15,15 +15,37 @@ const optionalUrl = z
   .startsWith("https://", "Harus diawali https://")
   .nullish();
 
+// Versi wajib (dipakai createProjectSchema) — tidak boleh kosong.
+const requiredUrl = z.string().url().max(2048).startsWith("https://", "Harus diawali https://");
+
+const isLogo = (v: string) =>
+  /^https:\/\//.test(v) || /^data:image\/(png|jpe?g|webp|gif);base64,/.test(v);
 // Logo: URL https ATAU data URL gambar (hasil upload → resize di client).
 const logoField = z
   .string()
   .max(300_000)
-  .refine(
-    (v) => /^https:\/\//.test(v) || /^data:image\/(png|jpe?g|webp|gif);base64,/.test(v),
-    "Logo harus URL https atau file gambar"
-  )
+  .refine(isLogo, "Logo harus URL https atau file gambar")
   .nullish();
+const requiredLogo = z
+  .string()
+  .min(1, "Logo wajib")
+  .max(300_000)
+  .refine(isLogo, "Logo harus URL https atau file gambar");
+
+// Socials + pitch deck (opsional) → disimpan sebagai JSON di kolom extra_links.
+// URL wajib https:// karena dirender jadi href di halaman detail publik (cegah XSS).
+// ponytail: form yang memiliki extra_links (X/LinkedIn/Pitch), jadi rebuild saat
+// edit aman — tak ada penulis lain (dicek: 0 project punya extra_links).
+const extraLinksField = z
+  .array(
+    z.object({
+      label: z.string().trim().min(1).max(40),
+      url: z.string().url().max(2048).startsWith("https://", "Harus diawali https://"),
+    })
+  )
+  .max(10)
+  .nullish()
+  .transform((v) => (v?.length ? JSON.stringify(v) : null));
 
 /** Field project — dipakai create & update. Dipakai server (zod) dan client. */
 export const projectFields = z.object({
@@ -43,10 +65,16 @@ export const projectFields = z.object({
   demoUrl: optionalUrl,
   demoVideoUrl: optionalUrl,
   logoUrl: logoField,
+  extraLinks: extraLinksField,
 });
 
+// Create (submission baru): logo, website (demoUrl) & demo video WAJIB. Edit tetap
+// pakai projectFields (opsional) supaya submitter lama tak terkunci saat mengedit.
 export const createProjectSchema = projectFields.extend({
   mode: z.enum(["solo", "team"]),
+  logoUrl: requiredLogo,
+  demoUrl: requiredUrl,
+  demoVideoUrl: requiredUrl,
 });
 
 export type ProjectFieldsInput = z.infer<typeof projectFields>;

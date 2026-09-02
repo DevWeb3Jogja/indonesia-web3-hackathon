@@ -20,6 +20,9 @@ export interface ProjectData {
   githubUrl: string;
   demoUrl: string;
   demoVideoUrl: string;
+  xUrl: string;
+  linkedinUrl: string;
+  pitchDeckUrl: string;
 }
 
 const EMPTY: ProjectData = {
@@ -35,7 +38,21 @@ const EMPTY: ProjectData = {
   githubUrl: "",
   demoUrl: "",
   demoVideoUrl: "",
+  xUrl: "",
+  linkedinUrl: "",
+  pitchDeckUrl: "",
 };
+
+/** Socials + pitch deck (opsional) → array {label,url} untuk kolom extra_links. */
+function toExtraLinks(d: ProjectData) {
+  return [
+    { label: "X", url: d.xUrl },
+    { label: "LinkedIn", url: d.linkedinUrl },
+    { label: "Pitch Deck", url: d.pitchDeckUrl },
+  ]
+    .filter((e) => e.url.trim() !== "")
+    .map((e) => ({ label: e.label, url: e.url.trim() }));
+}
 
 /** Resize gambar ke kotak `size` (cover) → data URL webp. Gratis, tanpa storage. */
 function resizeToDataUrl(file: File, size: number): Promise<string> {
@@ -82,6 +99,7 @@ function toPayload(d: ProjectData) {
     githubUrl: opt(d.githubUrl),
     demoUrl: opt(d.demoUrl),
     demoVideoUrl: opt(d.demoVideoUrl),
+    extraLinks: toExtraLinks(d),
   };
 }
 
@@ -168,8 +186,26 @@ export default function ProjectForm({
   const githubError = !isHttps(d.githubUrl);
   const demoError = !isHttps(d.demoUrl);
   const videoError = !isHttps(d.demoVideoUrl);
+  const xError = !isHttps(d.xUrl);
+  const linkedinError = !isHttps(d.linkedinUrl);
+  const pitchError = !isHttps(d.pitchDeckUrl);
+  // Wajib untuk submission BARU (create). Edit tak dipaksa (submitter lama).
+  const logoMissing = !isEdit && d.logoUrl.trim() === "";
+  const websiteMissing = !isEdit && d.demoUrl.trim() === "";
+  const videoMissing = !isEdit && d.demoVideoUrl.trim() === "";
   const hasError =
-    nameError || trackError || contractError || githubError || demoError || videoError;
+    nameError ||
+    trackError ||
+    contractError ||
+    githubError ||
+    demoError ||
+    videoError ||
+    xError ||
+    linkedinError ||
+    pitchError ||
+    logoMissing ||
+    websiteMissing ||
+    videoMissing;
 
   const fieldMsg = (show: boolean, msg: string) =>
     show ? <p className="mt-1 text-[11px] text-red-500">{msg}</p> : null;
@@ -313,6 +349,7 @@ export default function ProjectForm({
           </div>
         </div>
         {logoErr && <p className="mt-1 text-[11px] text-red-500">{logoErr}</p>}
+        {fieldMsg(tried && logoMissing, form.errRequired)}
       </div>
 
       <div>
@@ -365,7 +402,7 @@ export default function ProjectForm({
         </div>
         <div>
           <label className="label-field" htmlFor="p-demo">
-            {form.demoUrl}
+            {form.website}
           </label>
           <input
             id="p-demo"
@@ -375,6 +412,7 @@ export default function ProjectForm({
             onChange={(e) => set("demoUrl", e.target.value)}
             placeholder="https://…"
           />
+          {fieldMsg(tried && websiteMissing, form.errRequired)}
           {fieldMsg(demoError, form.errUrl)}
         </div>
         <div>
@@ -389,7 +427,53 @@ export default function ProjectForm({
             onChange={(e) => set("demoVideoUrl", e.target.value)}
             placeholder="https://youtube.com/…"
           />
+          {fieldMsg(tried && videoMissing, form.errRequired)}
           {fieldMsg(videoError, form.errUrl)}
+        </div>
+      </div>
+
+      <div className="grid gap-5 md:grid-cols-3">
+        <div>
+          <label className="label-field" htmlFor="p-x">
+            {form.socialX}
+          </label>
+          <input
+            id="p-x"
+            type="url"
+            className="input-field"
+            value={d.xUrl}
+            onChange={(e) => set("xUrl", e.target.value)}
+            placeholder="https://x.com/…"
+          />
+          {fieldMsg(xError, form.errUrl)}
+        </div>
+        <div>
+          <label className="label-field" htmlFor="p-linkedin">
+            {form.socialLinkedin}
+          </label>
+          <input
+            id="p-linkedin"
+            type="url"
+            className="input-field"
+            value={d.linkedinUrl}
+            onChange={(e) => set("linkedinUrl", e.target.value)}
+            placeholder="https://linkedin.com/…"
+          />
+          {fieldMsg(linkedinError, form.errUrl)}
+        </div>
+        <div>
+          <label className="label-field" htmlFor="p-pitch">
+            {form.pitchDeck}
+          </label>
+          <input
+            id="p-pitch"
+            type="url"
+            className="input-field"
+            value={d.pitchDeckUrl}
+            onChange={(e) => set("pitchDeckUrl", e.target.value)}
+            placeholder="https://canva.com/… / drive…"
+          />
+          {fieldMsg(pitchError, form.errUrl)}
         </div>
       </div>
 
