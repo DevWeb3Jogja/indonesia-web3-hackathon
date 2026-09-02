@@ -9,7 +9,7 @@ import { localePath } from "@/lib/locale";
 import { useWallet } from "@/lib/use-wallet";
 import { projectId as wcProjectId } from "@/lib/web3";
 import ConnectWalletButton from "./ConnectWalletButton";
-import ProjectForm, { type ProjectData } from "./ProjectForm";
+import ProjectForm, { clearProjectDraft, type ProjectData } from "./ProjectForm";
 import { Alert, ArrowUpRight, Panel } from "./ui";
 import { WalletLoading } from "./WalletLoading";
 
@@ -437,6 +437,7 @@ function Inner({ locale, t, form }: { locale: string; t: T; form: FormDict }) {
           onSubmit={async (payload) => {
             const r = await send("POST", "/api/projects", { mode, ...payload });
             if (r) {
+              clearProjectDraft(); // draft tak perlu lagi setelah tersimpan di server
               // Setelah submit sukses → ke halaman My Projects yang menampilkan project.
               router.push(localePath(locale, "/my"));
             }

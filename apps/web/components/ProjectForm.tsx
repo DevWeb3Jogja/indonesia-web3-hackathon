@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { Dict } from "@/lib/i18n";
 import { NETWORKS, TRACKS } from "@/lib/types";
 import MarkdownEditor from "./MarkdownEditor";
@@ -85,6 +85,17 @@ function toPayload(d: ProjectData) {
   };
 }
 
+/** Draft submit disimpan di localStorage (mode create) → refresh tak menghapus
+ *  isian. Dibersihkan setelah submit sukses (clearProjectDraft dari ProjectSubmit). */
+export const PROJECT_DRAFT_KEY = "iw3h:project-draft";
+export function clearProjectDraft() {
+  try {
+    localStorage.removeItem(PROJECT_DRAFT_KEY);
+  } catch {
+    /* localStorage tak tersedia */
+  }
+}
+
 export default function ProjectForm({
   form,
   initial,
@@ -100,7 +111,29 @@ export default function ProjectForm({
   busy: boolean;
   onSubmit: (payload: ReturnType<typeof toPayload>) => void;
 }) {
-  const [d, setD] = useState<ProjectData>({ ...EMPTY, ...initial });
+  const isEdit = initial != null;
+  const [d, setD] = useState<ProjectData>(() => {
+    const base = { ...EMPTY, ...initial };
+    // Mode create → pulihkan draft dari localStorage supaya refresh tak menghapus isian.
+    if (isEdit || typeof window === "undefined") return base;
+    try {
+      const raw = localStorage.getItem(PROJECT_DRAFT_KEY);
+      if (raw) return { ...base, ...(JSON.parse(raw) as Partial<ProjectData>) };
+    } catch {
+      /* draft korup → abaikan */
+    }
+    return base;
+  });
+
+  // Autosave draft (mode create) tiap ada perubahan.
+  useEffect(() => {
+    if (isEdit) return;
+    try {
+      localStorage.setItem(PROJECT_DRAFT_KEY, JSON.stringify(d));
+    } catch {
+      /* kuota/akses localStorage gagal → biarkan */
+    }
+  }, [d, isEdit]);
   const [logoErr, setLogoErr] = useState<string | null>(null);
   const set = <K extends keyof ProjectData>(k: K, v: ProjectData[K]) =>
     setD((prev) => ({ ...prev, [k]: v }));
