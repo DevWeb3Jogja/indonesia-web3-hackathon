@@ -34,8 +34,13 @@ export default function EvolveNav({ nav, logo }: { nav: Dict["nav"]; logo: strin
   const to = (x: string) => localePath(locale, x);
   const active = (x: string) => x === path || (x !== "/" && path.startsWith(x));
 
+  // Tutup menu mobile setiap pindah halaman → pilih salah satu item = langsung close.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: pathname sengaja jadi pemicu, tak dibaca di body
   useEffect(() => {
     setOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
