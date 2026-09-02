@@ -17,7 +17,7 @@ function NominationCard({ title, sub, href }: { title: string; sub: string; href
   return (
     <Link
       href={href}
-      className="relative flex h-[5em] max-w-[20em] items-center justify-center text-center transition duration-200 hover:-translate-y-0.5"
+      className="relative flex h-[5em] w-full max-w-[20em] items-center justify-center text-center transition duration-200 hover:-translate-y-0.5"
     >
       <ChamferBorder className="text-white/25" />
       <span className="px-5">
