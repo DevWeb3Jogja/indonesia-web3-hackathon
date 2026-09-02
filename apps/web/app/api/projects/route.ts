@@ -101,7 +101,7 @@ export async function POST(req: Request) {
   if (!isProfileComplete(await getUser(db, auth.address))) {
     return NextResponse.json(
       {
-        error: "Lengkapi profil (username & email) dulu sebelum submit",
+        error: "Lengkapi profil (username, email & connect GitHub) dulu sebelum submit",
         code: "profile_incomplete",
       },
       { status: 400 }

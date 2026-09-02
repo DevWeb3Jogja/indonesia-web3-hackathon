@@ -215,6 +215,27 @@ function Inner({ locale, t, form }: { locale: string; t: T; form: FormDict }) {
   }
   if (status === "loading" || !mine) return <p className="text-sm text-ink/60">{t.loading}</p>;
 
+  // Wajib lengkapi profil (username + email + GitHub terverifikasi) — untuk CREATE
+  // maupun EDIT. Balik ke halaman yang sama setelah profil lengkap.
+  if (!mine.profileComplete) {
+    const back = localePath(locale, "/submit") + (view === "edit" ? "?edit=1" : "");
+    return (
+      <Panel clip="chamfer-lg" className="max-w-md">
+        <div className="p-8">
+          <h2 className="section-title">{t.profileRequiredTitle}</h2>
+          <p className="mt-3 text-sm leading-relaxed text-ink/70">{t.profileRequiredDesc}</p>
+          <Link
+            href={`${localePath(locale, "/profile")}?next=${encodeURIComponent(back)}`}
+            className="btn-teal mt-6"
+          >
+            {t.profileRequiredCta}
+            <ArrowUpRight />
+          </Link>
+        </div>
+      </Panel>
+    );
+  }
+
   const errorBox = error && (
     <p className="flex items-center gap-2 text-sm text-red-600">
       <Alert />
@@ -256,25 +277,6 @@ function Inner({ locale, t, form }: { locale: string; t: T; form: FormDict }) {
         <Alert />
         {t.closed}
       </p>
-    );
-  }
-
-  // ---------- Wajib lengkapi profil dulu ----------
-  if (!mine.profileComplete) {
-    return (
-      <Panel clip="chamfer-lg" className="max-w-md">
-        <div className="p-8">
-          <h2 className="section-title">{t.profileRequiredTitle}</h2>
-          <p className="mt-3 text-sm leading-relaxed text-ink/70">{t.profileRequiredDesc}</p>
-          <Link
-            href={`${localePath(locale, "/profile")}?next=${encodeURIComponent(localePath(locale, "/submit"))}`}
-            className="btn-teal mt-6"
-          >
-            {t.profileRequiredCta}
-            <ArrowUpRight />
-          </Link>
-        </div>
-      </Panel>
     );
   }
 

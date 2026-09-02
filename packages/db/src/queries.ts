@@ -42,11 +42,12 @@ export async function isUsernameTaken(
   return rows.length > 0;
 }
 
-/** Profil dianggap lengkap kalau username & email terisi — syarat submit project. */
+/** Profil lengkap = username + email + GitHub terverifikasi (githubId) — syarat
+ *  submit project. GitHub wajib supaya tiap member punya identitas terverifikasi. */
 export function isProfileComplete(
-  user: { username: string | null; email: string | null } | null
+  user: { username: string | null; email: string | null; githubId?: string | null } | null
 ): boolean {
-  return Boolean(user?.username && user?.email);
+  return Boolean(user?.username && user?.email && user?.githubId);
 }
 
 export interface ProfileInput {

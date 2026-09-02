@@ -5,6 +5,8 @@ import {
   canSubmitProject,
   getCurrentHackathon,
   getProjectById,
+  getUser,
+  isProfileComplete,
   ProjectError,
   rateLimit,
   updateProject,
@@ -43,6 +45,17 @@ export async function PUT(req: Request, props: { params: Promise<{ id: string }>
   // Edit by connected wallet: solo = submitter, tim = anggota mana pun.
   if (!(await canEditProject(db, project, auth.address))) {
     return NextResponse.json({ error: "Kamu tidak boleh mengedit project ini" }, { status: 403 });
+  }
+
+  // GitHub wajib juga untuk EDIT (submitter lama tanpa GitHub harus connect dulu).
+  if (!isProfileComplete(await getUser(db, auth.address))) {
+    return NextResponse.json(
+      {
+        error: "Lengkapi profil (username, email & connect GitHub) dulu sebelum edit",
+        code: "profile_incomplete",
+      },
+      { status: 400 }
+    );
   }
 
   const hackathon = await getCurrentHackathon(db);
