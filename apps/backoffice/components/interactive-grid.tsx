@@ -36,6 +36,7 @@ export function InteractiveGridPattern({
         const x = (index % horizontal) * width;
         const y = Math.floor(index / horizontal) * height;
         return (
+          // biome-ignore lint/a11y/noStaticElementInteractions: grid dekoratif (SVG aria-hidden), hover murni kosmetik
           <rect
             // biome-ignore lint/suspicious/noArrayIndexKey: grid tetap, index stabil
             key={index}
