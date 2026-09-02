@@ -37,7 +37,24 @@ export function r2PublicOrigin(): string | null {
   }
 }
 
-/** PUT objek ke R2 (server-to-server, tanpa CORS) → kembalikan URL publiknya. */
+function r2Client(env: R2Env): AwsClient {
+  return new AwsClient({
+    accessKeyId: env.accessKeyId,
+    secretAccessKey: env.secretAccessKey,
+    region: "auto",
+    service: "s3",
+  });
+}
+
+const s3Url = (env: R2Env, key: string) =>
+  `https://${env.accountId}.r2.cloudflarestorage.com/${env.bucket}/${key}`;
+
+/**
+ * PUT objek ke R2 → kembalikan PATH proxy same-origin (`/api/uploads/r2/<key>`),
+ * BUKAN URL r2.dev. Gambar disajikan lewat domain kita sendiri (cert yang sama
+ * dengan situs) → tak kena masalah SSL/clock di sisi klien & tak kena rate-limit
+ * dev-URL r2.dev.
+ */
 export async function uploadToR2(
   key: string,
   body: ArrayBuffer,
@@ -45,16 +62,7 @@ export async function uploadToR2(
 ): Promise<string> {
   const env = r2Env();
   if (!env) throw new Error("R2 not configured");
-
-  const client = new AwsClient({
-    accessKeyId: env.accessKeyId,
-    secretAccessKey: env.secretAccessKey,
-    region: "auto",
-    service: "s3",
-  });
-
-  const endpoint = `https://${env.accountId}.r2.cloudflarestorage.com/${env.bucket}/${key}`;
-  const res = await client.fetch(endpoint, {
+  const res = await r2Client(env).fetch(s3Url(env, key), {
     method: "PUT",
     body,
     headers: { "content-type": contentType },
@@ -62,5 +70,12 @@ export async function uploadToR2(
   if (!res.ok) {
     throw new Error(`R2 upload ${res.status}: ${await res.text().catch(() => "")}`);
   }
-  return `${env.publicBase}/${key}`;
+  return `/api/uploads/r2/${key}`;
+}
+
+/** GET objek dari R2 (signed) untuk di-proxy ke klien. null kalau tak dikonfigurasi. */
+export async function getFromR2(key: string): Promise<Response | null> {
+  const env = r2Env();
+  if (!env) return null;
+  return r2Client(env).fetch(s3Url(env, key), { method: "GET" });
 }
