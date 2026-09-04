@@ -164,7 +164,15 @@ function Inner({ t }: { t: T }) {
 
   async function disconnectGithub() {
     if (!confirm(t.githubDisconnectConfirm)) return;
-    await fetch("/api/auth/github/disconnect", { method: "POST" });
+    const res = await fetch("/api/auth/github/disconnect", { method: "POST" });
+    if (!res.ok) {
+      const j = (await res.json().catch(() => null)) as { code?: string } | null;
+      setMessage({
+        kind: "err",
+        text: j?.code === "has_project" ? t.githubHasProject : t.githubError,
+      });
+      return;
+    }
     load();
   }
 

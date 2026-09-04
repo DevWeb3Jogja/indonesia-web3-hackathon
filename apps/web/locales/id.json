@@ -432,6 +432,7 @@
     "githubLinked": "GitHub terhubung.",
     "githubTaken": "Akun GitHub ini sudah ditautkan ke wallet lain.",
     "githubError": "Gagal menghubungkan GitHub. Coba lagi.",
+    "githubHasProject": "Masih punya project di edisi ini — GitHub tak bisa dilepas. Hapus atau keluar dari project dulu.",
     "errorVerify": "Verifikasi gagal, coba lagi."
   },
   "team": {

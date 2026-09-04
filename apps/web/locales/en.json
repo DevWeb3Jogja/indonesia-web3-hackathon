@@ -432,6 +432,7 @@
     "githubLinked": "GitHub connected.",
     "githubTaken": "This GitHub account is already linked to another wallet.",
     "githubError": "Couldn't connect GitHub. Try again.",
+    "githubHasProject": "You still have a project this edition — GitHub can't be disconnected. Delete or leave the project first.",
     "errorVerify": "Verification failed, please try again."
   },
   "team": {
