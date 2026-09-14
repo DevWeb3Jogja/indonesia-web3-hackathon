@@ -1,7 +1,7 @@
 import { getUser } from "@iw3h/db";
 import type { ReactNode } from "react";
-import AdminShell from "@/components/shell/AdminShell";
 import SignInGate from "@/components/SignInGate";
+import AdminShell from "@/components/shell/AdminShell";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/turso";
 
