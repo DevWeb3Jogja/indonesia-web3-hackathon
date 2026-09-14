@@ -156,7 +156,7 @@ export default function ConfigEditor({
                       }
                       disabled={busy}
                     >
-                      Simpan
+                      Save
                     </Button>
                     <Button size="icon-xs" variant="ghost" onClick={() => setEditing(null)}>
                       <X />
@@ -214,7 +214,7 @@ export default function ConfigEditor({
                 disabled={busy}
               >
                 <Plus />
-                Tambah
+                Add
               </Button>
             </TableCell>
           </TableRow>

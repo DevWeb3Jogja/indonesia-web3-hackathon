@@ -9,7 +9,7 @@ export default function ProjectsPage() {
       <div>
         <h1 className="text-xl font-semibold">Projects</h1>
         <p className="text-sm text-muted-foreground">
-          Semua status. Cari, filter, sort, paginasi (page + cursor).
+          All statuses. Search, filter, sort, paginated.
         </p>
       </div>
       <Card>

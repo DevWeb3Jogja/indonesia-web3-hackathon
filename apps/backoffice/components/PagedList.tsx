@@ -117,7 +117,7 @@ export default function PagedList<T>({
               <SelectValue placeholder={f.label} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value={ALL}>{f.label}: semua</SelectItem>
+              <SelectItem value={ALL}>{f.label}: all</SelectItem>
               {f.options.map((o) => (
                 <SelectItem key={o.value} value={o.value}>
                   {o.label}
@@ -135,10 +135,10 @@ export default function PagedList<T>({
             }}
           >
             <SelectTrigger size="sm" className="w-40">
-              <SelectValue placeholder="Urut" />
+              <SelectValue placeholder="Sort" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value={ALL}>Urut: default</SelectItem>
+              <SelectItem value={ALL}>Sort: default</SelectItem>
               {sorts.map((s) => (
                 <SelectItem key={s.value} value={s.value}>
                   {s.label}
@@ -183,9 +183,12 @@ export default function PagedList<T>({
                   </TableRow>
                 ))}
               {state !== "loading" && items.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={columns.length} className="text-center text-muted-foreground">
-                    No data.
+                <TableRow className="hover:bg-transparent">
+                  <TableCell
+                    colSpan={columns.length}
+                    className="h-24 text-center text-sm text-muted-foreground"
+                  >
+                    No results found.
                   </TableCell>
                 </TableRow>
               )}

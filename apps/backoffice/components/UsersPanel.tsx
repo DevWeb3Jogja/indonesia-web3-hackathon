@@ -78,7 +78,7 @@ export default function UsersPanel() {
         </Button>
         <Button size="sm" onClick={() => setOpen(true)}>
           <UserPlus className="size-4" />
-          Tambah user
+          Add user
         </Button>
       </div>
 
@@ -155,10 +155,10 @@ export default function UsersPanel() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setOpen(false)} disabled={busy}>
-              Batal
+              Cancel
             </Button>
             <Button onClick={add} disabled={busy || !validAddr}>
-              Tambah
+              Add
             </Button>
           </DialogFooter>
         </DialogContent>

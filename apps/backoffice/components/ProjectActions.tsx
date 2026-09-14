@@ -72,7 +72,7 @@ export default function ProjectActions({
 
   async function remove() {
     if (!window.confirm(`Permanently delete "${name}"? This cannot be undone.`)) return;
-    if (await send("DELETE", `/api/admin/projects/${id}`)) toast.success("Project dihapus");
+    if (await send("DELETE", `/api/admin/projects/${id}`)) toast.success("Project deleted");
   }
 
   return (
@@ -129,10 +129,10 @@ export default function ProjectActions({
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditOpen(false)} disabled={busy}>
-              Batal
+              Cancel
             </Button>
             <Button onClick={save} disabled={busy || form.name.trim().length < 2}>
-              Simpan
+              Save
             </Button>
           </DialogFooter>
         </DialogContent>
