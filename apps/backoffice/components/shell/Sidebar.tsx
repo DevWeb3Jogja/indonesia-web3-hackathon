@@ -42,29 +42,24 @@ export default function Sidebar() {
         "lg:translate-x-0"
       )}
     >
-      {/* Brand */}
+      {/* Brand — logo IW3H (dari web) */}
       <Link
         href="/"
-        className={cn("flex items-center gap-2.5 py-2", wide ? "px-1" : "justify-center")}
+        className={cn("flex items-center gap-2.5 py-1.5", wide ? "px-1" : "justify-center")}
       >
-        {wide ? (
-          <Image
-            src="/brand.webp"
-            alt="Indonesia Web3 Hackathon"
-            width={150}
-            height={32}
-            priority
-            className="h-8 w-auto"
-          />
-        ) : (
-          <Image
-            src="/brand-mark.webp"
-            alt="IW3H"
-            width={32}
-            height={32}
-            priority
-            className="h-8 w-8 object-contain"
-          />
+        <Image
+          src="/logo.png"
+          alt="Indonesia Web3 Hackathon"
+          width={36}
+          height={36}
+          priority
+          className="size-9 shrink-0"
+        />
+        {wide && (
+          <span className="flex flex-col leading-tight">
+            <span className="text-sm font-bold text-gray-800 dark:text-white/90">IW3H</span>
+            <span className="text-theme-xs text-gray-500 dark:text-gray-400">Backoffice</span>
+          </span>
         )}
       </Link>
 

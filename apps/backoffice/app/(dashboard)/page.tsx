@@ -72,41 +72,53 @@ export default async function OverviewPage() {
       {funnel && (
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">Participant funnel</CardTitle>
+            <CardTitle className="text-base">Participants by stage</CardTitle>
             <CardDescription>
-              {funnel.total} sign-ins, each counted once at their furthest stage.
+              <span className="font-semibold text-foreground tabular-nums">{funnel.total}</span>{" "}
+              sign-ins ·{" "}
+              <span className="font-semibold text-foreground tabular-nums">
+                {funnel.total - funnel.counts.connected}
+              </span>{" "}
+              engaged ·{" "}
+              <span className="font-semibold text-foreground tabular-nums">
+                {funnel.counts.submitted}
+              </span>{" "}
+              submitted (
+              {funnel.total ? Math.round((funnel.counts.submitted / funnel.total) * 100) : 0}%)
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3.5">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
               {funnelStages.map((s) => {
                 const pct = funnel.total ? Math.round((s.value / funnel.total) * 100) : 0;
                 return (
-                  <div key={s.label}>
-                    <div className="flex items-baseline justify-between gap-2 text-sm">
-                      <span className="flex items-center gap-2 font-medium">
-                        <span className={`size-2.5 shrink-0 rounded-full ${s.color}`} />
+                  <div
+                    key={s.label}
+                    className="rounded-xl border border-gray-200 p-4 dark:border-gray-800"
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className={`size-2.5 shrink-0 rounded-full ${s.color}`} />
+                      <span className="text-theme-sm font-medium text-gray-700 dark:text-gray-300">
                         {s.label}
                       </span>
-                      <span className="tabular-nums">
-                        <span className="font-semibold">{s.value}</span>
-                        <span className="ml-1.5 text-xs text-muted-foreground">{pct}%</span>
+                    </div>
+                    <div className="mt-3 flex items-baseline gap-2">
+                      <span className="text-2xl font-bold tabular-nums text-gray-800 dark:text-white/90">
+                        {s.value}
                       </span>
+                      <span className="text-theme-xs font-medium text-gray-400">{pct}%</span>
                     </div>
-                    <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-muted">
-                      <div
-                        className={`h-full rounded-full ${s.color}`}
-                        style={{ width: `${Math.max(pct, s.value > 0 ? 2 : 0)}%` }}
-                      />
-                    </div>
-                    <p className="mt-1 text-xs text-muted-foreground">{s.desc}</p>
+                    <p className="mt-1 text-theme-xs leading-snug text-gray-500 dark:text-gray-400">
+                      {s.desc}
+                    </p>
                   </div>
                 );
               })}
             </div>
-            <p className="mt-4 border-t pt-3 text-xs text-muted-foreground">
-              “Filled but not submitted” drafts live only in the participant's browser and can't be
-              shown here. Use the CSV exports on the Projects and Users pages for full data.
+            <p className="mt-4 border-t border-gray-200 pt-3 text-theme-xs text-gray-500 dark:border-gray-800 dark:text-gray-400">
+              Stages are mutually exclusive (each user counted once at their furthest step). “Filled
+              but not submitted” drafts live only in the participant's browser — use the CSV exports
+              on the Projects &amp; Users pages for full data.
             </p>
           </CardContent>
         </Card>
