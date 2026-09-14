@@ -1,10 +1,47 @@
-import { adminEditProject, audit, deleteProject, getProjectById } from "@iw3h/db";
+import {
+  adminEditProject,
+  audit,
+  deleteProject,
+  getProjectById,
+  getUsersByAddresses,
+} from "@iw3h/db";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requireAuth } from "@/lib/auth";
 import { db } from "@/lib/turso";
 
 export const dynamic = "force-dynamic";
+
+/** Admin: detail lengkap project + profil lengkap tiap anggota (untuk View details). */
+export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const auth = await requireAuth("admin");
+  if (auth instanceof Response) return auth;
+  const { id } = await params;
+
+  const project = await getProjectById(db, id);
+  if (!project) return NextResponse.json({ error: "Project not found" }, { status: 404 });
+
+  const addrs = project.team ? project.team.memberAddresses : [project.submitterAddress];
+  const users = await getUsersByAddresses(db, addrs);
+  const members = addrs.map((address) => {
+    const u = users.get(address);
+    return {
+      address,
+      username: u?.username ?? null,
+      fullName: u?.fullName ?? null,
+      email: u?.email ?? null,
+      phone: u?.phone ?? null,
+      city: u?.city ?? null,
+      occupation: u?.occupation ?? null,
+      organization: u?.organization ?? null,
+      githubLogin: u?.githubLogin ?? null,
+      twitterUrl: u?.twitterUrl ?? null,
+      role: u?.role ?? null,
+      isSubmitter: address === project.submitterAddress,
+    };
+  });
+  return NextResponse.json({ project, members });
+}
 
 const editSchema = z.object({
   name: z.string().trim().min(2).max(80),

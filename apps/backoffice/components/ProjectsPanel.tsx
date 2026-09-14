@@ -4,6 +4,7 @@ import { Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import PagedList from "./PagedList";
 import ProjectActions from "./ProjectActions";
+import ProjectDetails from "./ProjectDetails";
 
 interface P {
   id: string;
@@ -59,13 +60,16 @@ export default function ProjectsPanel() {
           {
             header: "Actions",
             cell: (p, reload) => (
-              <ProjectActions
-                id={p.id}
-                name={p.name}
-                tagline={p.tagline}
-                status={p.status}
-                onChanged={reload}
-              />
+              <div className="flex items-center justify-end gap-1">
+                <ProjectDetails id={p.id} name={p.name} />
+                <ProjectActions
+                  id={p.id}
+                  name={p.name}
+                  tagline={p.tagline}
+                  status={p.status}
+                  onChanged={reload}
+                />
+              </div>
             ),
           },
         ]}
