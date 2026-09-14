@@ -42,12 +42,31 @@ export async function isUsernameTaken(
   return rows.length > 0;
 }
 
-/** Profil lengkap = username + email + GitHub terverifikasi (githubId) — syarat
- *  submit project. GitHub wajib supaya tiap member punya identitas terverifikasi. */
+/** Profil lengkap = username + email + GitHub terverifikasi (githubId) + kota +
+ *  pekerjaan — syarat submit project. GitHub wajib supaya tiap member punya
+ *  identitas terverifikasi; kota & pekerjaan untuk data peserta. */
 export function isProfileComplete(
-  user: { username: string | null; email: string | null; githubId?: string | null } | null
+  user: {
+    username: string | null;
+    email: string | null;
+    githubId?: string | null;
+    fullName?: string | null;
+    phone?: string | null;
+    city?: string | null;
+    occupation?: string | null;
+    organization?: string | null;
+  } | null
 ): boolean {
-  return Boolean(user?.username && user?.email && user?.githubId);
+  return Boolean(
+    user?.username &&
+      user?.email &&
+      user?.githubId &&
+      user?.fullName &&
+      user?.phone &&
+      user?.city &&
+      user?.occupation &&
+      user?.organization
+  );
 }
 
 export interface ProfileInput {
@@ -55,6 +74,11 @@ export interface ProfileInput {
   email?: string | null;
   avatarUrl?: string | null;
   bio?: string | null;
+  fullName?: string | null;
+  phone?: string | null;
+  city?: string | null;
+  occupation?: string | null;
+  organization?: string | null;
   githubUrl?: string | null;
   twitterUrl?: string | null;
 }

@@ -169,9 +169,10 @@ export default function ProjectForm({
     const v = initial?.[k];
     return typeof v === "string" && v.trim() !== "";
   };
+  // Wajib untuk submission baru: logo, demo video, pitch deck (website opsional).
   const logoMissing = (isEdit ? wasSet("logoUrl") : true) && d.logoUrl.trim() === "";
-  const websiteMissing = (isEdit ? wasSet("demoUrl") : true) && d.demoUrl.trim() === "";
   const videoMissing = (isEdit ? wasSet("demoVideoUrl") : true) && d.demoVideoUrl.trim() === "";
+  const pitchMissing = (isEdit ? wasSet("pitchDeckUrl") : true) && d.pitchDeckUrl.trim() === "";
   const hasError =
     nameError ||
     trackError ||
@@ -183,8 +184,8 @@ export default function ProjectForm({
     linkedinError ||
     pitchError ||
     logoMissing ||
-    websiteMissing ||
-    videoMissing;
+    videoMissing ||
+    pitchMissing;
 
   const fieldMsg = (show: boolean, msg: string) =>
     show ? <p className="mt-1 text-[11px] text-red-500">{msg}</p> : null;
@@ -392,7 +393,6 @@ export default function ProjectForm({
             onChange={(e) => set("demoUrl", e.target.value)}
             placeholder="https://…"
           />
-          {fieldMsg(tried && websiteMissing, form.errRequired)}
           {fieldMsg(demoError, form.errUrl)}
         </div>
         <div>
@@ -453,6 +453,7 @@ export default function ProjectForm({
             onChange={(e) => set("pitchDeckUrl", e.target.value)}
             placeholder="https://canva.com/… / drive…"
           />
+          {fieldMsg(tried && pitchMissing, form.errRequired)}
           {fieldMsg(pitchError, form.errUrl)}
         </div>
       </div>

@@ -7,6 +7,7 @@ import { GoogleAnalytics } from "@next/third-parties/google";
 import EvolveNav from "@/components/EvolveNav";
 import Footer from "@/components/Footer";
 import HideChrome from "@/components/HideChrome";
+import ProfileReminder from "@/components/ProfileReminder";
 import Web3Provider from "@/components/Web3Provider";
 import { getDict, isLocale, LOCALES } from "@/lib/i18n";
 
@@ -103,6 +104,7 @@ export default async function LocaleLayout(props: {
                   <EvolveNav nav={dict.nav} logo="/logo.png" />
                 </HideChrome>
                 {children}
+                <ProfileReminder t={dict.profileReminder} />
                 <HideChrome>
                   <Footer locale={params.locale} dict={dict} />
                 </HideChrome>

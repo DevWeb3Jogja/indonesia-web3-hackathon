@@ -1,8 +1,8 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "bb6f4be5-d877-4339-822c-8819ca00ae0c",
-  "prevId": "3c33f9bf-14ba-40f0-9310-f0531c59a480",
+  "id": "58c70f12-a6ac-4583-aa4b-600a7df6da3b",
+  "prevId": "bb6f4be5-d877-4339-822c-8819ca00ae0c",
   "tables": {
     "audit_logs": {
       "name": "audit_logs",
@@ -503,13 +503,6 @@
         },
         "logo_url": {
           "name": "logo_url",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "screenshots": {
-          "name": "screenshots",
           "type": "text",
           "primaryKey": false,
           "notNull": false,
@@ -1056,6 +1049,41 @@
         },
         "bio": {
           "name": "bio",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "full_name": {
+          "name": "full_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "phone": {
+          "name": "phone",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "city": {
+          "name": "city",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "occupation": {
+          "name": "occupation",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "organization": {
+          "name": "organization",
           "type": "text",
           "primaryKey": false,
           "notNull": false,

@@ -72,16 +72,26 @@ export async function PUT(req: Request, props: { params: Promise<{ id: string }>
   }
   const { tracks, fields } = splitFields(parsed.data);
 
-  // Jaga invariant: field wajib (logo, website, demo video) yang SUDAH terisi tak
-  // boleh dikosongkan lewat edit. Project lama yang belum punya tak dipaksa isi.
+  // Jaga invariant: field wajib (logo, demo video) yang SUDAH terisi tak boleh
+  // dikosongkan lewat edit. Project lama yang belum punya tak dipaksa isi.
   const REQUIRED_KEEP = [
     { field: "logoUrl", label: "logo" },
-    { field: "demoUrl", label: "website" },
     { field: "demoVideoUrl", label: "demo video" },
   ] as const;
-  const cleared = REQUIRED_KEEP.filter((r) => project[r.field] && !fields[r.field]).map(
+  const cleared: string[] = REQUIRED_KEEP.filter((r) => project[r.field] && !fields[r.field]).map(
     (r) => r.label
   );
+  // Pitch deck (wajib, disimpan di extra_links) juga tak boleh dikosongkan kalau ada.
+  const hasPitch = (s: string | null | undefined) => {
+    if (!s) return false;
+    try {
+      const a = JSON.parse(s) as { label?: string }[];
+      return Array.isArray(a) && a.some((l) => l.label === "Pitch Deck");
+    } catch {
+      return false;
+    }
+  };
+  if (hasPitch(project.extraLinks) && !hasPitch(fields.extraLinks)) cleared.push("pitch deck");
   if (cleared.length) {
     return NextResponse.json(
       { error: `Tidak boleh mengosongkan: ${cleared.join(", ")}`, code: "required_cleared" },

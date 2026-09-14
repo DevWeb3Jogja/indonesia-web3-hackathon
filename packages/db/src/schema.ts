@@ -17,6 +17,13 @@ export const users = sqliteTable("users", {
   email: text("email"),
   avatarUrl: text("avatar_url"),
   bio: text("bio"),
+  // Data peserta (wajib utk profil lengkap): nama lengkap, no HP, kota/kabupaten,
+  // tipe (community|company|student) + nama institusi (universitas/perusahaan/komunitas).
+  fullName: text("full_name"),
+  phone: text("phone"),
+  city: text("city"),
+  occupation: text("occupation"), // community | company | student
+  organization: text("organization"),
   role: text("role").notNull().default("participant"),
   githubUrl: text("github_url"),
   // Identitas GitHub terverifikasi via OAuth. githubId (numeric id GitHub, immutable)

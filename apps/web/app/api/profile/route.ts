@@ -1,5 +1,5 @@
 import { clientIp, verifyTurnstile } from "@iw3h/auth";
-import { getUser, isUsernameTaken, rateLimit, updateProfile } from "@iw3h/db";
+import { getUser, isProfileComplete, isUsernameTaken, rateLimit, updateProfile } from "@iw3h/db";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { impersonates, isClean } from "@/lib/filter";
@@ -17,6 +17,27 @@ const profileSchema = z.object({
   email: z.string().email().max(254).nullish(),
   avatarUrl: z.string().url().max(2048).startsWith("https://").nullish(),
   bio: z.string().max(500).refine(isClean, "Mengandung kata yang tidak pantas").nullish(),
+  // Wajib untuk profil lengkap (lihat isProfileComplete), divalidasi seperti field lain.
+  fullName: z
+    .string()
+    .trim()
+    .max(100)
+    .refine(isClean, "Mengandung kata yang tidak pantas")
+    .nullish(),
+  phone: z
+    .string()
+    .trim()
+    .max(24)
+    .regex(/^[+()\d][\d\s()-]{5,23}$/, "Nomor HP tidak valid")
+    .nullish(),
+  city: z.string().trim().max(80).refine(isClean, "Mengandung kata yang tidak pantas").nullish(),
+  occupation: z.enum(["community", "company", "student"]).nullish(),
+  organization: z
+    .string()
+    .trim()
+    .max(120)
+    .refine(isClean, "Mengandung kata yang tidak pantas")
+    .nullish(),
   // githubUrl TIDAK diterima dari klien lagi — di-set hanya lewat OAuth (terverifikasi).
   twitterUrl: z
     .string()
@@ -31,7 +52,8 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   const auth = await requireAuth();
   if (auth instanceof Response) return auth;
-  return NextResponse.json(await getUser(db, auth.address));
+  const user = await getUser(db, auth.address);
+  return NextResponse.json({ ...user, profileComplete: isProfileComplete(user) });
 }
 
 export async function PUT(req: Request) {

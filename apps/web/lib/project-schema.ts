@@ -70,14 +70,28 @@ export const projectFields = z.object({
   extraLinks: extraLinksField,
 });
 
-// Create (submission baru): logo, website (demoUrl) & demo video WAJIB. Edit tetap
-// pakai projectFields (opsional) supaya submitter lama tak terkunci saat mengedit.
-export const createProjectSchema = projectFields.extend({
-  mode: z.enum(["solo", "team"]),
-  logoUrl: requiredLogo,
-  demoUrl: requiredUrl,
-  demoVideoUrl: requiredUrl,
-});
+// Create (submission baru): logo, demo video & pitch deck WAJIB (website opsional).
+// Edit tetap pakai projectFields (opsional) supaya submitter lama tak terkunci.
+export const createProjectSchema = projectFields
+  .extend({
+    mode: z.enum(["solo", "team"]),
+    logoUrl: requiredLogo,
+    demoVideoUrl: requiredUrl,
+  })
+  .superRefine((data, ctx) => {
+    // Pitch deck wajib untuk submission baru. Disimpan di extra_links (JSON), jadi
+    // dicek di sini setelah transform (array → string).
+    let hasPitch = false;
+    try {
+      const links = data.extraLinks ? (JSON.parse(data.extraLinks) as { label?: string }[]) : [];
+      hasPitch = Array.isArray(links) && links.some((l) => l.label === "Pitch Deck");
+    } catch {
+      hasPitch = false;
+    }
+    if (!hasPitch) {
+      ctx.addIssue({ code: "custom", path: ["pitchDeck"], message: "Pitch deck wajib" });
+    }
+  });
 
 export type ProjectFieldsInput = z.infer<typeof projectFields>;
 

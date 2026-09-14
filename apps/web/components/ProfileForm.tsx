@@ -18,6 +18,11 @@ interface Profile {
   address: string;
   username: string | null;
   email: string | null;
+  fullName: string | null;
+  phone: string | null;
+  city: string | null;
+  occupation: string | null;
+  organization: string | null;
   avatarUrl: string | null;
   bio: string | null;
   githubUrl: string | null;
@@ -64,8 +69,13 @@ function GithubMark() {
 }
 
 const EMPTY = {
+  fullName: "",
   username: "",
   email: "",
+  phone: "",
+  city: "",
+  occupation: "",
+  organization: "",
   bio: "",
   twitterUrl: "",
 };
@@ -125,8 +135,13 @@ function Inner({ t }: { t: T }) {
     if (data) {
       setProfile(data);
       setForm({
+        fullName: data.fullName ?? "",
         username: data.username ?? "",
         email: data.email ?? "",
+        phone: data.phone ?? "",
+        city: data.city ?? "",
+        occupation: data.occupation ?? "",
+        organization: data.organization ?? "",
         bio: data.bio ?? "",
         twitterUrl: data.twitterUrl ?? "",
       });
@@ -177,7 +192,8 @@ function Inner({ t }: { t: T }) {
   }
 
   const set =
-    (k: keyof FormState) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+    (k: keyof FormState) =>
+    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
       setForm((f) => ({ ...f, [k]: e.target.value }));
 
   // Error format inline (hanya kalau field diisi).
@@ -291,6 +307,21 @@ function Inner({ t }: { t: T }) {
       </div>
 
       <div>
+        <label className="label-field" htmlFor="fullName">
+          {t.fullNameLabel}
+        </label>
+        <input
+          id="fullName"
+          className="input-field"
+          value={form.fullName}
+          onChange={set("fullName")}
+          placeholder={t.fullNamePlaceholder}
+          maxLength={100}
+          required
+        />
+      </div>
+
+      <div>
         <label className="label-field" htmlFor="username">
           {t.usernameLabel}
         </label>
@@ -337,6 +368,74 @@ function Inner({ t }: { t: T }) {
           required
         />
         {emailErr && <p className="mt-1 text-[11px] text-red-500">Format email tidak valid</p>}
+      </div>
+
+      <div className="grid gap-5 sm:grid-cols-2">
+        <div>
+          <label className="label-field" htmlFor="phone">
+            {t.phoneLabel}
+          </label>
+          <input
+            id="phone"
+            type="tel"
+            className="input-field"
+            value={form.phone}
+            onChange={set("phone")}
+            placeholder={t.phonePlaceholder}
+            maxLength={24}
+            required
+          />
+        </div>
+        <div>
+          <label className="label-field" htmlFor="city">
+            {t.cityLabel}
+          </label>
+          <input
+            id="city"
+            className="input-field"
+            value={form.city}
+            onChange={set("city")}
+            placeholder={t.cityPlaceholder}
+            maxLength={80}
+            required
+          />
+        </div>
+      </div>
+
+      <div className="grid gap-5 sm:grid-cols-2">
+        <div>
+          <label className="label-field" htmlFor="occupation">
+            {t.occupationLabel}
+          </label>
+          <select
+            id="occupation"
+            className="input-field"
+            value={form.occupation}
+            onChange={set("occupation")}
+            required
+          >
+            <option value="" disabled>
+              {t.occupationPlaceholder}
+            </option>
+            <option value="community">{t.occupationCommunity}</option>
+            <option value="company">{t.occupationCompany}</option>
+            <option value="student">{t.occupationStudent}</option>
+          </select>
+        </div>
+        <div>
+          <label className="label-field" htmlFor="organization">
+            {t.organizationLabel}
+          </label>
+          <input
+            id="organization"
+            className="input-field"
+            value={form.organization}
+            onChange={set("organization")}
+            placeholder={t.organizationPlaceholder}
+            maxLength={120}
+            required
+          />
+        </div>
       </div>
 
       <div>
