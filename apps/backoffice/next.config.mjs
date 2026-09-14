@@ -35,14 +35,14 @@ const nextConfig = {
   // menjalankan ESLint saat build, jadi tak perlu opsi eslint.)
   typescript: { ignoreBuildErrors: true },
   // Next 16: pindah dari experimental.serverComponentsExternalPackages.
-  serverExternalPackages: ["@libsql/client", "libsql"],
+  serverExternalPackages: ["@libsql/client", "libsql", "exceljs"],
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },
   // Pakai --webpack (script) — lihat catatan di apps/web/next.config.mjs.
   webpack: (config, { isServer }) => {
     if (isServer) {
-      config.externals.push("@libsql/client", "libsql");
+      config.externals.push("@libsql/client", "libsql", "exceljs");
     }
     config.resolve.alias = {
       ...config.resolve.alias,

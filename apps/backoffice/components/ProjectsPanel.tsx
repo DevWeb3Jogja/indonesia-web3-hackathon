@@ -17,11 +17,17 @@ interface P {
 export default function ProjectsPanel() {
   return (
     <div className="space-y-3">
-      <div className="flex justify-end">
+      <div className="flex justify-end gap-2">
+        <Button asChild size="sm" variant="outline">
+          <a href="/api/admin/projects/export?format=xlsx" download>
+            <Download className="size-4" />
+            Excel
+          </a>
+        </Button>
         <Button asChild size="sm" variant="outline">
           <a href="/api/admin/projects/export" download>
             <Download className="size-4" />
-            Export CSV
+            CSV
           </a>
         </Button>
       </div>

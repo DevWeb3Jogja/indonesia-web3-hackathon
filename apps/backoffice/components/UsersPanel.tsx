@@ -65,9 +65,15 @@ export default function UsersPanel() {
     <div className="space-y-3">
       <div className="flex justify-end gap-2">
         <Button asChild size="sm" variant="outline">
+          <a href="/api/admin/users/export?format=xlsx" download>
+            <Download className="size-4" />
+            Excel
+          </a>
+        </Button>
+        <Button asChild size="sm" variant="outline">
           <a href="/api/admin/users/export" download>
             <Download className="size-4" />
-            Export CSV
+            CSV
           </a>
         </Button>
         <Button size="sm" onClick={() => setOpen(true)}>

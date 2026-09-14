@@ -2,11 +2,13 @@ import { getCurrentHackathon, getUsersByAddresses, listAllProjects } from "@iw3h
 import { requireAuth } from "@/lib/auth";
 import { csvResponse, extraLink, toCsv } from "@/lib/csv";
 import { db } from "@/lib/turso";
+import { buildXlsx, xlsxResponse } from "@/lib/xlsx";
 
 export const dynamic = "force-dynamic";
 
-/** GET /api/admin/projects/export — CSV lengkap semua project + detail anggota. */
-export async function GET() {
+/** GET /api/admin/projects/export[?format=xlsx] — export lengkap semua project +
+ *  detail anggota. Default CSV; format=xlsx → Excel terformat. */
+export async function GET(req: Request) {
   const auth = await requireAuth("admin");
   if (auth instanceof Response) return auth;
 
@@ -75,5 +77,8 @@ export async function GET() {
     ];
   });
 
+  if (new URL(req.url).searchParams.get("format") === "xlsx") {
+    return xlsxResponse("iw3h-projects", await buildXlsx("Projects", headers, rows));
+  }
   return csvResponse("iw3h-projects", toCsv(headers, rows));
 }

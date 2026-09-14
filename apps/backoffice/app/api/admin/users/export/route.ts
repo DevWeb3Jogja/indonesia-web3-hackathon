@@ -2,11 +2,13 @@ import { getCurrentHackathon, listParticipantsForExport } from "@iw3h/db";
 import { requireAuth } from "@/lib/auth";
 import { csvResponse, toCsv } from "@/lib/csv";
 import { db } from "@/lib/turso";
+import { buildXlsx, xlsxResponse } from "@/lib/xlsx";
 
 export const dynamic = "force-dynamic";
 
-/** GET /api/admin/users/export — CSV lengkap semua peserta + tahap funnel. */
-export async function GET() {
+/** GET /api/admin/users/export[?format=xlsx] — export lengkap semua peserta +
+ *  tahap funnel. Default CSV; format=xlsx → Excel terformat. */
+export async function GET(req: Request) {
   const auth = await requireAuth("admin");
   if (auth instanceof Response) return auth;
 
@@ -60,5 +62,8 @@ export async function GET() {
     u.createdAt,
   ]);
 
+  if (new URL(req.url).searchParams.get("format") === "xlsx") {
+    return xlsxResponse("iw3h-participants", await buildXlsx("Participants", headers, rows));
+  }
   return csvResponse("iw3h-participants", toCsv(headers, rows));
 }
