@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
+import { Outfit } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import Web3Provider from "@/components/Web3Provider";
+
+const outfit = Outfit({ subsets: ["latin"], variable: "--font-outfit" });
 
 export const metadata: Metadata = {
   title: "Backoffice IW3H",
@@ -19,18 +22,17 @@ export const metadata: Metadata = {
   manifest: "/site.webmanifest",
 };
 
-// Terapkan tema sebelum paint (hindari flash). Server-rendered di <head> →
-// tidak kena warning "script in client component" seperti next-themes.
+// Terapkan tema sebelum paint (hindari flash). Server-rendered di <head>.
 const themeBoot = `(function(){try{var t=localStorage.getItem('theme');var d=t?t==='dark':window.matchMedia('(prefers-color-scheme: dark)').matches;if(d)document.documentElement.classList.add('dark');}catch(e){}})();`;
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="id" suppressHydrationWarning>
+    <html lang="id" className={outfit.variable} suppressHydrationWarning>
       <head>
         {/* biome-ignore lint/security/noDangerouslySetInnerHtml: boot tema sebelum paint */}
         <script dangerouslySetInnerHTML={{ __html: themeBoot }} />
       </head>
-      <body>
+      <body className="bg-gray-50 font-outfit text-gray-800 antialiased dark:bg-gray-950 dark:text-gray-200">
         <TooltipProvider>
           <Web3Provider>{children}</Web3Provider>
           <Toaster />
