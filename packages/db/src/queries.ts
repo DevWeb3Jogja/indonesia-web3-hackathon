@@ -296,8 +296,10 @@ export async function setHackathonStatus(db: Db, hackathonId: string, status: Ha
   await db.update(hackathons).set({ status }).where(eq(hackathons.id, hackathonId));
 }
 
-/** Tahap peserta di funnel (dari terjauh): submitted > team > profile > wallet. */
-export type UserStage = "wallet" | "profile" | "team" | "submitted";
+/** Tahap peserta (dari terjauh): submitted > team > profileComplete > profileStarted
+ *  > connected. "connected" = baru sign-in (belum isi apa pun); "profileStarted" =
+ *  sudah mulai isi profil (ada username/email/GitHub) tapi belum lengkap. */
+export type UserStage = "connected" | "profileStarted" | "profileComplete" | "team" | "submitted";
 
 /** Peta per-alamat untuk sebuah hackathon: siapa punya project, di tim mana, nama
  *  project/tim-nya. Dipakai userFunnel + export peserta. */
@@ -339,14 +341,14 @@ async function funnelMaps(db: Db, hackathonId: string) {
     if (p.teamId) for (const a of membersByTeam.get(p.teamId) ?? []) projectByAddr.set(a, p.name);
     else projectByAddr.set(p.submitter, p.name);
   }
-  const stageOf = (u: Parameters<typeof isProfileComplete>[0] & { address: string }): UserStage =>
-    projectByAddr.has(u.address)
-      ? "submitted"
-      : teamAddresses.has(u.address)
-        ? "team"
-        : isProfileComplete(u)
-          ? "profile"
-          : "wallet";
+  const stageOf = (u: Parameters<typeof isProfileComplete>[0] & { address: string }): UserStage => {
+    if (projectByAddr.has(u.address)) return "submitted";
+    if (teamAddresses.has(u.address)) return "team";
+    if (isProfileComplete(u)) return "profileComplete";
+    // Sudah mulai isi profil (bukan sekadar connect wallet)?
+    if (u.username || u.email || u.githubId) return "profileStarted";
+    return "connected";
+  };
   return { projectByAddr, teamNameByAddr, stageOf };
 }
 
@@ -357,7 +359,7 @@ export async function userFunnel(db: Db, hackathonId: string) {
     db.select().from(users),
     funnelMaps(db, hackathonId),
   ]);
-  const counts = { wallet: 0, profile: 0, team: 0, submitted: 0 };
+  const counts = { connected: 0, profileStarted: 0, profileComplete: 0, team: 0, submitted: 0 };
   for (const u of allUsers) counts[maps.stageOf(u)]++;
   return { counts, total: allUsers.length };
 }

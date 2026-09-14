@@ -14,6 +14,13 @@ export async function GET() {
   if (!hackathon) return new Response("No hackathon", { status: 404 });
 
   const parts = await listParticipantsForExport(db, hackathon.id);
+  const stageLabel: Record<string, string> = {
+    connected: "Just connected",
+    profileStarted: "Profile started",
+    profileComplete: "Profile complete",
+    team: "In a team",
+    submitted: "Submitted",
+  };
 
   const headers = [
     "Address",
@@ -36,7 +43,7 @@ export async function GET() {
 
   const rows = parts.map((u) => [
     u.address,
-    u.stage,
+    stageLabel[u.stage] ?? u.stage,
     u.fullName,
     u.username,
     u.email,

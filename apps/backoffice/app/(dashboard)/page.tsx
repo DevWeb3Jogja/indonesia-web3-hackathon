@@ -16,16 +16,38 @@ export default async function OverviewPage() {
     { label: "Projects", value: stats.projects },
     { label: "Judge scores", value: stats.scores },
   ];
-  const funnelCards = funnel
+  const funnelStages = funnel
     ? [
         {
-          label: "Wallet only",
-          value: funnel.counts.wallet,
-          desc: "Signed in, profile incomplete",
+          label: "Just connected",
+          value: funnel.counts.connected,
+          desc: "Signed in, nothing filled yet",
+          color: "bg-zinc-400",
         },
-        { label: "Profile complete", value: funnel.counts.profile, desc: "No team / project yet" },
-        { label: "In a team", value: funnel.counts.team, desc: "Joined a team, not submitted" },
-        { label: "Submitted", value: funnel.counts.submitted, desc: "Has a project" },
+        {
+          label: "Profile started",
+          value: funnel.counts.profileStarted,
+          desc: "Began profile, not complete",
+          color: "bg-amber-400",
+        },
+        {
+          label: "Profile complete",
+          value: funnel.counts.profileComplete,
+          desc: "All required fields, no team/project",
+          color: "bg-sky-500",
+        },
+        {
+          label: "In a team",
+          value: funnel.counts.team,
+          desc: "Joined a team, not submitted",
+          color: "bg-violet-500",
+        },
+        {
+          label: "Submitted",
+          value: funnel.counts.submitted,
+          desc: "Has a project",
+          color: "bg-emerald-500",
+        },
       ]
     : [];
 
@@ -52,23 +74,39 @@ export default async function OverviewPage() {
           <CardHeader className="pb-2">
             <CardTitle className="text-base">Participant funnel</CardTitle>
             <CardDescription>
-              Each of the {funnel.total} users at their furthest stage.
+              {funnel.total} sign-ins, each counted once at their furthest stage.
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              {funnelCards.map((c) => (
-                <div key={c.label} className="rounded-lg border p-4">
-                  <p className="text-2xl font-semibold tabular-nums">{c.value}</p>
-                  <p className="mt-1 text-sm font-medium">{c.label}</p>
-                  <p className="text-xs text-muted-foreground">{c.desc}</p>
-                </div>
-              ))}
+            <div className="space-y-3.5">
+              {funnelStages.map((s) => {
+                const pct = funnel.total ? Math.round((s.value / funnel.total) * 100) : 0;
+                return (
+                  <div key={s.label}>
+                    <div className="flex items-baseline justify-between gap-2 text-sm">
+                      <span className="flex items-center gap-2 font-medium">
+                        <span className={`size-2.5 shrink-0 rounded-full ${s.color}`} />
+                        {s.label}
+                      </span>
+                      <span className="tabular-nums">
+                        <span className="font-semibold">{s.value}</span>
+                        <span className="ml-1.5 text-xs text-muted-foreground">{pct}%</span>
+                      </span>
+                    </div>
+                    <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-muted">
+                      <div
+                        className={`h-full rounded-full ${s.color}`}
+                        style={{ width: `${Math.max(pct, s.value > 0 ? 2 : 0)}%` }}
+                      />
+                    </div>
+                    <p className="mt-1 text-xs text-muted-foreground">{s.desc}</p>
+                  </div>
+                );
+              })}
             </div>
-            <p className="mt-3 text-xs text-muted-foreground">
-              Note: “filled but not submitted” drafts live only in the participant's browser and
-              can't be shown here. Use the CSV exports on the Projects and Users pages for full
-              data.
+            <p className="mt-4 border-t pt-3 text-xs text-muted-foreground">
+              “Filled but not submitted” drafts live only in the participant's browser and can't be
+              shown here. Use the CSV exports on the Projects and Users pages for full data.
             </p>
           </CardContent>
         </Card>
