@@ -9,7 +9,16 @@ import {
   type PageParams,
 } from "./paginate";
 import type { HackathonPhase } from "./phase";
-import { auditLogs, hackathons, projects, registrations, scores, users } from "./schema";
+import {
+  auditLogs,
+  hackathons,
+  projects,
+  registrations,
+  scores,
+  teamMembers,
+  teams,
+  users,
+} from "./schema";
 
 export type Role = "participant" | "judge" | "admin";
 
@@ -285,6 +294,95 @@ export const HACKATHON_PHASES: HackathonPhase[] = [
 
 export async function setHackathonStatus(db: Db, hackathonId: string, status: HackathonPhase) {
   await db.update(hackathons).set({ status }).where(eq(hackathons.id, hackathonId));
+}
+
+/** Tahap peserta di funnel (dari terjauh): submitted > team > profile > wallet. */
+export type UserStage = "wallet" | "profile" | "team" | "submitted";
+
+/** Peta per-alamat untuk sebuah hackathon: siapa punya project, di tim mana, nama
+ *  project/tim-nya. Dipakai userFunnel + export peserta. */
+async function funnelMaps(db: Db, hackathonId: string) {
+  const [projRows, teamRows, teamRowsMeta] = await Promise.all([
+    db
+      .select({
+        name: projects.name,
+        teamId: projects.teamId,
+        submitter: projects.submitterAddress,
+      })
+      .from(projects)
+      .where(eq(projects.hackathonId, hackathonId)),
+    db
+      .select({ address: teamMembers.address, teamId: teamMembers.teamId })
+      .from(teamMembers)
+      .innerJoin(teams, eq(teamMembers.teamId, teams.id))
+      .where(eq(teams.hackathonId, hackathonId)),
+    db
+      .select({ id: teams.id, name: teams.name })
+      .from(teams)
+      .where(eq(teams.hackathonId, hackathonId)),
+  ]);
+
+  const teamNameById = new Map(teamRowsMeta.map((t) => [t.id, t.name]));
+  const membersByTeam = new Map<string, string[]>();
+  const teamNameByAddr = new Map<string, string>();
+  const teamAddresses = new Set<string>();
+  for (const r of teamRows) {
+    teamAddresses.add(r.address);
+    const arr = membersByTeam.get(r.teamId);
+    if (arr) arr.push(r.address);
+    else membersByTeam.set(r.teamId, [r.address]);
+    const tn = teamNameById.get(r.teamId);
+    if (tn) teamNameByAddr.set(r.address, tn);
+  }
+  const projectByAddr = new Map<string, string>();
+  for (const p of projRows) {
+    if (p.teamId) for (const a of membersByTeam.get(p.teamId) ?? []) projectByAddr.set(a, p.name);
+    else projectByAddr.set(p.submitter, p.name);
+  }
+  const stageOf = (u: Parameters<typeof isProfileComplete>[0] & { address: string }): UserStage =>
+    projectByAddr.has(u.address)
+      ? "submitted"
+      : teamAddresses.has(u.address)
+        ? "team"
+        : isProfileComplete(u)
+          ? "profile"
+          : "wallet";
+  return { projectByAddr, teamNameByAddr, stageOf };
+}
+
+/** Funnel peserta: hitung tiap user ke tahap terjauhnya. Catatan: draft submission
+ *  (isi form belum submit) TIDAK terlacak — hanya di localStorage browser. */
+export async function userFunnel(db: Db, hackathonId: string) {
+  const [allUsers, maps] = await Promise.all([
+    db.select().from(users),
+    funnelMaps(db, hackathonId),
+  ]);
+  const counts = { wallet: 0, profile: 0, team: 0, submitted: 0 };
+  for (const u of allUsers) counts[maps.stageOf(u)]++;
+  return { counts, total: allUsers.length };
+}
+
+/** Semua peserta + tahap + tim + project — baris lengkap untuk export CSV admin. */
+export async function listParticipantsForExport(db: Db, hackathonId: string) {
+  const [allUsers, maps] = await Promise.all([
+    db.select().from(users).orderBy(desc(users.createdAt)),
+    funnelMaps(db, hackathonId),
+  ]);
+  return allUsers.map((u) => ({
+    ...u,
+    stage: maps.stageOf(u),
+    teamName: maps.teamNameByAddr.get(u.address) ?? "",
+    projectName: maps.projectByAddr.get(u.address) ?? "",
+  }));
+}
+
+/** User rows LENGKAP (termasuk field privat) untuk sekumpulan alamat — export admin. */
+export async function getUsersByAddresses(db: Db, addresses: string[]) {
+  const map = new Map<string, typeof users.$inferSelect>();
+  if (addresses.length === 0) return map;
+  const rows = await db.select().from(users).where(inArray(users.address, addresses));
+  for (const r of rows) map.set(r.address, r);
+  return map;
 }
 
 export async function adminStats(db: Db) {

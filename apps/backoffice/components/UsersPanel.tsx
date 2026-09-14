@@ -1,6 +1,6 @@
 "use client";
 
-import { UserPlus } from "lucide-react";
+import { Download, UserPlus } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -63,7 +63,13 @@ export default function UsersPanel() {
 
   return (
     <div className="space-y-3">
-      <div className="flex justify-end">
+      <div className="flex justify-end gap-2">
+        <Button asChild size="sm" variant="outline">
+          <a href="/api/admin/users/export" download>
+            <Download className="size-4" />
+            Export CSV
+          </a>
+        </Button>
         <Button size="sm" onClick={() => setOpen(true)}>
           <UserPlus className="size-4" />
           Tambah user

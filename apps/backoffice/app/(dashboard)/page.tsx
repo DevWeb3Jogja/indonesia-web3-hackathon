@@ -1,4 +1,4 @@
-import { adminStats, getCurrentHackathon } from "@iw3h/db";
+import { adminStats, getCurrentHackathon, userFunnel } from "@iw3h/db";
 import HackathonSettings from "@/components/HackathonSettings";
 import PhaseControl from "@/components/PhaseControl";
 import { Badge } from "@/components/ui/badge";
@@ -9,12 +9,25 @@ export const dynamic = "force-dynamic";
 
 export default async function OverviewPage() {
   const [stats, hackathon] = await Promise.all([adminStats(db), getCurrentHackathon(db)]);
+  const funnel = hackathon ? await userFunnel(db, hackathon.id) : null;
   const cards = [
     { label: "Users", value: stats.users },
     { label: "Registrations", value: stats.registrations },
     { label: "Projects", value: stats.projects },
     { label: "Judge scores", value: stats.scores },
   ];
+  const funnelCards = funnel
+    ? [
+        {
+          label: "Wallet only",
+          value: funnel.counts.wallet,
+          desc: "Signed in, profile incomplete",
+        },
+        { label: "Profile complete", value: funnel.counts.profile, desc: "No team / project yet" },
+        { label: "In a team", value: funnel.counts.team, desc: "Joined a team, not submitted" },
+        { label: "Submitted", value: funnel.counts.submitted, desc: "Has a project" },
+      ]
+    : [];
 
   return (
     <div className="space-y-6">
@@ -33,6 +46,33 @@ export default async function OverviewPage() {
           </Card>
         ))}
       </div>
+
+      {funnel && (
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">Participant funnel</CardTitle>
+            <CardDescription>
+              Each of the {funnel.total} users at their furthest stage.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {funnelCards.map((c) => (
+                <div key={c.label} className="rounded-lg border p-4">
+                  <p className="text-2xl font-semibold tabular-nums">{c.value}</p>
+                  <p className="mt-1 text-sm font-medium">{c.label}</p>
+                  <p className="text-xs text-muted-foreground">{c.desc}</p>
+                </div>
+              ))}
+            </div>
+            <p className="mt-3 text-xs text-muted-foreground">
+              Note: “filled but not submitted” drafts live only in the participant's browser and
+              can't be shown here. Use the CSV exports on the Projects and Users pages for full
+              data.
+            </p>
+          </CardContent>
+        </Card>
+      )}
 
       {hackathon ? (
         <Card>
