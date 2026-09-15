@@ -1,15 +1,20 @@
-import { adminStats, getCurrentHackathon, userFunnel } from "@iw3h/db";
+import { adminStats, getCurrentHackathon, userFunnel, voteLeaderboard } from "@iw3h/db";
 import HackathonSettings from "@/components/HackathonSettings";
 import PhaseControl from "@/components/PhaseControl";
+import VotingControl from "@/components/VotingControl";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { db } from "@/lib/turso";
 
 export const dynamic = "force-dynamic";
 
+const VOTE_URL = process.env.NEXT_PUBLIC_VOTE_URL ?? "https://vote.indonesiaweb3hack.xyz";
+
 export default async function OverviewPage() {
   const [stats, hackathon] = await Promise.all([adminStats(db), getCurrentHackathon(db)]);
-  const funnel = hackathon ? await userFunnel(db, hackathon.id) : null;
+  const [funnel, leaderboard] = hackathon
+    ? await Promise.all([userFunnel(db, hackathon.id), voteLeaderboard(db, hackathon.id)])
+    : [null, []];
   const cards = [
     { label: "Users", value: stats.users },
     { label: "Registrations", value: stats.registrations },
@@ -148,6 +153,25 @@ export default async function OverviewPage() {
       ) : (
         <p className="text-sm text-gray-500 dark:text-gray-400">No hackathon yet.</p>
       )}
+
+      {hackathon ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>Demo Day voting</CardTitle>
+            <CardDescription>
+              Tandai finalis di halaman Projects (ikon bintang), lalu buka voting saat demo day.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <VotingControl
+              votingOpen={hackathon.votingOpen}
+              leaderboardPublic={hackathon.leaderboardPublic}
+              leaderboard={leaderboard}
+              voteUrl={VOTE_URL}
+            />
+          </CardContent>
+        </Card>
+      ) : null}
     </div>
   );
 }

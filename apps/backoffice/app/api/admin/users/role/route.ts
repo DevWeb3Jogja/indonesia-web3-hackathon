@@ -6,9 +6,11 @@ import { db } from "@/lib/turso";
 
 export const dynamic = "force-dynamic";
 
+// Role kustom diizinkan (mis. "panitia") — tapi format ketat: huruf kecil, 2-20 char.
+// Ini batas keamanan: cegah role sampah/aneh masuk DB.
 const schema = z.object({
   address: z.string().regex(/^0x[0-9a-fA-F]{40}$/),
-  role: z.enum(["participant", "judge", "admin"]),
+  role: z.string().regex(/^[a-z][a-z0-9_-]{1,19}$/, "Format role tidak valid"),
 });
 
 export async function PUT(req: Request) {

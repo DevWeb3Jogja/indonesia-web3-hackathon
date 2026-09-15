@@ -277,7 +277,9 @@ export async function getPublicProfiles(db: Db, addresses: string[]) {
     .where(inArray(users.address, addresses));
 }
 
-export async function setUserRole(db: Db, address: string, role: Role) {
+// role: string bebas (bukan Role) — admin boleh bikin role kustom (mis. "panitia").
+// Kolom role memang text; RBAC membandingkan string. Format divalidasi di route.
+export async function setUserRole(db: Db, address: string, role: string) {
   await db
     .update(users)
     .set({ role, updatedAt: sql`(datetime('now'))` })

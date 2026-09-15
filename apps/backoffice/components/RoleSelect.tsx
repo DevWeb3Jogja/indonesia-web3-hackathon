@@ -11,7 +11,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-const ROLES = ["participant", "judge", "admin"] as const;
+const DEFAULTS = ["participant", "judge", "admin"];
+const ADD = "__add__";
+const ROLE_RE = /^[a-z][a-z0-9_-]{1,19}$/;
 
 export default function RoleSelect({
   address,
@@ -26,7 +28,10 @@ export default function RoleSelect({
   const [value, setValue] = useState(role);
   const [busy, setBusy] = useState(false);
 
-  async function change(next: string) {
+  // Defaults + role saat ini (kalau kustom) → tetap tampil di dropdown.
+  const options = DEFAULTS.includes(value) ? DEFAULTS : [...DEFAULTS, value];
+
+  async function apply(next: string) {
     const prev = value;
     setValue(next);
     setBusy(true);
@@ -46,17 +51,34 @@ export default function RoleSelect({
     }
   }
 
+  function onSelect(next: string) {
+    if (next === ADD) {
+      const raw = window.prompt("Nama role baru (huruf kecil, 2-20 char, mis. panitia):")?.trim();
+      if (!raw) return;
+      if (!ROLE_RE.test(raw)) {
+        toast.error("Format role tidak valid");
+        return;
+      }
+      apply(raw);
+      return;
+    }
+    apply(next);
+  }
+
   return (
-    <Select value={value} onValueChange={change} disabled={busy}>
+    <Select value={value} onValueChange={onSelect} disabled={busy}>
       <SelectTrigger size="sm" className="w-32">
         <SelectValue />
       </SelectTrigger>
       <SelectContent>
-        {ROLES.map((r) => (
+        {options.map((r) => (
           <SelectItem key={r} value={r}>
             {r}
           </SelectItem>
         ))}
+        <SelectItem value={ADD} className="text-brand-600 dark:text-brand-400">
+          + New role…
+        </SelectItem>
       </SelectContent>
     </Select>
   );

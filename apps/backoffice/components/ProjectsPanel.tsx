@@ -2,6 +2,7 @@
 
 import { Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import DemoDayToggle from "./DemoDayToggle";
 import PagedList from "./PagedList";
 import ProjectActions from "./ProjectActions";
 import ProjectDetails from "./ProjectDetails";
@@ -13,6 +14,7 @@ interface P {
   team: { name: string } | null;
   trackIds: string[];
   status: string;
+  demoDay: boolean;
 }
 
 export default function ProjectsPanel() {
@@ -57,6 +59,10 @@ export default function ProjectsPanel() {
           { header: "Team / Solo", cell: (p) => p.team?.name ?? "Solo" },
           { header: "Tracks", cell: (p) => p.trackIds.join(", ") || "—" },
           { header: "Status", cell: (p) => p.status },
+          {
+            header: "Finalist",
+            cell: (p, reload) => <DemoDayToggle id={p.id} demoDay={p.demoDay} onChanged={reload} />,
+          },
           {
             header: "Actions",
             cell: (p, reload) => (
