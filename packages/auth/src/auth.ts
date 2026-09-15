@@ -51,6 +51,9 @@ export interface AuthOptions {
   /** String atau thunk — thunk menunda baca env sampai request, bukan saat import. */
   password: string | (() => string);
   cookieName: string;
+  /** Domain cookie (mis. ".indonesiaweb3hack.xyz") supaya session dibagi lintas
+   *  subdomain (web ↔ vote). Kosong → cookie host-only. Thunk = tunda baca env. */
+  cookieDomain?: string | (() => string | undefined);
   /** Override untuk test; default verifikasi on-chain (EOA + smart account/ERC-6492). */
   verifySiwe?: (args: VerifySiweArgs) => Promise<boolean>;
 }
@@ -68,6 +71,8 @@ export function createAuth(opts: AuthOptions) {
   const verifySiwe = opts.verifySiwe ?? defaultVerifySiwe;
 
   async function getSession() {
+    const domain =
+      typeof opts.cookieDomain === "function" ? opts.cookieDomain() : opts.cookieDomain;
     return getIronSession<SessionData>(await opts.cookies(), {
       cookieName: opts.cookieName,
       password: typeof opts.password === "function" ? opts.password() : opts.password,
@@ -76,6 +81,7 @@ export function createAuth(opts: AuthOptions) {
         secure: process.env.NODE_ENV === "production",
         sameSite: "lax",
         maxAge: 60 * 60 * 24 * 7, // 7 hari
+        ...(domain ? { domain } : {}),
       },
     });
   }

@@ -48,6 +48,9 @@ export const hackathons = sqliteTable("hackathons", {
   submissionClosesAt: text("submission_closes_at"),
   judgingClosesAt: text("judging_closes_at"),
   winnersAnnouncedAt: text("winners_announced_at"),
+  // Vote demo day (offline): buka/tutup voting + kapan leaderboard boleh publik.
+  votingOpen: integer("voting_open", { mode: "boolean" }).notNull().default(false),
+  leaderboardPublic: integer("leaderboard_public", { mode: "boolean" }).notNull().default(false),
   createdAt: text("created_at").notNull().default(now),
 });
 
@@ -134,6 +137,8 @@ export const projects = sqliteTable(
     network: text("network"),
     extraLinks: text("extra_links"),
     status: text("status").notNull().default("draft"),
+    // Finalis demo day (dipilih admin) → kandidat vote publik.
+    demoDay: integer("demo_day", { mode: "boolean" }).notNull().default(false),
     submittedAt: text("submitted_at"),
     createdAt: text("created_at").notNull().default(now),
     updatedAt: text("updated_at").notNull().default(now),
@@ -234,6 +239,25 @@ export const winners = sqliteTable("winners", {
     .references(() => projects.id),
   announcedAt: text("announced_at").notNull().default(now),
 });
+
+/** Vote demo day (offline): SATU vote per wallet per edisi (PK backstop anti-dobel).
+ *  voterAddress = dari session (bukan input), projectId wajib finalis demo day. */
+export const votes = sqliteTable(
+  "votes",
+  {
+    hackathonId: text("hackathon_id")
+      .notNull()
+      .references(() => hackathons.id),
+    voterAddress: text("voter_address")
+      .notNull()
+      .references(() => users.address),
+    projectId: text("project_id")
+      .notNull()
+      .references(() => projects.id),
+    createdAt: text("created_at").notNull().default(now),
+  },
+  (t) => [primaryKey({ columns: [t.hackathonId, t.voterAddress] })]
+);
 
 /** Jejak semua aksi admin/juri yang mengubah keadaan (disqualify, role, pemenang). */
 export const auditLogs = sqliteTable("audit_logs", {

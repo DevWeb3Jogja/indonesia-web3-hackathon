@@ -8,6 +8,8 @@ export const auth = createAuth({
   cookies: () => cookies(),
   password: () => serverEnv().SESSION_SECRET,
   cookieName: "iw3h_session",
+  // Set ".indonesiaweb3hack.xyz" di prod → session dibagi dengan vote.<domain>.
+  cookieDomain: () => process.env.AUTH_COOKIE_DOMAIN,
 });
 
 export const requireAuth = auth.requireAuth;

@@ -1,4 +1,4 @@
-import { getCurrentHackathon, leaveTeam, rateLimit, TeamError } from "@iw3h/db";
+import { canManageTeam, getCurrentHackathon, leaveTeam, rateLimit, TeamError } from "@iw3h/db";
 import { NextResponse } from "next/server";
 import { requireAuth } from "@/lib/session";
 import { db } from "@/lib/turso";
@@ -15,7 +15,10 @@ export async function POST() {
   }
 
   const hackathon = await getCurrentHackathon(db);
-  if (!hackathon) return NextResponse.json({ error: "Tidak ada hackathon aktif" }, { status: 409 });
+  // Submission sudah tutup → tim beku: tak bisa keluar/pindah (sama seperti join/create).
+  if (!hackathon || !canManageTeam(hackathon)) {
+    return NextResponse.json({ error: "Perubahan tim sudah ditutup" }, { status: 409 });
+  }
 
   try {
     await leaveTeam(db, hackathon.id, auth.address);
