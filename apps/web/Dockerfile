@@ -13,9 +13,21 @@ ENV NEXT_PUBLIC_WC_PROJECT_ID=$NEXT_PUBLIC_WC_PROJECT_ID \
     NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL \
     NEXT_PUBLIC_TURNSTILE_SITE_KEY=$NEXT_PUBLIC_TURNSTILE_SITE_KEY
 
+# 1) Manifest workspace SAJA dulu → layer install ini nge-cache selama deps tak
+#    berubah (perubahan kode tak lagi memicu reinstall). Store di-cache lewat
+#    BuildKit cache mount supaya kalaupun install jalan, tak download ulang.
+COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
+COPY apps/web/package.json ./apps/web/
+COPY apps/backoffice/package.json ./apps/backoffice/
+COPY packages/db/package.json ./packages/db/
+COPY packages/auth/package.json ./packages/auth/
+RUN --mount=type=cache,id=pnpm-store,target=/root/.local/share/pnpm/store \
+    pnpm install --frozen-lockfile
+
+# 2) Baru source → build. Cache .next/cache untuk build inkremental yang lebih cepat.
 COPY . .
-RUN pnpm install --frozen-lockfile
-RUN pnpm --filter web build
+RUN --mount=type=cache,id=next-web,target=/app/apps/web/.next/cache \
+    pnpm --filter web build
 
 FROM node:22-alpine AS runner
 RUN apk add --no-cache libc6-compat
