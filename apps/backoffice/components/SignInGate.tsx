@@ -18,7 +18,7 @@ export default function SignInGate({ reason }: { reason: "signin" | "forbidden" 
       <div className="relative hidden h-full flex-col overflow-hidden bg-zinc-900 p-10 text-white lg:flex">
         <InteractiveGridPattern className="inset-x-0 inset-y-0 h-full skew-y-12 [mask-image:radial-gradient(500px_circle_at_center,white,transparent)]" />
         <div className="relative z-20 flex items-center gap-2.5 text-lg font-semibold">
-          <div className="bg-primary text-primary-foreground flex size-8 items-center justify-center rounded-md text-xs font-bold">
+          <div className="bg-brand-500 text-black flex size-8 items-center justify-center rounded-md text-xs font-bold">
             IW3
           </div>
           Backoffice IW3H
@@ -40,7 +40,9 @@ export default function SignInGate({ reason }: { reason: "signin" | "forbidden" 
           <div
             className={cn(
               "flex size-12 items-center justify-center rounded-xl",
-              forbidden ? "bg-destructive/10 text-destructive" : "bg-primary/10 text-primary"
+              forbidden
+                ? "bg-red-500/10 text-red-600 dark:text-red-400"
+                : "bg-brand-500/10 text-brand-600 dark:text-brand-400"
             )}
           >
             {forbidden ? <ShieldAlert className="size-6" /> : <Wallet className="size-6" />}
@@ -49,7 +51,7 @@ export default function SignInGate({ reason }: { reason: "signin" | "forbidden" 
             <h1 className="text-2xl font-semibold tracking-tight">
               {forbidden ? "Access denied" : "Backoffice IW3H"}
             </h1>
-            <p className="text-muted-foreground text-sm leading-relaxed">
+            <p className="text-gray-500 dark:text-gray-400 text-sm leading-relaxed">
               {forbidden
                 ? "This wallet is not an admin. Ask another admin to grant your role, then try again with the right wallet."
                 : "Organizers only. Sign in with an admin wallet using SIWE (Sign-In with Ethereum)."}
@@ -59,7 +61,7 @@ export default function SignInGate({ reason }: { reason: "signin" | "forbidden" 
             <Wallet className="mr-1 size-4" />
             {forbidden ? "Switch wallet" : "Sign in with wallet"}
           </Button>
-          <p className="text-muted-foreground px-4 text-xs leading-relaxed">
+          <p className="text-gray-500 dark:text-gray-400 px-4 text-xs leading-relaxed">
             You&rsquo;ll be asked to sign a message to prove wallet ownership — no transaction or
             fees.
           </p>

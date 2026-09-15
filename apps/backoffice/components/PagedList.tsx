@@ -92,7 +92,7 @@ export default function PagedList<T>({
     <div className="space-y-3">
       <div className="flex flex-wrap items-center gap-2">
         <div className="relative min-w-52 flex-1">
-          <Search className="absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-muted-foreground" />
+          <Search className="absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-gray-500 dark:text-gray-400" />
           <Input
             className="h-8 pl-8"
             type="search"
@@ -148,14 +148,14 @@ export default function PagedList<T>({
           </Select>
         )}
         {meta && (
-          <span className="ml-auto text-xs text-muted-foreground">
+          <span className="ml-auto text-xs text-gray-500 dark:text-gray-400">
             {meta.total} total{state === "loading" ? " · loading…" : ""}
           </span>
         )}
       </div>
 
       {state === "error" ? (
-        <div className="flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm">
+        <div className="flex items-center gap-2 rounded-lg border border-red-500/30 bg-red-500/5 p-4 text-sm">
           Failed to load.
           <Button size="sm" variant="outline" onClick={load}>
             Retry
@@ -177,7 +177,7 @@ export default function PagedList<T>({
                   <TableRow key={sk}>
                     {columns.map((c) => (
                       <TableCell key={c.header}>
-                        <div className="h-4 w-24 max-w-full animate-pulse rounded bg-muted" />
+                        <div className="h-4 w-24 max-w-full animate-pulse rounded bg-gray-100 dark:bg-white/[0.06]" />
                       </TableCell>
                     ))}
                   </TableRow>
@@ -186,7 +186,7 @@ export default function PagedList<T>({
                 <TableRow className="hover:bg-transparent">
                   <TableCell
                     colSpan={columns.length}
-                    className="h-24 text-center text-sm text-muted-foreground"
+                    className="h-24 text-center text-sm text-gray-500 dark:text-gray-400"
                   >
                     No results found.
                   </TableCell>
@@ -206,7 +206,7 @@ export default function PagedList<T>({
       )}
 
       {meta && (
-        <div className="flex items-center justify-end gap-3 text-xs text-muted-foreground">
+        <div className="flex items-center justify-end gap-3 text-xs text-gray-500 dark:text-gray-400">
           <span>
             Page {meta.page} / {meta.totalPages}
           </span>

@@ -134,7 +134,9 @@ export default function UsersPanel() {
                 spellCheck={false}
               />
               {address.trim() !== "" && !validAddr && (
-                <p className="text-destructive text-[11px]">Invalid wallet address (0x + 40 hex)</p>
+                <p className="text-red-600 dark:text-red-400 text-[11px]">
+                  Invalid wallet address (0x + 40 hex)
+                </p>
               )}
             </div>
             <div className="grid gap-1.5">

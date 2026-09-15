@@ -557,19 +557,19 @@
 }
 
 .flatpickr-months > .flatpickr-month {
-  background: none !important;
+  background: none;
 }
 
 .flatpickr-month .flatpickr-current-month .flatpickr-monthDropdown-months {
-  background: none !important;
+  background: none;
   appearance: none;
-  background-image: none !important;
+  background-image: none;
   font-weight: 500;
 }
 
 .flatpickr-month .flatpickr-current-month .flatpickr-monthDropdown-months:focus {
-  outline: none !important;
-  border: 0 !important;
+  outline: none;
+  border: 0;
 }
 
 .flatpickr-months .flatpickr-prev-month,
@@ -611,7 +611,7 @@ span.flatpickr-weekday,
 .flatpickr-day.inRange {
   box-shadow:
     -5px 0 0 #f9fafb,
-    5px 0 0 #f9fafb !important;
+    5px 0 0 #f9fafb;
   @apply dark:!shadow-datepicker;
 }
 
@@ -674,7 +674,7 @@ span.flatpickr-weekday,
 
 .flatpickr-months .flatpickr-prev-month:hover svg,
 .flatpickr-months .flatpickr-next-month:hover svg {
-  fill: none !important;
+  fill: none;
 }
 
 .flatpickr-calendar.static {
@@ -682,21 +682,21 @@ span.flatpickr-weekday,
 }
 
 [dir="rtl"] .flatpickr-calendar.static {
-  left: 0 !important;
-  right: auto !important;
+  left: 0;
+  right: auto;
 }
 
 @media (max-width: 525px) {
   .flatpickr-calendar.static {
-    left: auto !important;
-    right: 0 !important;
+    left: auto;
+    right: 0;
     margin-right: -30px;
     margin-left: 0;
   }
 
   [dir="rtl"] .flatpickr-calendar.static {
-    right: auto !important;
-    left: 0 !important;
+    right: auto;
+    left: 0;
     margin-left: -30px;
     margin-right: 0;
   }
@@ -707,7 +707,7 @@ code[class*="language-"],
 pre[class*="language-"] {
   text-shadow: none;
   color: #344054;
-  overflow: hidden !important;
+  overflow: hidden;
   font-size: 14px;
   margin: 0;
   padding: 0;
@@ -722,10 +722,10 @@ pre[class*="language-"] {
   color: #98a2b3;
 }
 [data-theme="light"] .language-html {
-  background-color: #ffffff !important;
+  background-color: #ffffff;
 }
 [data-theme="dark"] .language-html {
-  background-color: #171f2e !important;
+  background-color: #171f2e;
 }
 .token {
   text-shadow: none;
@@ -761,10 +761,10 @@ pre[class*="language-"] {
 }
 
 .line-numbers .line-numbers-rows {
-  border-right: 0 !important;
+  border-right: 0;
 }
 pre[class*="language-"].line-numbers {
-  padding-left: 2.8em !important;
+  padding-left: 2.8em;
 }
 
 /* Sidebar accordion animation using CSS Grid */
@@ -840,86 +840,86 @@ pre[class*="language-"].line-numbers {
   @apply !fill-gray-300 hover:!fill-brand-500 dark:!fill-gray-700 dark:hover:!fill-brand-500;
 }
 #mapTwo .jvectormap-region.jvectormap-element {
-  fill: #9cb9ff !important;
-  stroke: transparent !important;
+  fill: #9cb9ff;
+  stroke: transparent;
 }
 #mapTwo .jvectormap-region.jvectormap-element:hover {
-  fill: #8098f9 !important;
+  fill: #8098f9;
 }
 .dark #mapTwo .jvectormap-region.jvectormap-element {
-  fill: #9cb9ff !important;
+  fill: #9cb9ff;
 }
 #mapTwo .jvectormap-region[data-code="US"] {
-  fill: #465fff !important;
+  fill: #465fff;
 }
 
 .api-token-chart .apexcharts-tooltip {
-  background: transparent !important;
-  border: none !important;
-  box-shadow: none !important;
+  background: transparent;
+  border: none;
+  box-shadow: none;
 }
 
 /* Customer Pin-Point Map */
 #mapCustomerPinPoint .jvectormap-region.jvm-element {
-  fill: #c5d8ff !important;
-  stroke: white !important;
-  stroke-width: 2 !important;
+  fill: #c5d8ff;
+  stroke: white;
+  stroke-width: 2;
 }
 #mapCustomerPinPoint .jvectormap-region[data-code="US-CA"] {
-  fill: #465fff !important;
+  fill: #465fff;
 }
 #mapCustomerPinPoint .jvectormap-region[data-code="US-NV"] {
-  fill: #465fff !important;
+  fill: #465fff;
 }
 #mapCustomerPinPoint .jvectormap-region[data-code="US-NY"] {
-  fill: #3538cd !important;
+  fill: #3538cd;
 }
 #mapCustomerPinPoint .jvectormap-region[data-code="US-FL"] {
-  fill: #3538cd !important;
+  fill: #3538cd;
 }
 #mapCustomerPinPoint .jvectormap-region[data-code="US-MI"] {
-  fill: #3538cd !important;
+  fill: #3538cd;
 }
 #mapCustomerPinPoint .jvectormap-region[data-code="US-WA"] {
-  fill: #3538cd !important;
+  fill: #3538cd;
 }
 #mapCustomerPinPoint .jvectormap-region[data-code="US-TX"] {
-  fill: #8098f9 !important;
+  fill: #8098f9;
 }
 #mapCustomerPinPoint .jvectormap-region[data-code="US-IL"] {
-  fill: #8098f9 !important;
+  fill: #8098f9;
 }
 #mapCustomerPinPoint .jvectormap-region[data-code="US-PA"] {
-  fill: #8098f9 !important;
+  fill: #8098f9;
 }
 #mapCustomerPinPoint .jvectormap-region[data-code="US-OH"] {
-  fill: #8098f9 !important;
+  fill: #8098f9;
 }
 #mapCustomerPinPoint .jvectormap-region[data-code="US-GA"] {
-  fill: #8098f9 !important;
+  fill: #8098f9;
 }
 #mapCustomerPinPoint .jvectormap-region[data-code="US-NC"] {
-  fill: #8098f9 !important;
+  fill: #8098f9;
 }
 #mapCustomerPinPoint .jvectormap-region[data-code="US-CO"] {
-  fill: #9cb9ff !important;
+  fill: #9cb9ff;
 }
 #mapCustomerPinPoint .jvectormap-region[data-code="US-AZ"] {
-  fill: #9cb9ff !important;
+  fill: #9cb9ff;
 }
 #mapCustomerPinPoint .jvectormap-region.jvectormap-element:hover {
-  fill: #465fff !important;
+  fill: #465fff;
 }
 .dark #mapCustomerPinPoint .jvectormap-region.jvectormap-element {
-  stroke: #1f2937 !important;
+  stroke: #1f2937;
 }
 
 /* Customer map markers: solid filled circles with white ring */
 #mapCustomerPinPoint .jvectormap-marker.jvectormap-element {
-  fill: #465fff !important;
-  stroke: white !important;
-  stroke-width: 2 !important;
-  fill-opacity: 1 !important;
+  fill: #465fff;
+  stroke: white;
+  stroke-width: 2;
+  fill-opacity: 1;
 }
 .ai-settings-range {
   -webkit-appearance: none;
@@ -976,28 +976,28 @@ pre[class*="language-"].line-numbers {
 .custom-calendar .fc-multimonth [role="gridcell"] > .fc-GV,
 .custom-calendar.fc-multimonth [role="gridcell"] > div:nth-child(2),
 .custom-calendar .fc-multimonth [role="gridcell"] > div:nth-child(2) {
-  max-height: 0 !important;
-  min-height: 0 !important;
-  flex-grow: 0 !important;
-  flex-basis: 0 !important;
+  max-height: 0;
+  min-height: 0;
+  flex-grow: 0;
+  flex-basis: 0;
 }
 
 /* Ensure FullCalendar offscreen measurement probe is strictly kept offscreen and invisible */
 .custom-calendar .fc-rZ,
 .custom-calendar [inert].fc-rZ,
 .custom-calendar [inert] {
-  inset-inline-start: -10000px !important;
-  left: -10000px !important;
-  top: -10000px !important;
-  visibility: hidden !important;
-  pointer-events: none !important;
+  inset-inline-start: -10000px;
+  left: -10000px;
+  top: -10000px;
+  visibility: hidden;
+  pointer-events: none;
 }
 
 @media (max-width: 639px) {
   .custom-calendar:has(.fc-multimonth) .fc-toolbar,
   .custom-calendar.fc-multimonth .fc-toolbar {
-    position: relative !important;
-    top: auto !important;
+    position: relative;
+    top: auto;
   }
 
   /* Month Title sticks below the dashboard AppHeader (56px) */
@@ -1005,19 +1005,19 @@ pre[class*="language-"].line-numbers {
   .custom-calendar .fc-multimonth [role="grid"] [id*="month-"],
   .custom-calendar.fc-multimonth [role="grid"] [id*="month-"],
   .custom-calendar [role="grid"].fc-multimonth [id*="month-"] {
-    position: sticky !important;
-    top: 56px !important;
-    z-index: 10 !important;
-    background-color: #ffffff !important;
-    margin-bottom: 0 !important;
-    padding-top: 8px !important;
-    padding-bottom: 8px !important;
+    position: sticky;
+    top: 56px;
+    z-index: 10;
+    background-color: #ffffff;
+    margin-bottom: 0;
+    padding-top: 8px;
+    padding-bottom: 8px;
   }
   .dark .custom-calendar:has(.fc-multimonth) [role="grid"] [id*="month-"],
   .dark .custom-calendar .fc-multimonth [role="grid"] [id*="month-"],
   .dark .custom-calendar.fc-multimonth [role="grid"] [id*="month-"],
   .dark .custom-calendar [role="grid"].fc-multimonth [id*="month-"] {
-    background-color: #111827 !important;
+    background-color: #111827;
   }
 
   /* Day Header (SUN MON TUE...) sticks directly below the Month Title */
@@ -1033,10 +1033,10 @@ pre[class*="language-"].line-numbers {
   .custom-calendar [role="grid"].fc-multimonth [role="row"]:has([role="columnheader"]),
   .custom-calendar [role="grid"].fc-multimonth .fc-multimonth-day-header-row,
   .custom-calendar [role="grid"].fc-multimonth .fc-daygrid-header {
-    position: sticky !important;
-    top: 92px !important;
-    z-index: 9 !important;
-    background-color: #f9fafb !important;
+    position: sticky;
+    top: 92px;
+    z-index: 9;
+    background-color: #f9fafb;
   }
   .dark .custom-calendar:has(.fc-multimonth) [role="grid"] [role="row"]:has([role="columnheader"]),
   .dark .custom-calendar:has(.fc-multimonth) [role="grid"] .fc-multimonth-day-header-row,
@@ -1050,7 +1050,7 @@ pre[class*="language-"].line-numbers {
   .dark .custom-calendar [role="grid"].fc-multimonth [role="row"]:has([role="columnheader"]),
   .dark .custom-calendar [role="grid"].fc-multimonth .fc-multimonth-day-header-row,
   .dark .custom-calendar [role="grid"].fc-multimonth .fc-daygrid-header {
-    background-color: #111827 !important;
+    background-color: #111827;
   }
 
   /* Reset FullCalendar margin math to avoid whitespace gaps */
@@ -1058,15 +1058,15 @@ pre[class*="language-"].line-numbers {
   .custom-calendar .fc-multimonth [role="grid"] > div,
   .custom-calendar.fc-multimonth [role="grid"] > div,
   .custom-calendar [role="grid"].fc-multimonth > div {
-    margin-top: 0 !important;
-    margin-bottom: 0 !important;
+    margin-top: 0;
+    margin-bottom: 0;
   }
   .custom-calendar:has(.fc-multimonth) [role="grid"] > div > div,
   .custom-calendar .fc-multimonth [role="grid"] > div > div,
   .custom-calendar.fc-multimonth [role="grid"] > div > div,
   .custom-calendar [role="grid"].fc-multimonth > div > div {
-    margin-top: 0 !important;
-    margin-bottom: 0 !important;
+    margin-top: 0;
+    margin-bottom: 0;
   }
 
   /* Remove inner month border and border radius on small devices */
@@ -1074,14 +1074,14 @@ pre[class*="language-"].line-numbers {
   .custom-calendar .fc-multimonth [role="grid"] > div:last-child,
   .custom-calendar.fc-multimonth [role="grid"] > div:last-child,
   .custom-calendar [role="grid"].fc-multimonth > div:last-child {
-    border: 0 !important;
-    border-radius: 0 !important;
+    border: 0;
+    border-radius: 0;
   }
   .custom-calendar:has(.fc-multimonth) [role="grid"] [role="columnheader"],
   .custom-calendar .fc-multimonth [role="grid"] [role="columnheader"],
   .custom-calendar.fc-multimonth [role="grid"] [role="columnheader"],
   .custom-calendar [role="grid"].fc-multimonth [role="columnheader"] {
-    border-radius: 0 !important;
+    border-radius: 0;
   }
 }
 

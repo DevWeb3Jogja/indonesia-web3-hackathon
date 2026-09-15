@@ -55,7 +55,9 @@ export default async function OverviewPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-xl font-semibold">Overview</h1>
-        <p className="text-sm text-muted-foreground">Summary & hackathon phase controls.</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400">
+          Summary & hackathon phase controls.
+        </p>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -74,13 +76,15 @@ export default async function OverviewPage() {
           <CardHeader className="pb-2">
             <CardTitle className="text-base">Participants by stage</CardTitle>
             <CardDescription>
-              <span className="font-semibold text-foreground tabular-nums">{funnel.total}</span>{" "}
+              <span className="font-semibold text-gray-800 dark:text-white/90 tabular-nums">
+                {funnel.total}
+              </span>{" "}
               sign-ins ·{" "}
-              <span className="font-semibold text-foreground tabular-nums">
+              <span className="font-semibold text-gray-800 dark:text-white/90 tabular-nums">
                 {funnel.total - funnel.counts.connected}
               </span>{" "}
               engaged ·{" "}
-              <span className="font-semibold text-foreground tabular-nums">
+              <span className="font-semibold text-gray-800 dark:text-white/90 tabular-nums">
                 {funnel.counts.submitted}
               </span>{" "}
               submitted (
@@ -142,7 +146,7 @@ export default async function OverviewPage() {
           </CardContent>
         </Card>
       ) : (
-        <p className="text-sm text-muted-foreground">No hackathon yet.</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400">No hackathon yet.</p>
       )}
     </div>
   );

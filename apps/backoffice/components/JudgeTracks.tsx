@@ -55,7 +55,9 @@ export default function JudgeTracks({
           {t.name}
         </Button>
       ))}
-      {sel.length === 0 && <span className="text-xs text-muted-foreground italic">all tracks</span>}
+      {sel.length === 0 && (
+        <span className="text-xs text-gray-500 dark:text-gray-400 italic">all tracks</span>
+      )}
     </div>
   );
 }

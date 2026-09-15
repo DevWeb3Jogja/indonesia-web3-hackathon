@@ -11,7 +11,7 @@ export default async function ConfigPage() {
     return (
       <div className="space-y-6">
         <h1 className="text-xl font-semibold">Configuration</h1>
-        <p className="text-sm text-muted-foreground">No hackathon yet.</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400">No hackathon yet.</p>
       </div>
     );
   }
@@ -26,7 +26,9 @@ export default async function ConfigPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-xl font-semibold">Configuration</h1>
-        <p className="text-sm text-muted-foreground">Tracks, scoring criteria, and prizes.</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400">
+          Tracks, scoring criteria, and prizes.
+        </p>
       </div>
 
       <Card>

@@ -134,7 +134,7 @@ export default function ConfigEditor({
         <TableBody>
           {items.map((it) =>
             editing === it.id ? (
-              <TableRow key={it.id} className="bg-muted/40">
+              <TableRow key={it.id} className="bg-gray-100 dark:bg-white/[0.06]">
                 {fields.map((f) => (
                   <TableCell key={f.key}>
                     {cell(
@@ -192,14 +192,14 @@ export default function ConfigEditor({
                       onClick={() => remove(it.id)}
                       disabled={busy}
                     >
-                      <Trash2 className="text-destructive" />
+                      <Trash2 className="text-red-600 dark:text-red-400" />
                     </Button>
                   </div>
                 </TableCell>
               </TableRow>
             )
           )}
-          <TableRow className="bg-muted/20">
+          <TableRow className="bg-gray-100 dark:bg-white/[0.06]">
             {fields.map((f) => (
               <TableCell key={f.key}>
                 {cell(f, draft[f.key] ?? "", (v) => setDraft((s) => ({ ...s, [f.key]: v })), "add")}

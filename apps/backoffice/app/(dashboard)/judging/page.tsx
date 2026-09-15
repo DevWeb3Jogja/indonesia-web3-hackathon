@@ -48,7 +48,9 @@ export default async function JudgingPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-xl font-semibold">Judging</h1>
-        <p className="text-sm text-muted-foreground">Assign judges, ranking, and winners.</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400">
+          Assign judges, ranking, and winners.
+        </p>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
@@ -59,7 +61,7 @@ export default async function JudgingPage() {
           </CardHeader>
           <CardContent>
             {judges.length === 0 ? (
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-gray-500 dark:text-gray-400">
                 Belum ada juri. Set role di halaman Users.
               </p>
             ) : (
@@ -104,7 +106,7 @@ export default async function JudgingPage() {
               <TableBody>
                 {rankings.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={4} className="text-center text-muted-foreground">
+                    <TableCell colSpan={4} className="text-center text-gray-500 dark:text-gray-400">
                       Belum ada skor.
                     </TableCell>
                   </TableRow>
@@ -131,7 +133,7 @@ export default async function JudgingPage() {
         </CardHeader>
         <CardContent>
           {prizes.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No prizes configured yet.</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">No prizes configured yet.</p>
           ) : (
             <div className="space-y-3">
               {prizes.map((pz) => (

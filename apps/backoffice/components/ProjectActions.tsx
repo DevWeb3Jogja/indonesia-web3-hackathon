@@ -98,7 +98,7 @@ export default function ProjectActions({
         {next === "disqualified" ? "Disqualify" : "Restore"}
       </Button>
       <Button size="icon-xs" variant="ghost" onClick={remove} disabled={busy} title="Delete">
-        <Trash2 className="text-destructive" />
+        <Trash2 className="text-red-600 dark:text-red-400" />
       </Button>
 
       <Dialog open={editOpen} onOpenChange={setEditOpen}>

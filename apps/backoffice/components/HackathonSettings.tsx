@@ -66,7 +66,7 @@ export default function HackathonSettings({ current }: { current: Record<string,
 
   return (
     <div className="space-y-4">
-      <p className="text-xs text-muted-foreground">
+      <p className="text-xs text-gray-500 dark:text-gray-400">
         Pick a date. Empty = no deadline (deadlines count as end of day).
       </p>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
