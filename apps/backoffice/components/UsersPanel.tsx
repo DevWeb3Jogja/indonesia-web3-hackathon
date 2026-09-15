@@ -23,15 +23,9 @@ import {
 } from "@/components/ui/select";
 import PagedList from "./PagedList";
 import RoleSelect from "./RoleSelect";
+import UserDetails, { type AdminUser, StageBadge } from "./UserDetails";
 
-const short = (a: string) => `${a.slice(0, 6)}…${a.slice(-4)}`;
 const ROLES = ["participant", "judge", "admin"] as const;
-
-interface U {
-  address: string;
-  username: string | null;
-  role: string;
-}
 
 export default function UsersPanel() {
   const [refreshKey, setRefreshKey] = useState(0);
@@ -82,7 +76,7 @@ export default function UsersPanel() {
         </Button>
       </div>
 
-      <PagedList<U>
+      <PagedList<AdminUser>
         key={refreshKey}
         endpoint="/api/admin/users"
         rowKey={(u) => u.address}
@@ -103,14 +97,33 @@ export default function UsersPanel() {
           { value: "oldest", label: "Oldest" },
         ]}
         columns={[
-          { header: "Address", cell: (u) => <code>{short(u.address)}</code> },
-          { header: "Username", cell: (u) => u.username ?? "—" },
+          {
+            header: "Name",
+            cell: (u) => (
+              <div className="flex min-w-0 flex-col">
+                <span className="truncate font-medium text-gray-800 dark:text-white/90">
+                  {u.fullName || u.username || "—"}
+                </span>
+                {u.username && (
+                  <span className="truncate text-theme-xs text-gray-500 dark:text-gray-400">
+                    @{u.username}
+                  </span>
+                )}
+              </div>
+            ),
+          },
+          {
+            header: "Email",
+            cell: (u) => u.email ?? <span className="text-gray-400">—</span>,
+          },
+          { header: "Stage", cell: (u) => <StageBadge stage={u.stage} /> },
           {
             header: "Role",
             cell: (u, reload) => (
               <RoleSelect address={u.address} role={u.role} onChanged={reload} />
             ),
           },
+          { header: "", cell: (u) => <UserDetails user={u} /> },
         ]}
       />
 

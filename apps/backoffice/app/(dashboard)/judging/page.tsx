@@ -62,7 +62,7 @@ export default async function JudgingPage() {
           <CardContent>
             {judges.length === 0 ? (
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                Belum ada juri. Set role di halaman Users.
+                No judges yet. Set a user's role to Judge on the Users page.
               </p>
             ) : (
               <div className="space-y-3">
@@ -107,7 +107,7 @@ export default async function JudgingPage() {
                 {rankings.length === 0 && (
                   <TableRow>
                     <TableCell colSpan={4} className="text-center text-gray-500 dark:text-gray-400">
-                      Belum ada skor.
+                      No scores yet.
                     </TableCell>
                   </TableRow>
                 )}

@@ -303,7 +303,7 @@ export type UserStage = "connected" | "profileStarted" | "profileComplete" | "te
 
 /** Peta per-alamat untuk sebuah hackathon: siapa punya project, di tim mana, nama
  *  project/tim-nya. Dipakai userFunnel + export peserta. */
-async function funnelMaps(db: Db, hackathonId: string) {
+export async function funnelMaps(db: Db, hackathonId: string) {
   const [projRows, teamRows, teamRowsMeta] = await Promise.all([
     db
       .select({

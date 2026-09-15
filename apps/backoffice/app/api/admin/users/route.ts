@@ -1,6 +1,8 @@
 import {
   audit,
   ensureUser,
+  funnelMaps,
+  getCurrentHackathon,
   getUser,
   listUsersPaged,
   type Role,
@@ -66,5 +68,9 @@ export async function GET(req: Request) {
     role: ROLES.includes(role as Role) ? (role as Role) : undefined,
     sort: SORTS.includes(sort as UserSort) ? (sort as UserSort) : undefined,
   });
-  return NextResponse.json(result);
+  // Anotasi tahap funnel per user (butuh project/tim edisi berjalan).
+  const hackathon = await getCurrentHackathon(db);
+  const maps = hackathon ? await funnelMaps(db, hackathon.id) : null;
+  const items = result.items.map((u) => ({ ...u, stage: maps ? maps.stageOf(u) : null }));
+  return NextResponse.json({ ...result, items });
 }
