@@ -9,6 +9,7 @@ import { useWallet } from "@/lib/use-wallet";
 import { projectId } from "@/lib/web3";
 
 interface Props {
+  demo: boolean;
   signedIn: boolean;
   isAdmin: boolean;
   votingOpen: boolean;
@@ -57,6 +58,17 @@ export default function VoteApp(props: Props) {
 
   return (
     <main className="mx-auto min-h-dvh w-full max-w-[1100px] px-5 pb-24 sm:px-8">
+      {props.demo ? (
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-brand/50 bg-brand/10 px-4 py-3 text-sm text-brand">
+          <span className="font-semibold uppercase tracking-wider">● Mode demo</span>
+          <span className="text-brand/80">
+            Finalis mock — vote & ranking terpisah dari edisi asli.
+          </span>
+          <a href="/" className="underline underline-offset-2 hover:opacity-80">
+            keluar demo
+          </a>
+        </div>
+      ) : null}
       <Header signedIn={props.signedIn} />
       {props.canAccess ? <VoteBoard {...props} /> : <ClosedGate signedIn={props.signedIn} />}
     </main>
@@ -109,6 +121,7 @@ function ClosedGate({ signedIn }: { signedIn: boolean }) {
 }
 
 function VoteBoard({
+  demo,
   signedIn,
   votingOpen,
   canSeeLeaderboard,
@@ -125,9 +138,9 @@ function VoteBoard({
 
   const refetchLeaderboard = useCallback(async () => {
     if (!canSeeLeaderboard) return;
-    const res = await fetch("/api/leaderboard");
+    const res = await fetch(`/api/leaderboard${demo ? "?demo=1" : ""}`);
     if (res.ok) setLeaderboard((await res.json()).rows);
-  }, [canSeeLeaderboard]);
+  }, [canSeeLeaderboard, demo]);
 
   async function vote(id: string) {
     setError(null);
@@ -144,7 +157,7 @@ function VoteBoard({
           "content-type": "application/json",
           ...(token ? { "x-turnstile-token": token } : {}),
         },
-        body: JSON.stringify({ projectId: id }),
+        body: JSON.stringify({ projectId: id, ...(demo ? { demo: true } : {}) }),
       });
       if (!res.ok) {
         setError((await res.json().catch(() => null))?.error ?? "Gagal menyimpan vote");

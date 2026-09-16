@@ -9,7 +9,67 @@
  */
 import { and, count, eq, sql } from "drizzle-orm";
 import type { Db } from "./client";
-import { hackathons, projects, teamMembers, votes } from "./schema";
+import { hackathons, projects, teamMembers, teams, votes } from "./schema";
+
+/** Edisi demo (dry-run vote, admin-only). Hackathon TERPISAH → terisolasi total dari
+ *  edisi live: vote/leaderboard pakai logika ASLI, cuma di-scope ke id ini.
+ *  getCurrentHackathon & adminStats mengecualikan id ini supaya tak bocor ke situs live. */
+export const DEMO_HACKATHON_ID = "iw3h-demo";
+
+const DEMO_PROJECTS = [
+  { n: 1, name: "Demo — Nusantara Pay", tagline: "Contoh finalis demo day" },
+  { n: 2, name: "Demo — RantauChain", tagline: "Contoh finalis demo day" },
+  { n: 3, name: "Demo — Garuda ID", tagline: "Contoh finalis demo day" },
+  { n: 4, name: "Demo — Warung DeFi", tagline: "Contoh finalis demo day" },
+];
+
+/** Seed edisi demo (idempotent). leaderAddress/submitter = admin pemicu (user ASLI,
+ *  tak bikin user palsu). Tiap finalis punya teamId sendiri utk lolos uq_project_solo. */
+export async function ensureDemoEdition(db: Db, adminAddress: string) {
+  await db
+    .insert(hackathons)
+    .values({
+      id: DEMO_HACKATHON_ID,
+      slug: DEMO_HACKATHON_ID,
+      name: "Demo Voting",
+      year: 2026,
+      status: "submission",
+      votingOpen: true,
+      leaderboardPublic: false,
+    })
+    .onConflictDoUpdate({ target: hackathons.id, set: { votingOpen: true } });
+  for (const p of DEMO_PROJECTS) {
+    const teamId = `demo-team-${p.n}`;
+    await db
+      .insert(teams)
+      .values({
+        id: teamId,
+        hackathonId: DEMO_HACKATHON_ID,
+        name: p.name,
+        inviteCode: `demo-invite-${p.n}`,
+        leaderAddress: adminAddress,
+      })
+      .onConflictDoNothing();
+    await db
+      .insert(projects)
+      .values({
+        id: `demo-proj-${p.n}`,
+        hackathonId: DEMO_HACKATHON_ID,
+        teamId,
+        submitterAddress: adminAddress,
+        name: p.name,
+        tagline: p.tagline,
+        demoDay: true,
+        status: "submitted",
+      })
+      .onConflictDoNothing();
+  }
+}
+
+/** Reset dry-run: hapus semua vote demo (finalis mock tetap). */
+export async function resetDemoVotes(db: Db) {
+  await db.delete(votes).where(eq(votes.hackathonId, DEMO_HACKATHON_ID));
+}
 
 export class VoteError extends Error {
   constructor(

@@ -1,11 +1,14 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { createTeam, joinTeam } from "../src/teams";
+import { createTeam, getCurrentHackathon, joinTeam } from "../src/teams";
 import { ensureUser, setUserRole } from "../src/queries";
 import {
   castVote,
+  DEMO_HACKATHON_ID,
+  ensureDemoEdition,
   getMyVote,
   listDemoDayProjects,
   markDemoDay,
+  resetDemoVotes,
   setVotingSettings,
   VoteError,
   voteLeaderboard,
@@ -122,5 +125,33 @@ describe("votes (integration)", () => {
 
   it("VoteError adalah instanceof Error (bisa dipetakan di route)", () => {
     expect(new VoteError("voting_closed", "x")).toBeInstanceOf(Error);
+  });
+
+  it("edisi demo: terisolasi dari edisi live, tapi vote-nya real", async () => {
+    await ensureDemoEdition(db, addr(1)); // idempotent
+    await ensureDemoEdition(db, addr(1));
+
+    // getCurrentHackathon TAK pernah balikin edisi demo (situs live aman).
+    expect((await getCurrentHackathon(db))?.id).toBe(H);
+
+    // 4 finalis mock, voting sudah kebuka.
+    const finalists = await listDemoDayProjects(db, DEMO_HACKATHON_ID);
+    expect(finalists).toHaveLength(4);
+
+    // Vote REAL di edisi demo (admin selalu eligible).
+    const r = await castVote(db, DEMO_HACKATHON_ID, addr(4), "admin", finalists[0].id);
+    expect(r.ok).toBe(true);
+    expect(await getMyVote(db, DEMO_HACKATHON_ID, addr(4))).toBe(finalists[0].id);
+    expect(
+      (await voteLeaderboard(db, DEMO_HACKATHON_ID)).find((x) => x.id === finalists[0].id)?.votes
+    ).toBe(1);
+
+    // Vote demo TAK bocor ke edisi live.
+    expect(await getMyVote(db, H, addr(4))).toBeNull();
+
+    // Reset dry-run mengosongkan vote demo, finalis tetap.
+    await resetDemoVotes(db);
+    expect(await getMyVote(db, DEMO_HACKATHON_ID, addr(4))).toBeNull();
+    expect(await listDemoDayProjects(db, DEMO_HACKATHON_ID)).toHaveLength(4);
   });
 });

@@ -1,5 +1,12 @@
 import { clientIp, verifyTurnstile } from "@iw3h/auth";
-import { castVote, getCurrentHackathon, rateLimit, VoteError } from "@iw3h/db";
+import {
+  castVote,
+  DEMO_HACKATHON_ID,
+  ensureDemoEdition,
+  getCurrentHackathon,
+  rateLimit,
+  VoteError,
+} from "@iw3h/db";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requireAuth } from "@/lib/session";
@@ -7,7 +14,7 @@ import { db } from "@/lib/turso";
 
 export const dynamic = "force-dynamic";
 
-const body = z.object({ projectId: z.string().min(1).max(64) });
+const body = z.object({ projectId: z.string().min(1).max(64), demo: z.boolean().optional() });
 
 const STATUS: Record<VoteError["code"], number> = {
   voting_closed: 409,
@@ -32,11 +39,22 @@ export async function POST(req: Request) {
   const parsed = body.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: "Body tidak valid" }, { status: 400 });
 
-  const hackathon = await getCurrentHackathon(db);
-  if (!hackathon) return NextResponse.json({ error: "Tidak ada hackathon aktif" }, { status: 409 });
+  // Demo (dry-run) HANYA untuk admin — vote masuk edisi demo terpisah.
+  const isDemo = parsed.data.demo === true && auth.role === "admin";
+  let hackathonId: string;
+  if (isDemo) {
+    await ensureDemoEdition(db, auth.address);
+    hackathonId = DEMO_HACKATHON_ID;
+  } else {
+    const hackathon = await getCurrentHackathon(db);
+    if (!hackathon) {
+      return NextResponse.json({ error: "Tidak ada hackathon aktif" }, { status: 409 });
+    }
+    hackathonId = hackathon.id;
+  }
 
   try {
-    const res = await castVote(db, hackathon.id, auth.address, auth.role, parsed.data.projectId);
+    const res = await castVote(db, hackathonId, auth.address, auth.role, parsed.data.projectId);
     return NextResponse.json(res);
   } catch (e) {
     if (e instanceof VoteError)

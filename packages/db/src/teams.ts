@@ -1,7 +1,8 @@
 import { randomBytes } from "node:crypto";
-import { and, asc, eq } from "drizzle-orm";
+import { and, asc, eq, ne } from "drizzle-orm";
 import type { Db } from "./client";
 import { hackathons, projects, registrations, teamMembers, teams } from "./schema";
+import { DEMO_HACKATHON_ID } from "./votes";
 
 export const MAX_TEAM_SIZE = 5;
 
@@ -38,7 +39,12 @@ function teamId(): string {
 
 /** Hackathon aktif = yang belum completed, terbaru. Untuk saat ini hanya satu edisi. */
 export async function getCurrentHackathon(db: Db) {
-  const rows = await db.select().from(hackathons).limit(1);
+  // Kecualikan edisi demo → situs live tak pernah salah ambil hackathon demo.
+  const rows = await db
+    .select()
+    .from(hackathons)
+    .where(ne(hackathons.id, DEMO_HACKATHON_ID))
+    .limit(1);
   return rows[0] ?? null;
 }
 

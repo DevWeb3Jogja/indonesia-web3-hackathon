@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, inArray, or, sql } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, ne, or, sql } from "drizzle-orm";
 import type { Db } from "./client";
 import {
   buildPage,
@@ -19,6 +19,7 @@ import {
   teams,
   users,
 } from "./schema";
+import { DEMO_HACKATHON_ID } from "./votes";
 
 export type Role = "participant" | "judge" | "admin";
 
@@ -393,7 +394,11 @@ export async function adminStats(db: Db) {
   const [u, r, p, s] = await Promise.all([
     db.select({ n: sql<number>`count(*)` }).from(users),
     db.select({ n: sql<number>`count(*)` }).from(registrations),
-    db.select({ n: sql<number>`count(*)` }).from(projects),
+    // Kecualikan finalis mock edisi demo dari hitungan proyek.
+    db
+      .select({ n: sql<number>`count(*)` })
+      .from(projects)
+      .where(ne(projects.hackathonId, DEMO_HACKATHON_ID)),
     db.select({ n: sql<number>`count(*)` }).from(scores),
   ]);
   return { users: u[0].n, registrations: r[0].n, projects: p[0].n, scores: s[0].n };
