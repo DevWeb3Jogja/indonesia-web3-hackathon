@@ -81,6 +81,34 @@ const EMPTY = {
 };
 type FormState = typeof EMPTY;
 
+// Draft profil per-tab (sessionStorage) supaya isian tak hilang saat redirect OAuth
+// GitHub / remount. Di-scope per-alamat → draft wallet lain tak bocor ke form wallet
+// aktif (mis. device dipakai bergantian). Hanya data profil user sendiri, bukan
+// token/kredensial; dibersihkan setelah save.
+const DRAFT_KEY = "iw3h_profile_draft";
+function readDraft(address: string): FormState | null {
+  try {
+    const d = JSON.parse(sessionStorage.getItem(DRAFT_KEY) ?? "null");
+    return d && d.address === address ? (d.form as FormState) : null;
+  } catch {
+    return null;
+  }
+}
+function writeDraft(address: string, form: FormState) {
+  try {
+    sessionStorage.setItem(DRAFT_KEY, JSON.stringify({ address, form }));
+  } catch {
+    /* private mode / storage penuh — abaikan */
+  }
+}
+function clearDraft() {
+  try {
+    sessionStorage.removeItem(DRAFT_KEY);
+  } catch {
+    /* abaikan */
+  }
+}
+
 // Validasi format (selaras dengan skema server).
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const X_RE = /^https:\/\/(x|twitter)\.com\/.+/i;
@@ -134,7 +162,7 @@ function Inner({ t }: { t: T }) {
     const data: Profile | null = await res.json().catch(() => null);
     if (data) {
       setProfile(data);
-      setForm({
+      const serverForm: FormState = {
         fullName: data.fullName ?? "",
         username: data.username ?? "",
         email: data.email ?? "",
@@ -144,7 +172,9 @@ function Inner({ t }: { t: T }) {
         organization: data.organization ?? "",
         bio: data.bio ?? "",
         twitterUrl: data.twitterUrl ?? "",
-      });
+      };
+      // Isian belum-disimpan (mis. balik dari OAuth GitHub) menang atas data server.
+      setForm(readDraft(data.address) ?? serverForm);
     }
     setStatus("idle");
   }, []);
@@ -246,6 +276,7 @@ function Inner({ t }: { t: T }) {
     setSaving(false);
     if (res.ok) {
       setProfile(await res.json());
+      clearDraft(); // isian sudah tersimpan di server
       setMessage({ kind: "ok", text: t.saved });
       // Datang dari alur submit ("lengkapi profil dulu") → balik ke sana, jangan
       // biarkan user nyasar di /profile. Hanya path internal (anti open-redirect).
@@ -476,7 +507,13 @@ function Inner({ t }: { t: T }) {
             </button>
           </div>
         ) : (
-          <a href={`/api/auth/github?next=${encodeURIComponent(pathname)}`} className="link-chip">
+          <a
+            href={`/api/auth/github?next=${encodeURIComponent(pathname)}`}
+            onClick={() => {
+              if (address) writeDraft(address, form); // simpan isian sebelum redirect OAuth
+            }}
+            className="link-chip"
+          >
             <GithubMark />
             {t.githubConnect}
           </a>
