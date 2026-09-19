@@ -14,9 +14,11 @@ export const dynamic = "force-dynamic";
 export async function GET(req: NextRequest) {
   const base = siteBase(req);
   const url = new URL(req.url);
-  const next = req.cookies.get("gh_oauth_next")?.value || "/en/profile";
+  const raw = req.cookies.get("gh_oauth_next")?.value || "/en/profile";
+  // Defense-in-depth: path internal saja (tolak "//evil.com").
+  const next = raw.startsWith("/") && !raw.startsWith("//") ? raw : "/en/profile";
   const done = (github: string) => {
-    const to = new URL(next.startsWith("/") ? next : "/en/profile", base);
+    const to = new URL(next, base);
     to.searchParams.set("github", github);
     const res = NextResponse.redirect(to);
     res.cookies.delete("gh_oauth_state");

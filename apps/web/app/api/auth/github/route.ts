@@ -9,7 +9,9 @@ export const dynamic = "force-dynamic";
 export async function GET(req: NextRequest) {
   const url = new URL(req.url);
   const base = siteBase(req);
-  const next = url.searchParams.get("next") || "/en/profile";
+  // Path internal saja — tolak "//evil.com" (protocol-relative) → anti open-redirect.
+  const raw = url.searchParams.get("next") || "/en/profile";
+  const next = raw.startsWith("/") && !raw.startsWith("//") ? raw : "/en/profile";
   const session = await auth.getSession();
   if (!session.address) return NextResponse.redirect(new URL(next, base));
 
@@ -37,7 +39,7 @@ export async function GET(req: NextRequest) {
     maxAge: 600,
   };
   res.cookies.set("gh_oauth_state", state, cookieOpts);
-  // Simpan path balik (locale-aware) untuk redirect di callback.
-  res.cookies.set("gh_oauth_next", next.startsWith("/") ? next : "/en/profile", cookieOpts);
+  // Simpan path balik (locale-aware, sudah tersanitasi) untuk redirect di callback.
+  res.cookies.set("gh_oauth_next", next, cookieOpts);
   return res;
 }

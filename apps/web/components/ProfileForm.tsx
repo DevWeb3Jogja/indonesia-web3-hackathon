@@ -204,7 +204,10 @@ function Inner({ t }: { t: T }) {
       unconfigured: { kind: "err", text: t.githubError },
     };
     if (msg[p]) setMessage(msg[p]);
-    window.history.replaceState({}, "", window.location.pathname);
+    // Hapus hanya ?github; pertahankan ?next supaya save bisa balik ke halaman asal.
+    const u = new URL(window.location.href);
+    u.searchParams.delete("github");
+    window.history.replaceState({}, "", u.pathname + u.search);
   }, [t]);
 
   async function disconnectGithub() {
@@ -509,8 +512,12 @@ function Inner({ t }: { t: T }) {
         ) : (
           <a
             href={`/api/auth/github?next=${encodeURIComponent(pathname)}`}
-            onClick={() => {
+            onClick={(e) => {
+              e.preventDefault();
               if (address) writeDraft(address, form); // simpan isian sebelum redirect OAuth
+              // Bawa query (?next=/submit) juga → setelah connect+save balik ke halaman asal.
+              const back = pathname + window.location.search;
+              window.location.href = `/api/auth/github?next=${encodeURIComponent(back)}`;
             }}
             className="link-chip"
           >
