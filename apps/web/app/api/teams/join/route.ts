@@ -1,5 +1,13 @@
 import { clientIp } from "@iw3h/auth";
-import { canManageTeam, getCurrentHackathon, joinTeam, rateLimit, TeamError } from "@iw3h/db";
+import {
+  canManageTeam,
+  getCurrentHackathon,
+  getUser,
+  isProfileComplete,
+  joinTeam,
+  rateLimit,
+  TeamError,
+} from "@iw3h/db";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requireAuth } from "@/lib/session";
@@ -20,6 +28,17 @@ export async function POST(req: Request) {
 
   const limit = await rateLimit(db, `team-join:${clientIp(req)}`, 10, 300);
   if (!limit.ok) return NextResponse.json({ error: "Terlalu banyak percobaan" }, { status: 429 });
+
+  // Wajib lengkapi profil sebelum gabung tim (sama seperti submit) — backstop server.
+  if (!isProfileComplete(await getUser(db, auth.address))) {
+    return NextResponse.json(
+      {
+        error: "Lengkapi profil (nama, email & connect GitHub) dulu sebelum gabung tim",
+        code: "profile_incomplete",
+      },
+      { status: 403 }
+    );
+  }
 
   const parsed = joinSchema.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: "Kode tidak valid" }, { status: 400 });

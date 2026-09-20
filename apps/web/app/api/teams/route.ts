@@ -5,6 +5,8 @@ import {
   getCurrentHackathon,
   getMyTeam,
   getPublicProfiles,
+  getUser,
+  isProfileComplete,
   rateLimit,
   TeamError,
 } from "@iw3h/db";
@@ -61,6 +63,17 @@ export async function POST(req: Request) {
 
   const limit = await rateLimit(db, `team:${clientIp(req)}`, 10, 300);
   if (!limit.ok) return NextResponse.json({ error: "Terlalu banyak percobaan" }, { status: 429 });
+
+  // Wajib lengkapi profil sebelum bikin tim (leader juga anggota tim) — backstop server.
+  if (!isProfileComplete(await getUser(db, auth.address))) {
+    return NextResponse.json(
+      {
+        error: "Lengkapi profil (nama, email & connect GitHub) dulu sebelum bikin tim",
+        code: "profile_incomplete",
+      },
+      { status: 403 }
+    );
+  }
 
   // Anti-sybil: gate reputasi on-chain (opt-in via SYBIL_MIN_TX).
   const sybil = await checkWalletSybil(auth.address as `0x${string}`, sybilPolicyFromEnv());
