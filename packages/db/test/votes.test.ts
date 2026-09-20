@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { createTeam, getCurrentHackathon, joinTeam } from "../src/teams";
 import { ensureUser, setUserRole } from "../src/queries";
+import { createTeam, getCurrentHackathon, joinTeam } from "../src/teams";
 import {
   castVote,
   DEMO_HACKATHON_ID,

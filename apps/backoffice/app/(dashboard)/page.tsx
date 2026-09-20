@@ -1,9 +1,9 @@
 import { adminStats, getCurrentHackathon, userFunnel, voteLeaderboard } from "@iw3h/db";
 import HackathonSettings from "@/components/HackathonSettings";
 import PhaseControl from "@/components/PhaseControl";
-import VotingControl from "@/components/VotingControl";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import VotingControl from "@/components/VotingControl";
 import { db } from "@/lib/turso";
 
 export const dynamic = "force-dynamic";
