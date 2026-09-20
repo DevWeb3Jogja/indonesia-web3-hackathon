@@ -391,6 +391,7 @@
     "eventHeading": "Event",
     "register": "Register via Luma",
     "bnbHackathons": "BNB Chain Hackathons",
+    "telegram": "Hackathon Telegram group",
     "community": "Dev Web3 Jogja community",
     "copyright": "Indonesia Web3 Hackathon 2026",
     "builtOn": "Web3 x AI · Built on BNB Chain"
@@ -548,5 +549,13 @@
     "scored": "Scored",
     "pickAll": "Score all criteria first",
     "error": "Failed to save. Try again."
+  },
+  "support": {
+    "open": "Need help?",
+    "close": "Close",
+    "title": "Contact & support",
+    "body": "Stuck on registration, teams, or submission? Ask the organizers directly — the Telegram group gets the fastest reply.",
+    "telegram": "Hackathon Telegram group",
+    "telegramHint": "Ask organizers & other builders, fastest reply"
   }
 }

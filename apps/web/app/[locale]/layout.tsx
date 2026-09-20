@@ -8,6 +8,7 @@ import EvolveNav from "@/components/EvolveNav";
 import Footer from "@/components/Footer";
 import HideChrome from "@/components/HideChrome";
 import ProfileReminder from "@/components/ProfileReminder";
+import SupportBubble from "@/components/SupportBubble";
 import Web3Provider from "@/components/Web3Provider";
 import { getDict, isLocale, LOCALES } from "@/lib/i18n";
 
@@ -111,6 +112,8 @@ export default async function LocaleLayout(props: {
               </div>
             </div>
           </div>
+          {/* Di luar scroll-root & HideChrome: bantuan tetap ada di /submit juga. */}
+          <SupportBubble t={dict.support} />
         </Web3Provider>
       </body>
       {process.env.NODE_ENV === "production" && <GoogleAnalytics gaId="G-LRVJKZTV5T" />}

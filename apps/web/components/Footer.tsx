@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { REGISTER_URL } from "@/lib/content";
+import { COMMUNITY_URL, REGISTER_URL, TELEGRAM_URL } from "@/lib/content";
 import type { Dict } from "@/lib/i18n";
 import { localePath } from "@/lib/locale";
 import { ArrowUpRight, BrandMark } from "./ui";
@@ -18,6 +18,8 @@ export default function Footer({ locale, dict }: { locale: string; dict: Dict })
   const external = [
     { href: REGISTER_URL, label: t.register },
     { href: "https://www.bnbchain.org/en/hackathons", label: t.bnbHackathons },
+    { href: TELEGRAM_URL, label: t.telegram },
+    { href: COMMUNITY_URL, label: t.community },
   ];
 
   return (
@@ -69,7 +71,6 @@ export default function Footer({ locale, dict }: { locale: string; dict: Dict })
                   <ArrowUpRight className="h-3 w-3 transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
                 </a>
               ))}
-              <p className="text-ink/50">{t.community}</p>
             </div>
           </div>
         </div>
