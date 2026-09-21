@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import type { Dict } from "@/lib/i18n";
 import { resizeToWebp, uploadImage } from "@/lib/image";
+import { isVideoUrl } from "@/lib/project-schema";
 import { PROJECT_SOCIALS } from "@/lib/project-socials";
 import { NETWORKS, TRACKS } from "@/lib/types";
 import MarkdownEditor from "./MarkdownEditor";
@@ -159,7 +160,8 @@ export default function ProjectForm({
     d.contractAddress.trim() !== "" && !/^0x[0-9a-fA-F]{40}$/.test(d.contractAddress.trim());
   const githubError = !isHttps(d.githubUrl);
   const demoError = !isHttps(d.demoUrl);
-  const videoError = !isHttps(d.demoVideoUrl);
+  // Video wajib dari host video (bukan link web) — samakan dgn skema server.
+  const videoError = d.demoVideoUrl.trim() !== "" && !isVideoUrl(d.demoVideoUrl.trim());
   const xError = !isHttps(d.xUrl);
   const linkedinError = !isHttps(d.linkedinUrl);
   const pitchError = !isHttps(d.pitchDeckUrl);
@@ -408,7 +410,7 @@ export default function ProjectForm({
             placeholder="https://youtube.com/…"
           />
           {fieldMsg(tried && videoMissing, form.errRequired)}
-          {fieldMsg(videoError, form.errUrl)}
+          {fieldMsg(videoError, form.errVideo)}
         </div>
       </div>
 

@@ -338,6 +338,7 @@
     "errTracks": "Pilih minimal satu track",
     "errContract": "Alamat kontrak tidak valid (0x + 40 hex)",
     "errUrl": "Harus link https:// yang valid",
+    "errVideo": "Harus link video (YouTube, Vimeo, Google Drive, atau Loom)",
     "errFix": "Perbaiki dulu field yang ditandai.",
     "contract": "Contract Address *",
     "contractHint": "Akan ditautkan otomatis ke BscScan sesuai network.",

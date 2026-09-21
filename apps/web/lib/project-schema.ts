@@ -18,6 +18,16 @@ const optionalUrl = z
 // Versi wajib (dipakai createProjectSchema) — tidak boleh kosong.
 const requiredUrl = z.string().url().max(2048).startsWith("https://", "Harus diawali https://");
 
+// Video demo HARUS host video yang bisa ditonton — bukan link web project.
+// YouTube/Vimeo/Google Drive/Loom, atau file video langsung (.mp4/.webm/.mov).
+export const isVideoUrl = (v: string) =>
+  /^https:\/\/([a-z0-9-]+\.)*(youtube\.com|youtu\.be|vimeo\.com|drive\.google\.com|loom\.com)\//i.test(
+    v
+  ) || /^https:\/\/\S+\.(mp4|webm|mov|m4v)(\?\S*)?$/i.test(v);
+const VIDEO_MSG = "Harus link video (YouTube, Vimeo, Google Drive, atau Loom)";
+const optionalVideoUrl = optionalUrl.refine((v) => v == null || isVideoUrl(v), VIDEO_MSG);
+const requiredVideoUrl = requiredUrl.refine(isVideoUrl, VIDEO_MSG);
+
 const isLogo = (v: string) =>
   /^https:\/\//.test(v) ||
   /^\/api\/uploads\//.test(v) || // hasil upload same-origin (R2 / fallback lokal)
@@ -65,7 +75,7 @@ export const projectFields = z.object({
   description: z.string().max(20000).refine(isClean, CLEAN_MSG).nullish(),
   githubUrl: optionalUrl,
   demoUrl: optionalUrl,
-  demoVideoUrl: optionalUrl,
+  demoVideoUrl: optionalVideoUrl,
   logoUrl: logoField,
   extraLinks: extraLinksField,
 });
@@ -76,7 +86,7 @@ export const createProjectSchema = projectFields
   .extend({
     mode: z.enum(["solo", "team"]),
     logoUrl: requiredLogo,
-    demoVideoUrl: requiredUrl,
+    demoVideoUrl: requiredVideoUrl,
   })
   .superRefine((data, ctx) => {
     // Pitch deck wajib untuk submission baru. Disimpan di extra_links (JSON), jadi

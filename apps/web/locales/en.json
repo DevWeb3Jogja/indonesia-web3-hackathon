@@ -338,6 +338,7 @@
     "errTracks": "Pick at least one track",
     "errContract": "Invalid contract address (0x + 40 hex)",
     "errUrl": "Must be a valid https:// link",
+    "errVideo": "Must be a video link (YouTube, Vimeo, Google Drive, or Loom)",
     "errFix": "Please fix the highlighted fields.",
     "contract": "Contract Address *",
     "contractHint": "Automatically linked to BscScan based on the network.",
