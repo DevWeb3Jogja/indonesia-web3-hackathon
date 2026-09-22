@@ -7,6 +7,7 @@ import {
   getMyTeam,
   getPublicProfiles,
   getUser,
+  getUsersByAddresses,
   isProfileComplete,
   listProjectsPaged,
   ProjectError,
@@ -141,6 +142,20 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Kamu belum punya tim" }, { status: 409 });
     }
     teamId = team.id;
+    // Semua anggota tim wajib profil lengkap — bukan cuma yang submit.
+    const members = await getUsersByAddresses(
+      db,
+      team.members.map((m) => m.address)
+    );
+    if (team.members.some((m) => !isProfileComplete(members.get(m.address) ?? null))) {
+      return NextResponse.json(
+        {
+          error: "Semua anggota tim harus melengkapi profil dulu sebelum submit",
+          code: "team_profile_incomplete",
+        },
+        { status: 400 }
+      );
+    }
   }
 
   // Verifikasi bytecode kontrak (kalau diisi) — saring submission asal-asalan.
