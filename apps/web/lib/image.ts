@@ -10,7 +10,14 @@ type Fit = "cover" | "contain";
  * - "cover": crop tengah ke kotak `size`×`size` (logo).
  * - "contain": muat dalam kotak `size` tanpa upscale, jaga aspek (gambar inline).
  */
-export function resizeToWebp(file: File, size: number, fit: Fit, quality = 0.85): Promise<Blob> {
+export function resizeToWebp(
+  file: File,
+  size: number,
+  fit: Fit,
+  quality = 0.85,
+  // Logo pakai "image/png" → bisa dirender di OG image (satori tak bisa webp).
+  mime: "image/webp" | "image/png" = "image/webp"
+): Promise<Blob> {
   return new Promise((resolve, reject) => {
     const url = URL.createObjectURL(file);
     const img = new Image();
@@ -37,11 +44,7 @@ export function resizeToWebp(file: File, size: number, fit: Fit, quality = 0.85)
         ctx.drawImage(img, 0, 0, w, h);
       }
       URL.revokeObjectURL(url);
-      canvas.toBlob(
-        (b) => (b ? resolve(b) : reject(new Error("encode failed"))),
-        "image/webp",
-        quality
-      );
+      canvas.toBlob((b) => (b ? resolve(b) : reject(new Error("encode failed"))), mime, quality);
     };
     img.onerror = () => {
       URL.revokeObjectURL(url);
@@ -51,11 +54,12 @@ export function resizeToWebp(file: File, size: number, fit: Fit, quality = 0.85)
   });
 }
 
-/** Upload webp Blob → URL same-origin (R2 / fallback disk). Throw kalau gagal. */
+/** Upload gambar Blob → URL same-origin (R2 / fallback disk). content-type ikut
+ *  blob.type (webp/png) supaya ekstensi tersimpan benar. Throw kalau gagal. */
 export async function uploadImage(blob: Blob): Promise<string> {
   const res = await fetch("/api/uploads/image", {
     method: "POST",
-    headers: { "content-type": "image/webp" },
+    headers: { "content-type": blob.type || "image/webp" },
     body: blob,
   });
   if (!res.ok) throw new Error(String(res.status));

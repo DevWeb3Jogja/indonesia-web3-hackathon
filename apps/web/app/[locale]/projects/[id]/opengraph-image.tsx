@@ -74,7 +74,6 @@ export default async function Image({ params }: { params: Promise<{ id: string }
 
       <div style={{ display: "flex", alignItems: "center" }}>
         {logo ? (
-          // biome-ignore lint/performance/noImgElement: satori (next/og) hanya kenal <img>
           <img
             src={logo}
             alt={name}

@@ -136,7 +136,8 @@ export default function ProjectForm({
     if (file.size > 5 * 1024 * 1024) return setLogoErr(form.logoTooBig);
     setLogoUploading(true);
     try {
-      const blob = await resizeToWebp(file, 256, "cover");
+      // Logo → PNG (bukan webp) supaya bisa dirender di OG image share link.
+      const blob = await resizeToWebp(file, 256, "cover", 0.85, "image/png");
       set("logoUrl", await uploadImage(blob));
     } catch {
       setLogoErr(form.imgError);
