@@ -1,4 +1,5 @@
 import { getProjectById, getPublicProfiles } from "@iw3h/db";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import AvatarStack from "@/components/AvatarStack";
@@ -28,6 +29,24 @@ function parseLinks(raw: string | null | undefined): ExtraLink[] {
 }
 
 const short = (a: string) => `${a.slice(0, 6)}…${a.slice(-4)}`;
+
+// Metadata per-project → og:title/description beda tiap link. og:image di-inject
+// otomatis dari opengraph-image.tsx (kartu dinamis per project).
+export async function generateMetadata(props: {
+  params: Promise<{ id: string; locale: string }>;
+}): Promise<Metadata> {
+  const { id } = await props.params;
+  const p = await getProjectById(db, id).catch(() => null);
+  if (p?.status !== "submitted") return {};
+  const title = `${p.name} — Indonesia Web3 Hackathon`;
+  const description = p.tagline || "Project di Indonesia Web3 Hackathon 2026";
+  return {
+    title,
+    description,
+    openGraph: { title, description, type: "article" },
+    twitter: { card: "summary_large_image", title, description },
+  };
+}
 
 /** Escape literal "\n" (mis. seed) → baris baru asli. */
 const unescapeNewlines = (s: string) => s.replace(/\\r\\n|\\n/g, "\n");
