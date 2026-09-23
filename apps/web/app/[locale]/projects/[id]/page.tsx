@@ -2,6 +2,7 @@ import { getProjectById, getPublicProfiles } from "@iw3h/db";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { cache } from "react";
 import AvatarStack from "@/components/AvatarStack";
 import MarkdownRenderer from "@/components/MarkdownRenderer";
 import { ArrowUpRight } from "@/components/ui";
@@ -30,13 +31,17 @@ function parseLinks(raw: string | null | undefined): ExtraLink[] {
 
 const short = (a: string) => `${a.slice(0, 6)}…${a.slice(-4)}`;
 
+// generateMetadata + page sama-sama butuh project → cache() per-request supaya
+// cuma 1 query lintas-samudra (~280ms), bukan 2.
+const getProject = cache((id: string) => getProjectById(db, id));
+
 // Metadata per-project → og:title/description beda tiap link. og:image di-inject
 // otomatis dari opengraph-image.tsx (kartu dinamis per project).
 export async function generateMetadata(props: {
   params: Promise<{ id: string; locale: string }>;
 }): Promise<Metadata> {
   const { id } = await props.params;
-  const p = await getProjectById(db, id).catch(() => null);
+  const p = await getProject(id).catch(() => null);
   if (p?.status !== "submitted") return {};
   const title = `${p.name} — Indonesia Web3 Hackathon`;
   const description = p.tagline || "Project di Indonesia Web3 Hackathon 2026";
@@ -55,7 +60,7 @@ export default async function ProjectDetailPage(props: {
   params: Promise<{ id: string; locale: string }>;
 }) {
   const params = await props.params;
-  const p = await getProjectById(db, params.id);
+  const p = await getProject(params.id);
   if (p?.status !== "submitted") notFound();
 
   const memberAddresses = p.team ? p.team.memberAddresses : [p.submitterAddress];

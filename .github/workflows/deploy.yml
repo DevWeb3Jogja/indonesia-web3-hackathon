@@ -1,8 +1,9 @@
 name: deploy
 
-# Auto-deploy ke Coolify (VPS) tiap push ke main. Butuh repo secret
-# COOLIFY_TOKEN (Settings → Secrets and variables → Actions). Tanpa secret,
-# step ini skip (bukan gagal), jadi tak ada silang merah di commit.
+# Auto-deploy ke Coolify (VPS) tiap push ke main — HANYA app yang berubah
+# (monorepo). Kode bersama (packages/*, lockfile, workspace) → semua app.
+# Satu-satunya jalur deploy: jangan trigger manual juga (dobel build + antrean
+# Coolify balapan). Tanpa secret COOLIFY_TOKEN → skip (bukan gagal).
 on:
   push:
     branches: [main]
@@ -15,16 +16,40 @@ jobs:
   coolify:
     runs-on: ubuntu-latest
     steps:
-      - name: Trigger Coolify deploy (web + backoffice)
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Trigger Coolify deploy (app yang berubah saja)
         env:
           COOLIFY_TOKEN: ${{ secrets.COOLIFY_TOKEN }}
+          BEFORE: ${{ github.event.before }}
+          AFTER: ${{ github.sha }}
         run: |
           if [ -z "$COOLIFY_TOKEN" ]; then
             echo "COOLIFY_TOKEN belum di-set — auto-deploy dilewati."
-            echo "Set di repo Settings → Secrets and variables → Actions."
             exit 0
           fi
+          WEB=gnnfh3as8gb9vtgdgsm6ievk
+          BO=760mtjav3cckpowj7scvmil1
+          VOTE=34vzji0nvmt3empjvryph4ka
+          ALL="$WEB,$BO,$VOTE"
+          # Push pertama / force-push (BEFORE tak valid) → deploy semua.
+          if ! CHANGED=$(git diff --name-only "$BEFORE" "$AFTER" 2>/dev/null); then
+            UUIDS=$ALL
+          elif echo "$CHANGED" | grep -qE '^(packages/|package\.json$|pnpm-lock\.yaml$|pnpm-workspace\.yaml$)'; then
+            UUIDS=$ALL
+          else
+            UUIDS=""
+            echo "$CHANGED" | grep -q '^apps/web/' && UUIDS="$UUIDS,$WEB"
+            echo "$CHANGED" | grep -q '^apps/backoffice/' && UUIDS="$UUIDS,$BO"
+            echo "$CHANGED" | grep -q '^apps/vote/' && UUIDS="$UUIDS,$VOTE"
+            UUIDS="${UUIDS#,}"
+          fi
+          if [ -z "$UUIDS" ]; then
+            echo "Tak ada app yang berubah — deploy dilewati."
+            exit 0
+          fi
+          echo "Deploy: $UUIDS"
           curl -fsS -X POST \
-            "http://103.150.190.91:8000/api/v1/deploy?uuid=gnnfh3as8gb9vtgdgsm6ievk,760mtjav3cckpowj7scvmil1&force=false" \
+            "http://103.150.190.91:8000/api/v1/deploy?uuid=$UUIDS&force=false" \
             -H "Authorization: Bearer $COOLIFY_TOKEN"
-          echo "Deploy web + backoffice triggered."

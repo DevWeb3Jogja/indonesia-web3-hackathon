@@ -60,7 +60,9 @@ async function buildProjectCards(hackathonId: string, opts: ListOpts) {
 /** Galeri publik — project ter-submit (tanpa auth), paginated + search/filter/sort. */
 export async function GET(req: Request) {
   try {
-    const hackathon = await getCurrentHackathon(db);
+    // Hackathon jarang berubah; tanpa cache ini = 1 query lintas-samudra (~280ms)
+    // di SETIAP request galeri, bahkan saat list-nya sudah ter-cache.
+    const hackathon = await cachedProjectsList("hackathon", () => getCurrentHackathon(db));
     const emptyMeta = { page: 1, limit: 12, total: 0, totalPages: 1 };
     if (!hackathon) return NextResponse.json({ items: [], meta: emptyMeta });
 
