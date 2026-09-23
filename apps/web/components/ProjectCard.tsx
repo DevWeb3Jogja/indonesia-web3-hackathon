@@ -3,6 +3,7 @@ import { localePath } from "@/lib/locale";
 import type { PublicProjectCard } from "@/lib/types";
 import { trackLabel } from "@/lib/types";
 import AvatarStack from "./AvatarStack";
+import TrackTags from "./TrackTags";
 import { ArrowUpRight } from "./ui";
 
 export default function ProjectCard({
@@ -51,13 +52,8 @@ export default function ProjectCard({
       )}
 
       <div className="mt-auto flex items-center justify-between gap-3 pt-6">
-        <div className="flex flex-wrap gap-2">
-          {p.trackIds.map((t) => (
-            <span key={t} className="tag">
-              {trackLabel(t)}
-            </span>
-          ))}
-        </div>
+        {/* Track pills 1 baris; sisanya jadi +N (hover → popover). */}
+        <TrackTags labels={p.trackIds.map(trackLabel)} />
         <div className="flex shrink-0 items-center gap-3">
           {p.members.length > 0 && (
             <div className="relative z-[2]">
