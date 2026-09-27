@@ -83,8 +83,8 @@ export default function ProjectsBrowser({ locale, t }: { locale: string; t: Dict
               </button>
             ))}
           </div>
-          <div className="flex items-center gap-3">
-            <label className="flex items-center gap-2 text-[10px] uppercase tracking-[0.14em] text-ink/50">
+          <div className="flex min-w-0 items-center gap-3">
+            <label className="flex shrink-0 items-center gap-2 text-[10px] uppercase tracking-[0.14em] text-ink/50">
               {t.sortLabel}
               <span className="relative">
                 <select
@@ -113,7 +113,7 @@ export default function ProjectsBrowser({ locale, t }: { locale: string; t: Dict
               onChange={(e) => setQ(e.target.value)}
               placeholder={t.searchPlaceholder}
               aria-label={t.searchLabel}
-              className="input-field sm:!w-64"
+              className="input-field min-w-0 flex-1 sm:!w-64 sm:flex-none"
             />
           </div>
         </div>
@@ -124,7 +124,7 @@ export default function ProjectsBrowser({ locale, t }: { locale: string; t: Dict
         {error ? (
           <p className="py-24 text-center text-ink/60">{t.loadError}</p>
         ) : items === null || (loading && items.length === 0) ? (
-          <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
             {Array.from({ length: 6 }).map((_, i) => (
               // biome-ignore lint/suspicious/noArrayIndexKey: skeleton statis, tidak pernah reorder
               <div key={i} className="chamfer-lg h-52 animate-pulse bg-white/[0.06]" />
@@ -160,7 +160,7 @@ export default function ProjectsBrowser({ locale, t }: { locale: string; t: Dict
               {meta?.total ?? items.length} {t.count}
             </p>
             <div
-              className={`grid gap-5 transition-opacity md:grid-cols-2 lg:grid-cols-3 ${loading ? "opacity-50" : ""}`}
+              className={`grid grid-cols-1 gap-5 transition-opacity md:grid-cols-2 lg:grid-cols-3 ${loading ? "opacity-50" : ""}`}
             >
               {items.map((p) => (
                 <ProjectCard key={p.id} p={p} locale={locale} byLabel={t.by} soloLabel={t.solo} />

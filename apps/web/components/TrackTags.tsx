@@ -53,28 +53,27 @@ export default function TrackTags({ labels }: { labels: string[] }) {
 
   return (
     <div ref={rowRef} className="relative min-w-0 flex-1">
-      {/* Measurer: semua pill + sampel +N, tak terlihat & tak ganggu layout. */}
-      <div
-        ref={measureRef}
-        aria-hidden
-        className="pointer-events-none absolute left-0 top-0 -z-10 flex gap-2 opacity-0"
-      >
-        {labels.map((l) => (
-          <span key={l} data-pill className="tag whitespace-nowrap">
-            {l}
+      {/* Measurer: semua pill + sampel +N. Dibungkus kotak h-0 overflow-hidden supaya
+          lebarnya (bisa > layar HP) tak bikin halaman scroll horizontal. */}
+      <div aria-hidden className="pointer-events-none invisible h-0 overflow-hidden">
+        <div ref={measureRef} className="flex w-max gap-2">
+          {labels.map((l) => (
+            <span key={l} data-pill className="tag whitespace-nowrap">
+              {l}
+            </span>
+          ))}
+          <span data-plus className="tag">
+            +9
           </span>
-        ))}
-        <span data-plus className="tag">
-          +9
-        </span>
+        </div>
       </div>
 
-      {/* Tanpa overflow-hidden: cuma render pill yg muat, dan popover +N (bottom-full)
-          harus bisa keluar dari kotak baris — overflow-hidden akan memotongnya. */}
-      <div className="flex flex-nowrap gap-2">
+      {/* overflow-hidden hanya saat tak ada +N (sebelum diukur / semua muat) — kalau ada
+          +N, popover-nya (bottom-full) harus bisa keluar dari kotak baris. */}
+      <div className={`flex flex-nowrap gap-2 ${hidden.length ? "" : "overflow-hidden"}`}>
         {labels.slice(0, count).map((l) => (
-          <span key={l} className="tag whitespace-nowrap">
-            {l}
+          <span key={l} className="tag min-w-0 max-w-full">
+            <span className="min-w-0 truncate">{l}</span>
           </span>
         ))}
         {hidden.length > 0 && (
