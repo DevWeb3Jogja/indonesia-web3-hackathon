@@ -248,6 +248,8 @@
     "prev": "Sebelumnya",
     "next": "Berikutnya",
     "pageOf": "Halaman {page} dari {total}",
+    "loadMore": "Muat lagi",
+    "allLoaded": "Semua project sudah tampil",
     "loading": "Memuat…"
   },
   "projectDetail": {

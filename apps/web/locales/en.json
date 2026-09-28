@@ -248,6 +248,8 @@
     "prev": "Previous",
     "next": "Next",
     "pageOf": "Page {page} of {total}",
+    "loadMore": "Load more",
+    "allLoaded": "You've seen all projects",
     "loading": "Loading…"
   },
   "projectDetail": {

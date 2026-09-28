@@ -53,12 +53,36 @@ export default function ProjectsBrowser({ locale, t }: { locale: string; t: Dict
       .then((r) => r.json())
       .then((j) => {
         if (id !== reqId.current) return;
-        setItems(j.items ?? []);
+        const next: PublicProjectCard[] = j.items ?? [];
+        // Halaman 1 = ganti; halaman berikutnya = tambah (infinite scroll). Dedupe by id:
+        // offset bisa bergeser kalau ada submit baru di antara dua load.
+        setItems((prev) => {
+          if (page === 1 || !prev) return next;
+          const seen = new Set(prev.map((p) => p.id));
+          return [...prev, ...next.filter((p) => !seen.has(p.id))];
+        });
         setMeta(j.meta ?? null);
       })
       .catch(() => id === reqId.current && setError(true))
       .finally(() => id === reqId.current && setLoading(false));
   }, [page, track, debouncedQ, sort]);
+
+  const hasMore = !!meta && meta.page < meta.totalPages;
+  const sentinel = useRef<HTMLDivElement>(null);
+  // Re-observe tiap selesai load → callback awal observe() mengecek ulang: kalau
+  // sentinel masih terlihat (halaman belum penuh), lanjut muat halaman berikutnya.
+  useEffect(() => {
+    const el = sentinel.current;
+    if (!el || !hasMore || loading) return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) setPage((p) => p + 1);
+      },
+      { rootMargin: "400px 0px" }
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [hasMore, loading]);
 
   const filters = useMemo(() => [{ id: "all", label: t.all }, ...TRACKS], [t.all]);
 
@@ -160,39 +184,33 @@ export default function ProjectsBrowser({ locale, t }: { locale: string; t: Dict
               {meta?.total ?? items.length} {t.count}
             </p>
             <div
-              className={`grid grid-cols-1 gap-5 transition-opacity md:grid-cols-2 lg:grid-cols-3 ${loading ? "opacity-50" : ""}`}
+              className={`grid grid-cols-1 gap-5 transition-opacity md:grid-cols-2 lg:grid-cols-3 ${loading && page === 1 ? "opacity-50" : ""}`}
             >
               {items.map((p) => (
                 <ProjectCard key={p.id} p={p} locale={locale} byLabel={t.by} soloLabel={t.solo} />
               ))}
             </div>
 
-            {/* Pagination */}
-            {meta && meta.totalPages > 1 && (
-              <div className="mt-10 flex items-center justify-center gap-4">
+            {/* Infinite scroll: sentinel auto-load + tombol fallback (keyboard/a11y). */}
+            <div ref={sentinel} className="mt-10 flex justify-center">
+              {hasMore ? (
                 <button
                   type="button"
                   className="btn-outline disabled:cursor-not-allowed disabled:opacity-40"
-                  disabled={meta.page <= 1 || loading}
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={loading}
+                  onClick={() => setPage((p) => p + 1)}
                 >
-                  {t.prev}
+                  {loading ? "…" : t.loadMore}
                 </button>
-                <span className="text-[11px] uppercase tracking-[0.14em] text-ink/60">
-                  {t.pageOf
-                    .replace("{page}", String(meta.page))
-                    .replace("{total}", String(meta.totalPages))}
-                </span>
-                <button
-                  type="button"
-                  className="btn-outline disabled:cursor-not-allowed disabled:opacity-40"
-                  disabled={meta.page >= meta.totalPages || loading}
-                  onClick={() => setPage((p) => Math.min(meta.totalPages, p + 1))}
-                >
-                  {t.next}
-                </button>
-              </div>
-            )}
+              ) : (
+                meta &&
+                meta.totalPages > 1 && (
+                  <p className="text-[11px] uppercase tracking-[0.14em] text-ink/40">
+                    {t.allLoaded}
+                  </p>
+                )
+              )}
+            </div>
           </>
         )}
       </div>
