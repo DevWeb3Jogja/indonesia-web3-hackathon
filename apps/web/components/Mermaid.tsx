@@ -35,11 +35,14 @@ export default function Mermaid({
               background: "#FFFFFF",
               mainBkg: "#F0F5F7",
               nodeBorder: "#066377",
-              fontFamily: "inherit",
+              fontFamily: 'var(--font-body), "Inter", system-ui, -apple-system, sans-serif',
             },
           });
           mermaidInit = true;
         }
+        // Tunggu webfont siap: Mermaid mengukur lebar label saat render — kalau font
+        // belum termuat, ukurannya pakai font fallback → teks terpotong.
+        await document.fonts.ready;
         const { svg } = await mermaid.render(`mmd-${id}`, chart);
         if (!cancelled && ref.current) {
           ref.current.innerHTML = svg;
