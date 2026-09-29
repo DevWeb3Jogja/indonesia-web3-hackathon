@@ -13,7 +13,8 @@ export default function Mermaid({
 }) {
   const id = useId().replace(/[^a-zA-Z0-9]/g, "");
   const ref = useRef<HTMLDivElement>(null);
-  const [failed, setFailed] = useState(false);
+  // Pesan error Mermaid (baris + alasan) — dulu ditelan, author tak tahu apa yang salah.
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -42,10 +43,10 @@ export default function Mermaid({
         const { svg } = await mermaid.render(`mmd-${id}`, chart);
         if (!cancelled && ref.current) {
           ref.current.innerHTML = svg;
-          setFailed(false);
+          setError(null);
         }
-      } catch {
-        if (!cancelled) setFailed(true);
+      } catch (e) {
+        if (!cancelled) setError((e instanceof Error ? e.message : String(e)).slice(0, 600));
       }
     })();
     return () => {
@@ -53,11 +54,17 @@ export default function Mermaid({
     };
   }, [chart, id]);
 
-  if (failed) {
+  if (error) {
     return (
-      <pre className="!border !border-red-300" role="img" aria-label={errorLabel}>
-        <code>{chart}</code>
-      </pre>
+      <div role="img" aria-label={errorLabel}>
+        <pre className="!border !border-red-300">
+          <code>{chart}</code>
+        </pre>
+        <p className="mt-2 text-xs font-medium text-red-300">{errorLabel}</p>
+        <pre className="!mt-1 !border-0 !bg-transparent !p-0 text-[11px] leading-snug text-red-300/80">
+          {error}
+        </pre>
+      </div>
     );
   }
   return <div ref={ref} className="mermaid-diagram" />;
