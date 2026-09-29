@@ -193,14 +193,15 @@ export default function ProjectsBrowser({ locale, t }: { locale: string; t: Dict
 
             {/* Infinite scroll: sentinel auto-load + tombol fallback (keyboard/a11y). */}
             <div ref={sentinel} className="mt-10 flex justify-center">
-              {hasMore ? (
-                <button
-                  type="button"
-                  className="btn-outline disabled:cursor-not-allowed disabled:opacity-40"
-                  disabled={loading}
-                  onClick={() => setPage((p) => p + 1)}
-                >
-                  {loading ? "…" : t.loadMore}
+              {loading && page > 1 ? (
+                // Memuat halaman berikutnya → spinner (CSS murni).
+                <span role="status" className="flex h-11 items-center">
+                  <span className="h-6 w-6 animate-spin rounded-full border-2 border-white/15 border-t-white/80" />
+                  <span className="sr-only">{t.loading}</span>
+                </span>
+              ) : hasMore ? (
+                <button type="button" className="btn-outline" onClick={() => setPage((p) => p + 1)}>
+                  {t.loadMore}
                 </button>
               ) : (
                 meta &&
