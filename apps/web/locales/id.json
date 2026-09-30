@@ -41,7 +41,7 @@
     "submissions": {
       "bracket": "[submissions]",
       "title": "submissions",
-      "note": "Portal submission dibuka 1 sampai 30 September 2026. Satu project boleh mendaftar di lebih dari satu track.",
+      "note": "Portal submission dibuka 1 September sampai 7 Oktober 2026 (diperpanjang). Satu project boleh mendaftar di lebih dari satu track.",
       "warningLabel": "Wajib dibaca",
       "warning": "Submission kamu hanya sah kalau tim sudah terdaftar di Luma. Daftar dulu, baru submit.",
       "warningCta": "Daftar di Luma"
@@ -124,11 +124,14 @@
     "eyebrow": "Schedule",
     "title1": "Juli sampai",
     "title2": "Oktober 2026",
-    "lead": "Semua sesi berlangsung online kecuali Demo Day. Deadline submission 30 September 2026, 23:59 WIB.",
+    "lead": "Semua sesi berlangsung online kecuali Demo Day. Deadline submission 7 Oktober 2026, 23:30 WIB (diperpanjang dari 30 September).",
     "register": "Daftar",
     "submit": "Submit",
     "deadlineNote": "Deadline submission",
-    "deadlineDate": "30 September 2026, 23:59 WIB",
+    "deadlineDate": "7 Oktober 2026, 23:30 WIB",
+    "extendedLabel": "Deadline diperpanjang",
+    "extendedFrom": "30 September 2026",
+    "extendedWas": "sebelumnya",
     "deadlineTail": ". Submission masih bisa diedit sampai deadline lewat edit code.",
     "submitNow": "Submit sekarang",
     "timeline": [
@@ -152,7 +155,7 @@
       },
       {
         "key": "submission-close",
-        "date": "30 September 2026",
+        "date": "7 Oktober 2026",
         "title": "Submission Deadline",
         "desc": "Batas akhir submit dan edit project. Pastikan semua materi lengkap."
       },
@@ -201,7 +204,7 @@
       },
       {
         "q": "Bisakah submission diedit setelah submit?",
-        "a": "Bisa, selama periode submission masih berjalan (sebelum 30 September 2026). Saat submit pertama kali kamu akan menerima edit code. Simpan kode itu, lalu gunakan bersama email kontak tim untuk membuka mode edit."
+        "a": "Bisa, selama periode submission masih berjalan (sebelum 7 Oktober 2026). Saat submit pertama kali kamu akan menerima edit code. Simpan kode itu, lalu gunakan bersama email kontak tim untuk membuka mode edit."
       },
       {
         "q": "Bagaimana kriteria penilaian?",
@@ -278,7 +281,7 @@
     "eyebrow": "Submission portal",
     "title1": "Submit",
     "title2": "project",
-    "lead": "Deadline 30 September 2026, 23:59 WIB. Kamu bisa mengedit submission kapan saja sebelum deadline menggunakan edit code.",
+    "lead": "Deadline 7 Oktober 2026, 23:30 WIB (diperpanjang). Kamu bisa mengedit submission kapan saja sebelum deadline menggunakan edit code.",
     "warningLabel": "Syarat kelayakan",
     "warning": "Pastikan tim kamu sudah terdaftar di Luma sebelum mengirim submission. Project dari tim yang belum terdaftar tidak akan dinilai juri.",
     "warningCta": "Daftar di Luma sekarang",

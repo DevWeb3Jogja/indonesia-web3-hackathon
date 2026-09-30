@@ -41,7 +41,7 @@
     "submissions": {
       "bracket": "[submissions]",
       "title": "submissions",
-      "note": "The submission portal is open 1 to 30 September 2026. A single project may enter more than one track.",
+      "note": "The submission portal is open 1 September to 7 October 2026 (extended). A single project may enter more than one track.",
       "warningLabel": "Read this first",
       "warning": "Your submission only counts if your team is registered on Luma. Register first, then submit.",
       "warningCta": "Register on Luma"
@@ -124,11 +124,14 @@
     "eyebrow": "Schedule",
     "title1": "July through",
     "title2": "October 2026",
-    "lead": "Every session runs online except Demo Day. Submissions close 30 September 2026, 23:59 WIB.",
+    "lead": "Every session runs online except Demo Day. Submissions close 7 October 2026, 23:30 WIB (extended from 30 September).",
     "register": "Register",
     "submit": "Submit",
     "deadlineNote": "Submissions close",
-    "deadlineDate": "30 September 2026, 23:59 WIB",
+    "deadlineDate": "7 October 2026, 23:30 WIB",
+    "extendedLabel": "Deadline extended",
+    "extendedFrom": "30 September 2026",
+    "extendedWas": "was",
     "deadlineTail": ". You can keep editing your entry until the deadline using your edit code.",
     "submitNow": "Submit now",
     "timeline": [
@@ -152,7 +155,7 @@
       },
       {
         "key": "submission-close",
-        "date": "30 September 2026",
+        "date": "7 October 2026",
         "title": "Submission Deadline",
         "desc": "Last call to submit and edit. Make sure every piece of your entry is complete."
       },
@@ -201,7 +204,7 @@
       },
       {
         "q": "Can I edit my submission after sending it?",
-        "a": "Yes, for as long as the submission window is open (before 30 September 2026). You receive an edit code the first time you submit. Keep it, then use it together with your team contact email to unlock edit mode."
+        "a": "Yes, for as long as the submission window is open (before 7 October 2026). You receive an edit code the first time you submit. Keep it, then use it together with your team contact email to unlock edit mode."
       },
       {
         "q": "How is judging done?",
@@ -278,7 +281,7 @@
     "eyebrow": "Submission portal",
     "title1": "Submit",
     "title2": "project",
-    "lead": "Deadline 30 September 2026, 23:59 WIB. You can edit your submission any time before the deadline using your edit code.",
+    "lead": "Deadline 7 October 2026, 23:30 WIB (extended). You can edit your submission any time before the deadline using your edit code.",
     "warningLabel": "Eligibility requirement",
     "warning": "Make sure your team is registered on Luma before sending your submission. Entries from unregistered teams will not be judged.",
     "warningCta": "Register on Luma now",
