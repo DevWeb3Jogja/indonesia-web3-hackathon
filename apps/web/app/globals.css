@@ -161,6 +161,9 @@ body {
 .md-body > :first-child {
   @apply mt-0;
 }
+.md-body > :last-child {
+  @apply mb-0;
+}
 .md-body h1 {
   @apply mb-4 mt-8 border-b border-white/15 pb-2 font-firs text-2xl font-normal uppercase tracking-tight text-white;
 }
@@ -213,7 +216,16 @@ body {
   @apply border border-white/15 px-3 py-2;
 }
 .md-body img {
-  @apply chamfer-sm my-4 max-w-full;
+  @apply chamfer-sm my-4 max-w-full bg-white/5;
+  filter: blur(20px);
+  opacity: 0.4;
+  transition:
+    filter 0.4s ease,
+    opacity 0.4s ease;
+}
+.md-body img[data-loaded] {
+  filter: none;
+  opacity: 1;
 }
 .md-body hr {
   @apply my-6 border-white/15;

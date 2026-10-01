@@ -53,9 +53,6 @@ export async function generateMetadata(props: {
   };
 }
 
-/** Escape literal "\n" (mis. seed) → baris baru asli. */
-const unescapeNewlines = (s: string) => s.replace(/\\r\\n|\\n/g, "\n");
-
 export default async function ProjectDetailPage(props: {
   params: Promise<{ id: string; locale: string }>;
 }) {
@@ -209,17 +206,20 @@ export default async function ProjectDetailPage(props: {
             {p.problemStatement && (
               <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-6">
                 <p className="eyebrow">{t.problem}</p>
-                <p className="mt-3 whitespace-pre-line text-sm leading-relaxed text-white/75">
-                  {unescapeNewlines(p.problemStatement)}
-                </p>
+                <div className="mt-3 text-sm text-white/75">
+                  <MarkdownRenderer
+                    content={p.problemStatement}
+                    errorLabel={dict.form.mermaidError}
+                  />
+                </div>
               </div>
             )}
             {p.solution && (
               <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-6">
                 <p className="eyebrow">{t.solution}</p>
-                <p className="mt-3 whitespace-pre-line text-sm leading-relaxed text-white/75">
-                  {unescapeNewlines(p.solution)}
-                </p>
+                <div className="mt-3 text-sm text-white/75">
+                  <MarkdownRenderer content={p.solution} errorLabel={dict.form.mermaidError} />
+                </div>
               </div>
             )}
           </section>
