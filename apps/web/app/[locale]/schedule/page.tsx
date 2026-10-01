@@ -87,8 +87,11 @@ export default async function SchedulePage(props: { params: Promise<{ locale: st
                   <p className="text-[11px] uppercase tracking-[0.16em] text-teal/80">
                     {dbDate[item.key] ?? item.date}
                   </p>
+                  <h2 className="mt-1 font-firs text-xl font-semibold uppercase tracking-tight text-ink">
+                    {item.title}
+                  </h2>
                   {item.key === "submission-close" && (
-                    <p className="mt-2 flex flex-wrap items-center gap-2 text-[10px] uppercase tracking-[0.14em]">
+                    <p className="mt-3 flex flex-wrap items-center gap-2 text-[10px] uppercase tracking-[0.14em]">
                       <span className="rounded-full bg-white px-2 py-0.5 font-semibold text-black">
                         {t.extendedLabel}
                       </span>
@@ -97,9 +100,6 @@ export default async function SchedulePage(props: { params: Promise<{ locale: st
                       </span>
                     </p>
                   )}
-                  <h2 className="mt-1 font-firs text-xl font-semibold uppercase tracking-tight text-ink">
-                    {item.title}
-                  </h2>
                 </div>
                 <p className="text-sm leading-relaxed text-ink/70">{item.desc}</p>
                 <div className="md:justify-self-end">
