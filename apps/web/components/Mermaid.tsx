@@ -29,14 +29,28 @@ export default function Mermaid({
               primaryColor: "#F0F5F7",
               primaryTextColor: "#154359",
               primaryBorderColor: "#066377",
-              lineColor: "#066377",
               secondaryColor: "#E4EEF2",
               tertiaryColor: "#FFFFFF",
-              background: "#FFFFFF",
               mainBkg: "#F0F5F7",
               nodeBorder: "#066377",
+              // Kotak node terang, tapi diagram duduk di kartu GELAP → semua yang
+              // digambar langsung di atas latar (garis, label pesan/edge, judul
+              // loop/subgraph) harus terang, kalau tidak teal-gelap = tak terbaca.
+              background: "#1c1c1c",
+              lineColor: "#8FB8C6",
+              textColor: "#E6EDF0",
+              titleColor: "#E6EDF0",
+              signalColor: "#8FB8C6",
+              signalTextColor: "#E6EDF0",
+              loopTextColor: "#E6EDF0",
+              actorLineColor: "#8FB8C6",
+              edgeLabelBackground: "#1c1c1c",
+              clusterBkg: "rgba(255,255,255,0.04)",
+              clusterBorder: "#8FB8C6",
               fontFamily: 'var(--font-body), "Inter", system-ui, -apple-system, sans-serif',
             },
+            // Label edge flowchart (HTML) tak ikut textColor → paksa terang.
+            themeCSS: ".edgeLabel, .edgeLabel p, .edgeLabel span { color: #E6EDF0; }",
           });
           mermaidInit = true;
         }
