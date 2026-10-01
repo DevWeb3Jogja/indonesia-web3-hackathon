@@ -38,6 +38,26 @@ export default function MarkdownRenderer({
               </a>
             );
           },
+          // Blur sampai gambar selesai di-load (bukan render setengah-setengah).
+          // `complete` menangkap gambar dari cache yang load sebelum hydrate.
+          img({ src, alt }) {
+            const done = (el: HTMLImageElement) => {
+              el.dataset.loaded = "";
+            };
+            return (
+              <img
+                src={typeof src === "string" ? src : undefined}
+                alt={alt ?? ""}
+                loading="lazy"
+                decoding="async"
+                ref={(el) => {
+                  if (el?.complete) done(el);
+                }}
+                onLoad={(e) => done(e.currentTarget)}
+                onError={(e) => done(e.currentTarget)}
+              />
+            );
+          },
           // Bungkus tabel agar scroll horizontal di dalam kartu, bukan meluber
           // keluar (mis. tabel alamat kontrak yang panjang di mobile).
           table({ children }) {
