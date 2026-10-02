@@ -7,6 +7,7 @@ import AvatarStack from "@/components/AvatarStack";
 import MarkdownRenderer from "@/components/MarkdownRenderer";
 import { ArrowUpRight } from "@/components/ui";
 import YouTubeEmbed from "@/components/YouTubeEmbed";
+import { resolveDeckEmbed } from "@/lib/deck-embed";
 import { getDict, localePath } from "@/lib/i18n";
 import { db } from "@/lib/turso";
 import { explorerUrl, NETWORKS, type NetworkId, trackLabel } from "@/lib/types";
@@ -66,6 +67,8 @@ export default async function ProjectDetailPage(props: {
 
   const network = p.network ? NETWORKS.find((n) => n.id === p.network) : undefined;
   const extraLinks = parseLinks(p.extraLinks);
+  const deck = extraLinks.find((l) => /pitch|deck/i.test(l.label));
+  const deckEmbed = deck ? await resolveDeckEmbed(deck.url) : null;
 
   const dict = getDict(params.locale);
   const t = dict.projectDetail;
@@ -196,6 +199,33 @@ export default async function ProjectDetailPage(props: {
             <p className="eyebrow mb-4">{t.videoDemo}</p>
             <div className="overflow-hidden rounded-2xl ring-1 ring-white/10">
               <YouTubeEmbed url={p.demoVideoUrl} label={t.watchVideo} />
+            </div>
+          </section>
+        )}
+
+        {/* ---------- Pitch deck (tampil langsung, tanpa download) ---------- */}
+        {deck && deckEmbed && (
+          <section className="mt-10">
+            <div className="mb-4 flex items-center justify-between gap-4">
+              <p className="eyebrow">{t.pitchDeck}</p>
+              <a
+                href={deck.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-xs text-white/60 hover:text-white"
+              >
+                {t.openDeck}
+                <ArrowUpRight className="h-3 w-3" />
+              </a>
+            </div>
+            <div className="relative aspect-video overflow-hidden rounded-2xl bg-black ring-1 ring-white/10">
+              <iframe
+                src={deckEmbed}
+                title={t.pitchDeck}
+                loading="lazy"
+                allowFullScreen
+                className="absolute inset-0 h-full w-full"
+              />
             </div>
           </section>
         )}

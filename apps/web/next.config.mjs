@@ -12,8 +12,8 @@ const csp = [
   // media-src, <video> jatuh ke default-src 'self' dan diblokir.
   "media-src 'self' https: blob:",
   "connect-src 'self' https: wss:",
-  // Wallet (Reown/WalletConnect) + embed video demo project (YouTube).
-  "frame-src https://challenges.cloudflare.com https://verify.walletconnect.com https://verify.walletconnect.org https://secure.walletconnect.com https://secure.reown.com https://www.youtube.com https://www.youtube-nocookie.com",
+  // Wallet (Reown/WalletConnect) + embed video demo (YouTube) + pitch deck (lib/deck-embed.ts).
+  "frame-src https://challenges.cloudflare.com https://verify.walletconnect.com https://verify.walletconnect.org https://secure.walletconnect.com https://secure.reown.com https://www.youtube.com https://www.youtube-nocookie.com https://view.officeapps.live.com https://docs.google.com https://drive.google.com https://www.canva.com",
   "frame-ancestors 'none'",
   "base-uri 'self'",
   "form-action 'self'",
