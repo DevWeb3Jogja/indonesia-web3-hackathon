@@ -4,6 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { cache } from "react";
 import AvatarStack from "@/components/AvatarStack";
+import DeckDialog from "@/components/DeckDialog";
 import MarkdownRenderer from "@/components/MarkdownRenderer";
 import { ArrowUpRight } from "@/components/ui";
 import YouTubeEmbed from "@/components/YouTubeEmbed";
@@ -158,18 +159,29 @@ export default async function ProjectDetailPage(props: {
                 <ArrowUpRight className="h-3 w-3" />
               </a>
             )}
-            {extraLinks.map((l) => (
-              <a
-                key={l.url}
-                href={l.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="link-chip"
-              >
-                {l.label || t.link}
-                <ArrowUpRight className="h-3 w-3" />
-              </a>
-            ))}
+            {extraLinks.map((l) =>
+              l === deck && deckEmbed ? (
+                <DeckDialog
+                  key={l.url}
+                  url={l.url}
+                  embed={deckEmbed}
+                  label={l.label || t.pitchDeck}
+                  openLabel={t.openDeck}
+                  closeLabel={t.closeDeck}
+                />
+              ) : (
+                <a
+                  key={l.url}
+                  href={l.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="link-chip"
+                >
+                  {l.label || t.link}
+                  <ArrowUpRight className="h-3 w-3" />
+                </a>
+              )
+            )}
           </div>
         </header>
 
@@ -199,33 +211,6 @@ export default async function ProjectDetailPage(props: {
             <p className="eyebrow mb-4">{t.videoDemo}</p>
             <div className="overflow-hidden rounded-2xl ring-1 ring-white/10">
               <YouTubeEmbed url={p.demoVideoUrl} label={t.watchVideo} />
-            </div>
-          </section>
-        )}
-
-        {/* ---------- Pitch deck (tampil langsung, tanpa download) ---------- */}
-        {deck && deckEmbed && (
-          <section className="mt-10">
-            <div className="mb-4 flex items-center justify-between gap-4">
-              <p className="eyebrow">{t.pitchDeck}</p>
-              <a
-                href={deck.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 text-xs text-white/60 hover:text-white"
-              >
-                {t.openDeck}
-                <ArrowUpRight className="h-3 w-3" />
-              </a>
-            </div>
-            <div className="relative aspect-video overflow-hidden rounded-2xl bg-black ring-1 ring-white/10">
-              <iframe
-                src={deckEmbed}
-                title={t.pitchDeck}
-                loading="lazy"
-                allowFullScreen
-                className="absolute inset-0 h-full w-full"
-              />
             </div>
           </section>
         )}
