@@ -10,6 +10,7 @@ import { ArrowUpRight } from "@/components/ui";
 import YouTubeEmbed from "@/components/YouTubeEmbed";
 import { deckDownloadUrl, resolveDeckEmbed } from "@/lib/deck-embed";
 import { getDict, localePath } from "@/lib/i18n";
+import { PITCH_DECK_LABEL } from "@/lib/project-socials";
 import { db } from "@/lib/turso";
 import { explorerUrl, NETWORKS, type NetworkId, trackLabel } from "@/lib/types";
 
@@ -68,7 +69,7 @@ export default async function ProjectDetailPage(props: {
 
   const network = p.network ? NETWORKS.find((n) => n.id === p.network) : undefined;
   const extraLinks = parseLinks(p.extraLinks);
-  const deck = extraLinks.find((l) => /pitch|deck/i.test(l.label));
+  const deck = extraLinks.find((l) => l.label === PITCH_DECK_LABEL);
   const deckEmbed = deck ? await resolveDeckEmbed(deck.url) : null;
 
   const dict = getDict(params.locale);

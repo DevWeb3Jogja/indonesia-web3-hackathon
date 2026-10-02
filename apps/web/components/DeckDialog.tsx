@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useId, useRef, useState } from "react";
 import { ArrowUpRight } from "./ui";
 
 /** Chip "Pitch Deck" → lihat deck di dialog (native <dialog>) tanpa harus download dulu.
@@ -23,6 +23,7 @@ export default function DeckDialog({
   closeLabel: string;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
+  const titleId = useId();
   const [open, setOpen] = useState(false);
 
   return (
@@ -40,13 +41,16 @@ export default function DeckDialog({
       {/* biome-ignore lint/a11y/useKeyWithClickEvents: keyboard sudah ditangani native (Esc menutup <dialog>); klik backdrop cuma pelengkap mouse. */}
       <dialog
         ref={ref}
+        aria-labelledby={titleId}
         onClose={() => setOpen(false)}
         // Klik backdrop (di luar panel) = tutup.
         onClick={(e) => e.target === e.currentTarget && ref.current?.close()}
         className="w-[min(1100px,calc(100vw-2rem))] max-w-none rounded-2xl bg-[#0b0b0b] p-0 text-white ring-1 ring-white/15 backdrop:bg-black/80"
       >
         <div className="flex items-center justify-between gap-4 px-4 py-3">
-          <p className="eyebrow">{label}</p>
+          <p id={titleId} className="eyebrow">
+            {label}
+          </p>
           <div className="flex items-center gap-4 text-xs text-white/60">
             {download && (
               <a href={download} download className="hover:text-white">
