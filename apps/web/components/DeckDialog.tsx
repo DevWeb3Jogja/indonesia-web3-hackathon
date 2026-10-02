@@ -3,17 +3,21 @@
 import { useRef, useState } from "react";
 import { ArrowUpRight } from "./ui";
 
-/** Chip "Pitch Deck" → buka deck di dialog (native <dialog>), tanpa download.
+/** Chip "Pitch Deck" → lihat deck di dialog (native <dialog>) tanpa harus download dulu.
  *  Iframe baru dipasang saat dialog dibuka supaya halaman tetap ringan. */
 export default function DeckDialog({
   url,
   embed,
+  download,
+  downloadLabel,
   label,
   openLabel,
   closeLabel,
 }: {
   url: string;
   embed: string;
+  download: string | null;
+  downloadLabel: string;
   label: string;
   openLabel: string;
   closeLabel: string;
@@ -44,6 +48,11 @@ export default function DeckDialog({
         <div className="flex items-center justify-between gap-4 px-4 py-3">
           <p className="eyebrow">{label}</p>
           <div className="flex items-center gap-4 text-xs text-white/60">
+            {download && (
+              <a href={download} download className="hover:text-white">
+                {downloadLabel} ↓
+              </a>
+            )}
             <a
               href={url}
               target="_blank"

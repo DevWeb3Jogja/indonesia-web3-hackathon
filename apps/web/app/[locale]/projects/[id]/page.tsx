@@ -8,7 +8,7 @@ import DeckDialog from "@/components/DeckDialog";
 import MarkdownRenderer from "@/components/MarkdownRenderer";
 import { ArrowUpRight } from "@/components/ui";
 import YouTubeEmbed from "@/components/YouTubeEmbed";
-import { resolveDeckEmbed } from "@/lib/deck-embed";
+import { deckDownloadUrl, resolveDeckEmbed } from "@/lib/deck-embed";
 import { getDict, localePath } from "@/lib/i18n";
 import { db } from "@/lib/turso";
 import { explorerUrl, NETWORKS, type NetworkId, trackLabel } from "@/lib/types";
@@ -165,6 +165,8 @@ export default async function ProjectDetailPage(props: {
                   key={l.url}
                   url={l.url}
                   embed={deckEmbed}
+                  download={deckDownloadUrl(l.url)}
+                  downloadLabel={t.downloadDeck}
                   label={l.label || t.pitchDeck}
                   openLabel={t.openDeck}
                   closeLabel={t.closeDeck}

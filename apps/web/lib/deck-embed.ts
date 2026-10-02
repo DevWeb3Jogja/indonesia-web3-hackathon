@@ -50,3 +50,23 @@ export async function resolveDeckEmbed(raw: string): Promise<string | null> {
     return null;
   }
 }
+
+/** URL unduh langsung deck; null = provider tak punya link unduh (mis. Canva). */
+export function deckDownloadUrl(raw: string): string | null {
+  let u: URL;
+  try {
+    u = new URL(raw, siteBase());
+  } catch {
+    return null;
+  }
+  if (/\.(pptx?|pdf|key)$/i.test(u.pathname)) return raw;
+  if (u.hostname === "docs.google.com") {
+    const id = u.pathname.match(/^\/presentation\/d\/([\w-]+)/)?.[1];
+    return id ? `https://docs.google.com/presentation/d/${id}/export/pptx` : null;
+  }
+  if (u.hostname === "drive.google.com") {
+    const id = u.pathname.match(/^\/file\/d\/([\w-]+)/)?.[1] ?? u.searchParams.get("id");
+    return id ? `https://drive.google.com/uc?export=download&id=${id}` : null;
+  }
+  return null;
+}
