@@ -9,7 +9,19 @@ import {
   type Paged,
   type PageParams,
 } from "./paginate";
-import { projects, projectTracks, scores, teamMembers, teams, tracks, winners } from "./schema";
+import {
+  curationReviews,
+  curationScores,
+  curationScreens,
+  finalists,
+  projects,
+  projectTracks,
+  scores,
+  teamMembers,
+  teams,
+  tracks,
+  winners,
+} from "./schema";
 import { getMyTeam } from "./teams";
 
 export class ProjectError extends Error {
@@ -300,6 +312,10 @@ export async function deleteProject(db: Db, id: string): Promise<void> {
   await db.batch([
     db.delete(winners).where(eq(winners.projectId, id)),
     db.delete(scores).where(eq(scores.projectId, id)),
+    db.delete(curationScores).where(eq(curationScores.projectId, id)),
+    db.delete(curationReviews).where(eq(curationReviews.projectId, id)),
+    db.delete(curationScreens).where(eq(curationScreens.projectId, id)),
+    db.delete(finalists).where(eq(finalists.projectId, id)),
     db.delete(projectTracks).where(eq(projectTracks.projectId, id)),
     db.delete(projects).where(eq(projects.id, id)),
   ]);

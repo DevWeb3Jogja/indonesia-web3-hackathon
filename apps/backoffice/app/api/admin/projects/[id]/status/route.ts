@@ -1,4 +1,10 @@
-import { audit, clearWinnersForProject, getProjectById, setProjectStatus } from "@iw3h/db";
+import {
+  audit,
+  clearFinalistForProject,
+  clearWinnersForProject,
+  getProjectById,
+  setProjectStatus,
+} from "@iw3h/db";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requireAuth } from "@/lib/auth";
@@ -20,8 +26,11 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
   if (!project) return NextResponse.json({ error: "Project not found" }, { status: 404 });
 
   await setProjectStatus(db, id, parsed.data.status);
-  // Project yang didiskualifikasi tak boleh tetap jadi pemenang.
-  if (parsed.data.status === "disqualified") await clearWinnersForProject(db, id);
+  // Project yang didiskualifikasi tak boleh tetap jadi pemenang maupun di shortlist kurasi.
+  if (parsed.data.status === "disqualified") {
+    await clearWinnersForProject(db, id);
+    await clearFinalistForProject(db, id);
+  }
   await audit(db, {
     actor: auth.address,
     action: parsed.data.status === "disqualified" ? "project.disqualify" : "project.reinstate",

@@ -3,6 +3,7 @@ import { and, eq } from "drizzle-orm";
 import type { Db } from "./client";
 import {
   criteria,
+  curationScores,
   hackathons,
   judgeTracks,
   prizes,
@@ -108,7 +109,10 @@ export async function deleteCriterion(db: Db, hackathonId: string, id: string) {
     .limit(1);
   if (owned.length === 0) throw new ConfigError("not_found", "Kriteria tidak ditemukan");
   // Kriteria yang sudah dipakai menilai tak boleh dihapus (skor jadi orphan/ranking rusak).
-  const used = await db.$count(scores, eq(scores.criterionId, id));
+  // Termasuk nilai kurasi (curation_scores) — kriteria dipakai bersama kurasi & final.
+  const used =
+    (await db.$count(scores, eq(scores.criterionId, id))) +
+    (await db.$count(curationScores, eq(curationScores.criterionId, id)));
   if (used > 0) {
     throw new ConfigError(
       "in_use",
