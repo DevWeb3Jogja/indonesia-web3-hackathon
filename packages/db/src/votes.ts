@@ -85,7 +85,9 @@ export class VoteError extends Error {
 export async function markDemoDay(db: Db, projectId: string, on: boolean) {
   await db
     .update(projects)
-    .set({ demoDay: on, updatedAt: sql`(datetime('now'))` })
+    // Sengaja TIDAK menyentuh updatedAt: halaman publik menampilkan "Last edit" dari
+    // kolom itu → menandai finalis akan membocorkan siapa finalisnya.
+    .set({ demoDay: on })
     .where(eq(projects.id, projectId));
 }
 
