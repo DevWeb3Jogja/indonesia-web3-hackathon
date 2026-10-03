@@ -6,12 +6,20 @@ import Backdrop from "./Backdrop";
 import Header from "./Header";
 import Sidebar from "./Sidebar";
 
-function Shell({ address, children }: { address: string; children: React.ReactNode }) {
+function Shell({
+  address,
+  role,
+  children,
+}: {
+  address: string;
+  role: string;
+  children: React.ReactNode;
+}) {
   const { isExpanded, isHovered } = useSidebar();
   const ml = isExpanded || isHovered ? "lg:ml-[280px]" : "lg:ml-[90px]";
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
-      <Sidebar />
+      <Sidebar role={role} />
       <Backdrop />
       <div className={cn("flex min-h-screen flex-col transition-all duration-300 ease-in-out", ml)}>
         <Header address={address} />
@@ -23,14 +31,19 @@ function Shell({ address, children }: { address: string; children: React.ReactNo
 
 export default function AdminShell({
   address,
+  role = "admin",
   children,
 }: {
   address: string;
+  /** Menentukan menu sidebar (panitia hanya melihat Curation). */
+  role?: string;
   children: React.ReactNode;
 }) {
   return (
     <SidebarProvider>
-      <Shell address={address}>{children}</Shell>
+      <Shell address={address} role={role}>
+        {children}
+      </Shell>
     </SidebarProvider>
   );
 }

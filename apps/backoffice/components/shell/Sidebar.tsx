@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  ClipboardCheck,
   FileClock,
   Gavel,
   LayoutGrid,
@@ -15,16 +16,18 @@ import { usePathname } from "next/navigation";
 import { useSidebar } from "@/context/SidebarContext";
 import { cn } from "@/lib/utils";
 
-const NAV: { href: string; label: string; icon: LucideIcon }[] = [
+/** roles kosong = admin saja. Akses sebenarnya dijaga layout & route (server). */
+const NAV: { href: string; label: string; icon: LucideIcon; roles?: string[] }[] = [
   { href: "/", label: "Overview", icon: LayoutGrid },
   { href: "/users", label: "Users", icon: Users },
   { href: "/projects", label: "Projects", icon: SquareKanban },
+  { href: "/curation", label: "Curation", icon: ClipboardCheck, roles: ["admin", "panitia"] },
   { href: "/judging", label: "Judging", icon: Gavel },
   { href: "/config", label: "Configuration", icon: Settings },
   { href: "/audit", label: "Audit log", icon: FileClock },
 ];
 
-export default function Sidebar() {
+export default function Sidebar({ role = "admin" }: { role?: string }) {
   const { isExpanded, isMobileOpen, isHovered, setIsHovered } = useSidebar();
   const pathname = usePathname();
   const wide = isExpanded || isMobileOpen || isHovered;
@@ -44,7 +47,7 @@ export default function Sidebar() {
     >
       {/* Brand — logo IW3H (dari web) */}
       <Link
-        href="/"
+        href={role === "admin" ? "/" : "/curation"}
         className={cn("flex items-center gap-2.5 py-1.5", wide ? "px-1" : "justify-center")}
       >
         <Image
@@ -73,7 +76,7 @@ export default function Sidebar() {
           {wide ? "Menu" : "•••"}
         </p>
         <nav className="flex flex-col gap-1">
-          {NAV.map((item) => {
+          {NAV.filter((item) => (item.roles ?? ["admin"]).includes(role)).map((item) => {
             const active = isActive(item.href);
             const Icon = item.icon;
             return (

@@ -17,12 +17,12 @@ import { db } from "@/lib/turso";
 
 export const dynamic = "force-dynamic";
 
-const ROLES: Role[] = ["participant", "judge", "admin"];
+const ROLES: Role[] = ["participant", "judge", "admin", "panitia"];
 const SORTS: UserSort[] = ["newest", "oldest"];
 
 const createSchema = z.object({
   address: z.string().regex(/^0x[0-9a-fA-F]{40}$/, "Invalid wallet address"),
-  role: z.enum(["participant", "judge", "admin"]).default("participant"),
+  role: z.enum(["participant", "judge", "admin", "panitia"]).default("participant"),
 });
 
 /** POST /api/admin/users — pra-daftar wallet (belum sign-in) + set role. */

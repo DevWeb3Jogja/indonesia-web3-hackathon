@@ -237,7 +237,17 @@ function Body({ d }: { d: Detail }) {
   );
 }
 
-export default function ProjectDetails({ id, name }: { id: string; name: string }) {
+/** endpoint default = detail admin (lengkap + data pribadi anggota). Kurasi memakai
+ *  /api/curation/projects/:id yang tanpa data pribadi. */
+export default function ProjectDetails({
+  id,
+  name,
+  endpoint = `/api/admin/projects/${id}`,
+}: {
+  id: string;
+  name: string;
+  endpoint?: string;
+}) {
   const [open, setOpen] = useState(false);
   const [data, setData] = useState<Detail | null>(null);
   const [loading, setLoading] = useState(false);
@@ -246,7 +256,7 @@ export default function ProjectDetails({ id, name }: { id: string; name: string 
     setLoading(true);
     setData(null);
     try {
-      const r = await fetch(`/api/admin/projects/${id}`);
+      const r = await fetch(endpoint);
       if (r.ok) setData((await r.json()) as Detail);
     } finally {
       setLoading(false);

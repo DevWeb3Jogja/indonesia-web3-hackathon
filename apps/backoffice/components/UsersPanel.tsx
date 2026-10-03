@@ -25,7 +25,7 @@ import PagedList from "./PagedList";
 import RoleSelect from "./RoleSelect";
 import UserDetails, { type AdminUser, StageBadge } from "./UserDetails";
 
-const ROLES = ["participant", "judge", "admin"] as const;
+const ROLES = ["participant", "judge", "admin", "panitia"] as const;
 
 export default function UsersPanel() {
   const [refreshKey, setRefreshKey] = useState(0);
