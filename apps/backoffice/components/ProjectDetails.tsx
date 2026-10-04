@@ -102,7 +102,7 @@ function initials(m: Member) {
   return src.slice(0, 2).toUpperCase();
 }
 
-function Body({ d }: { d: Detail }) {
+function Body({ d, trackName }: { d: Detail; trackName: (id: string) => string }) {
   const p = d.project;
   const links: { label: string; href: string }[] = [
     { label: "GitHub", href: p.githubUrl ?? "" },
@@ -121,7 +121,7 @@ function Body({ d }: { d: Detail }) {
         <Badge variant="outline">{p.team ? `Team · ${p.team.name}` : "Solo"}</Badge>
         {p.trackIds.map((t) => (
           <Badge key={t} variant="secondary">
-            {t}
+            {trackName(t)}
           </Badge>
         ))}
       </div>
@@ -238,26 +238,40 @@ function Body({ d }: { d: Detail }) {
 }
 
 /** endpoint default = detail admin (lengkap + data pribadi anggota). Kurasi memakai
- *  /api/curation/projects/:id yang tanpa data pribadi. */
+ *  /api/curation/projects/:id yang tanpa data pribadi.
+ *  trigger = isi tombol pembuka (default ikon mata). footer = panel aksi di BAWAH detail,
+ *  baru muncul setelah detail termuat — kurasi memakai ini supaya penilai wajib membaca
+ *  submission dulu sebelum memutuskan. close() menutup dialog. */
 export default function ProjectDetails({
   id,
   name,
   endpoint = `/api/admin/projects/${id}`,
+  trigger,
+  footer,
+  trackName = (t) => t,
 }: {
   id: string;
   name: string;
   endpoint?: string;
+  trigger?: React.ReactNode;
+  footer?: (close: () => void) => React.ReactNode;
+  trackName?: (id: string) => string;
 }) {
   const [open, setOpen] = useState(false);
   const [data, setData] = useState<Detail | null>(null);
   const [loading, setLoading] = useState(false);
+  const [failed, setFailed] = useState(false);
 
   async function load() {
     setLoading(true);
     setData(null);
+    setFailed(false);
     try {
       const r = await fetch(endpoint);
       if (r.ok) setData((await r.json()) as Detail);
+      else setFailed(true);
+    } catch {
+      setFailed(true);
     } finally {
       setLoading(false);
     }
@@ -265,17 +279,30 @@ export default function ProjectDetails({
 
   return (
     <>
-      <Button
-        size="icon-xs"
-        variant="ghost"
-        title="View details"
-        onClick={() => {
-          setOpen(true);
-          load();
-        }}
-      >
-        <Eye />
-      </Button>
+      {trigger ? (
+        <Button
+          size="xs"
+          variant="outline"
+          onClick={() => {
+            setOpen(true);
+            load();
+          }}
+        >
+          {trigger}
+        </Button>
+      ) : (
+        <Button
+          size="icon-xs"
+          variant="ghost"
+          title="View details"
+          onClick={() => {
+            setOpen(true);
+            load();
+          }}
+        >
+          <Eye />
+        </Button>
+      )}
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-h-[88vh] max-w-3xl overflow-y-auto">
           <DialogHeader>
@@ -291,7 +318,17 @@ export default function ProjectDetails({
               <div className="h-32 animate-pulse rounded-xl bg-gray-100 dark:bg-white/[0.06]" />
             </div>
           )}
-          {data && <Body d={data} />}
+          {failed && (
+            <p className="text-sm text-red-600 dark:text-red-400">
+              Failed to load details. Close and try again.
+            </p>
+          )}
+          {data && <Body d={data} trackName={trackName} />}
+          {data && footer && (
+            <div className="border-t border-gray-200 pt-5 dark:border-gray-800">
+              {footer(() => setOpen(false))}
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </>

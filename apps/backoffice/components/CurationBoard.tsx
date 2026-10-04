@@ -9,14 +9,6 @@ import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -419,12 +411,15 @@ function ScreeningTable({
                 </TableCell>
                 <TableCell>
                   <div className="flex items-center justify-end gap-1">
+                    {/* Saring HANYA dari dalam detail: penilai wajib membaca submission dulu. */}
                     <ProjectDetails
                       id={r.id}
                       name={r.name}
                       endpoint={`/api/curation/projects/${r.id}`}
+                      trackName={trackName}
+                      trigger={r.screen ? "Review · change" : "Review"}
+                      footer={(close) => <ScreenForm row={r} disabled={!canAct} onDone={close} />}
                     />
-                    <ScreenDialog row={r} disabled={!canAct} />
                   </div>
                 </TableCell>
               </TableRow>
@@ -436,15 +431,23 @@ function ScreeningTable({
   );
 }
 
-function ScreenDialog({ row, disabled }: { row: CurationRow; disabled: boolean }) {
+function ScreenForm({
+  row,
+  disabled,
+  onDone,
+}: {
+  row: CurationRow;
+  disabled: boolean;
+  onDone: () => void;
+}) {
   const router = useRouter();
-  const [open, setOpen] = useState(false);
-  const [decision, setDecision] = useState<"pass" | "fail">(row.screen?.decision ?? "pass");
+  const [decision, setDecision] = useState<"pass" | "fail" | null>(row.screen?.decision ?? null);
   const [reason, setReason] = useState(row.screen?.reason ?? "demo_broken");
   const [note, setNote] = useState(row.screen?.note ?? "");
   const [busy, setBusy] = useState(false);
 
   async function save() {
+    if (!decision) return;
     setBusy(true);
     const ok = await send("/api/curation/screen", {
       projectId: row.id,
@@ -455,80 +458,77 @@ function ScreenDialog({ row, disabled }: { row: CurationRow; disabled: boolean }
     setBusy(false);
     if (ok) {
       toast.success(decision === "pass" ? "Marked as passed" : "Marked as failed");
-      setOpen(false);
+      onDone();
       router.refresh();
     }
   }
 
+  if (disabled) {
+    return <ClosedNote />;
+  }
   return (
-    <>
-      <Button
-        size="xs"
-        variant="outline"
-        disabled={disabled}
-        onClick={() => {
-          // Ambil keputusan terbaru (bisa sudah diubah penilai lain sejak render awal).
-          setDecision(row.screen?.decision ?? "pass");
-          setReason(row.screen?.reason ?? "demo_broken");
-          setNote(row.screen?.note ?? "");
-          setOpen(true);
-        }}
-      >
-        {row.screen ? "Change" : "Screen"}
-      </Button>
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>{row.name}</DialogTitle>
-            <DialogDescription>Does this submission pass the eligibility check?</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="flex gap-2">
-              <Button
-                className="flex-1"
-                variant={decision === "pass" ? "default" : "outline"}
-                onClick={() => setDecision("pass")}
-              >
-                Pass
-              </Button>
-              <Button
-                className="flex-1"
-                variant={decision === "fail" ? "destructive" : "outline"}
-                onClick={() => setDecision("fail")}
-              >
-                Fail
-              </Button>
-            </div>
-            {decision === "fail" && (
-              <div className="grid gap-1.5">
-                <Label>Reason</Label>
-                <Select value={reason} onValueChange={setReason}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {REASONS.map((r) => (
-                      <SelectItem key={r.value} value={r.value}>
-                        {r.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-            <div className="grid gap-1.5">
-              <Label>Note (optional, internal)</Label>
-              <Textarea value={note} onChange={(e) => setNote(e.target.value)} maxLength={1000} />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button onClick={save} disabled={busy}>
-              {busy ? "…" : "Save"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </>
+    <div className="space-y-4">
+      <div>
+        <h3 className="text-sm font-semibold text-gray-800 dark:text-white/90">
+          Screening decision
+        </h3>
+        <p className="text-theme-xs text-gray-500 dark:text-gray-400">
+          {row.screen
+            ? `Current: ${row.screen.decision === "pass" ? "Passed" : `Failed · ${reasonLabel(row.screen.reason)}`} (by ${orgLabel(row.screen.organization)})`
+            : "Does this submission pass the eligibility check?"}
+        </p>
+      </div>
+      <div className="flex gap-2">
+        <Button
+          className="flex-1"
+          variant={decision === "pass" ? "default" : "outline"}
+          onClick={() => setDecision("pass")}
+        >
+          Pass
+        </Button>
+        <Button
+          className="flex-1"
+          variant={decision === "fail" ? "destructive" : "outline"}
+          onClick={() => setDecision("fail")}
+        >
+          Fail
+        </Button>
+      </div>
+      {decision === "fail" && (
+        <div className="grid gap-1.5">
+          <Label>Reason</Label>
+          <Select value={reason} onValueChange={setReason}>
+            <SelectTrigger className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {REASONS.map((r) => (
+                <SelectItem key={r.value} value={r.value}>
+                  {r.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
+      <div className="grid gap-1.5">
+        <Label>Note (optional, internal)</Label>
+        <Textarea value={note} onChange={(e) => setNote(e.target.value)} maxLength={1000} />
+      </div>
+      <div className="flex justify-end">
+        <Button onClick={save} disabled={busy || !decision}>
+          {busy ? "…" : "Save decision"}
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function ClosedNote() {
+  return (
+    <p className="text-sm text-gray-500 dark:text-gray-400">
+      Read-only — curation is closed or your organization isn't set yet.
+    </p>
   );
 }
 
@@ -594,12 +594,22 @@ function ScoringTable({
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center justify-end gap-1">
+                      {/* Nilai HANYA dari dalam detail, sama seperti saring. */}
                       <ProjectDetails
                         id={r.id}
                         name={r.name}
                         endpoint={`/api/curation/projects/${r.id}`}
+                        trackName={trackName}
+                        trigger={mine ? "Review · edit score" : "Review & score"}
+                        footer={(close) => (
+                          <ScoreForm
+                            row={r}
+                            criteria={criteria}
+                            disabled={!canAct}
+                            onDone={close}
+                          />
+                        )}
                       />
-                      <ScoreDialog row={r} criteria={criteria} disabled={!canAct} />
                     </div>
                   </TableCell>
                 </TableRow>
@@ -612,17 +622,18 @@ function ScoringTable({
   );
 }
 
-function ScoreDialog({
+function ScoreForm({
   row,
   criteria,
   disabled,
+  onDone,
 }: {
   row: CurationRow;
   criteria: Criterion[];
   disabled: boolean;
+  onDone: () => void;
 }) {
   const router = useRouter();
-  const [open, setOpen] = useState(false);
   const [vals, setVals] = useState<Record<string, number>>(row.myScores);
   const [note, setNote] = useState(row.myNote ?? "");
   const [busy, setBusy] = useState(false);
@@ -639,81 +650,63 @@ function ScoreDialog({
     setBusy(false);
     if (ok) {
       toast.success("Scores saved");
-      setOpen(false);
+      onDone();
       router.refresh();
     }
   }
 
+  if (disabled) {
+    return <ClosedNote />;
+  }
   return (
-    <>
-      <Button
-        size="xs"
-        variant="outline"
-        disabled={disabled}
-        onClick={() => {
-          setVals(row.myScores);
-          setNote(row.myNote ?? "");
-          setOpen(true);
-        }}
-      >
-        {Object.keys(row.myScores).length ? "Edit score" : "Score"}
-      </Button>
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-h-[88vh] max-w-2xl overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>{row.name}</DialogTitle>
-            <DialogDescription>1 = very weak · 3 = adequate · 5 = excellent</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            {criteria.map((c) => (
-              <div
-                key={c.id}
-                className="rounded-xl border border-gray-200 p-3 dark:border-gray-800"
-              >
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                    {c.name}{" "}
-                    <span className="text-theme-xs font-normal text-gray-500">
-                      · {Math.round((c.weight / totalWeight) * 100)}%
-                    </span>
-                  </p>
-                  <div className="flex gap-1">
-                    {[1, 2, 3, 4, 5].map((n) => (
-                      <Button
-                        key={n}
-                        size="icon-xs"
-                        variant={vals[c.id] === n ? "default" : "outline"}
-                        onClick={() => setVals((v) => ({ ...v, [c.id]: n }))}
-                        aria-label={`${c.name}: ${n}`}
-                      >
-                        {n}
-                      </Button>
-                    ))}
-                  </div>
-                </div>
-                {c.description && (
-                  <p className="mt-1.5 text-theme-xs leading-relaxed text-gray-500 dark:text-gray-400">
-                    {c.description}
-                  </p>
-                )}
-              </div>
-            ))}
-            <div className="grid gap-1.5">
-              <Label>Note (optional, internal)</Label>
-              <Textarea value={note} onChange={(e) => setNote(e.target.value)} maxLength={2000} />
+    <div className="space-y-4">
+      <div>
+        <h3 className="text-sm font-semibold text-gray-800 dark:text-white/90">Your score</h3>
+        <p className="text-theme-xs text-gray-500 dark:text-gray-400">
+          1 = very weak · 3 = adequate · 5 = excellent
+        </p>
+      </div>
+      {criteria.map((c) => (
+        <div key={c.id} className="rounded-xl border border-gray-200 p-3 dark:border-gray-800">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <p className="text-sm font-medium text-gray-800 dark:text-white/90">
+              {c.name}{" "}
+              <span className="text-theme-xs font-normal text-gray-500">
+                · {Math.round((c.weight / totalWeight) * 100)}%
+              </span>
+            </p>
+            <div className="flex gap-1">
+              {[1, 2, 3, 4, 5].map((n) => (
+                <Button
+                  key={n}
+                  size="icon-xs"
+                  variant={vals[c.id] === n ? "default" : "outline"}
+                  onClick={() => setVals((v) => ({ ...v, [c.id]: n }))}
+                  aria-label={`${c.name}: ${n}`}
+                >
+                  {n}
+                </Button>
+              ))}
             </div>
           </div>
-          <DialogFooter>
-            {!complete && (
-              <span className="mr-auto text-theme-xs text-gray-500">Score every criterion.</span>
-            )}
-            <Button onClick={save} disabled={busy || !complete}>
-              {busy ? "…" : "Save scores"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </>
+          {c.description && (
+            <p className="mt-1.5 text-theme-xs leading-relaxed text-gray-500 dark:text-gray-400">
+              {c.description}
+            </p>
+          )}
+        </div>
+      ))}
+      <div className="grid gap-1.5">
+        <Label>Note (optional, internal)</Label>
+        <Textarea value={note} onChange={(e) => setNote(e.target.value)} maxLength={2000} />
+      </div>
+      <div className="flex items-center justify-end gap-3">
+        {!complete && <span className="text-theme-xs text-gray-500">Score every criterion.</span>}
+        <Button onClick={save} disabled={busy || !complete}>
+          {busy ? "…" : "Save scores"}
+        </Button>
+      </div>
+    </div>
   );
 }
 
