@@ -1,6 +1,6 @@
 "use client";
 
-import { ExternalLink, RefreshCw } from "lucide-react";
+import { ExternalLink, MonitorPlay, RefreshCw } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -15,12 +15,10 @@ interface Row {
 
 export default function VotingControl({
   votingOpen,
-  leaderboardPublic,
   leaderboard,
   voteUrl,
 }: {
   votingOpen: boolean;
-  leaderboardPublic: boolean;
   leaderboard: Row[];
   voteUrl: string;
 }) {
@@ -60,28 +58,29 @@ export default function VotingControl({
         <Toggle
           label="Voting"
           on={votingOpen}
-          onLabel="Dibuka"
-          offLabel="Ditutup"
-          hint="Saat dibuka, peserta & juri bisa masuk halaman vote (demo day)."
+          onLabel="Open"
+          offLabel="Closed"
+          hint="Open after the last finalist demo. Any signed-in user can vote once; results stay admin-only."
           busy={busy}
           onToggle={() =>
-            patch({ votingOpen: !votingOpen }, votingOpen ? "Voting ditutup" : "Voting dibuka")
+            patch({ votingOpen: !votingOpen }, votingOpen ? "Voting closed" : "Voting opened")
           }
         />
-        <Toggle
-          label="Leaderboard publik"
-          on={leaderboardPublic}
-          onLabel="Publik"
-          offLabel="Admin saja"
-          hint="Kalau publik, semua pemilih lihat ranking. Kalau tidak, hanya admin."
-          busy={busy}
-          onToggle={() =>
-            patch(
-              { leaderboardPublic: !leaderboardPublic },
-              leaderboardPublic ? "Leaderboard disembunyikan" : "Leaderboard dipublikasikan"
-            )
-          }
-        />
+        <div className="rounded-xl border border-gray-200 p-4 dark:border-gray-800">
+          <div className="flex items-center justify-between gap-3">
+            <span className="text-sm font-medium text-gray-800 dark:text-white/90">Big screen</span>
+            <Button asChild size="sm" variant="default">
+              <a href={`${voteUrl}/screen`} target="_blank" rel="noopener noreferrer">
+                Open big screen
+                <MonitorPlay className="size-4" />
+              </a>
+            </Button>
+          </div>
+          <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+            For the videotron: finalists, QR code and the live total only — never per-project
+            counts. Admin sign-in required on that device.
+          </p>
+        </div>
       </div>
 
       <div className="rounded-xl border border-dashed border-brand-400/60 bg-brand-50/40 p-4 dark:border-brand-500/40 dark:bg-brand-500/5">
@@ -101,6 +100,12 @@ export default function VotingControl({
                 <ExternalLink className="size-4" />
               </a>
             </Button>
+            <Button asChild size="sm" variant="outline">
+              <a href={`${voteUrl}/screen?demo=1`} target="_blank" rel="noopener noreferrer">
+                Open big screen (demo)
+                <MonitorPlay className="size-4" />
+              </a>
+            </Button>
             <Button size="sm" variant="outline" onClick={resetDemo} disabled={busy}>
               Reset vote demo
             </Button>
@@ -110,7 +115,7 @@ export default function VotingControl({
 
       <div className="flex items-center justify-between gap-2">
         <h3 className="text-sm font-semibold text-gray-800 dark:text-white/90">
-          Leaderboard <span className="text-gray-400">· {total} vote</span>
+          Results (admin only) <span className="text-gray-400">· {total} votes</span>
         </h3>
         <div className="flex gap-2">
           <Button size="sm" variant="ghost" onClick={() => router.refresh()} title="Refresh">

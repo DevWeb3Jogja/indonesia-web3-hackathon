@@ -1,10 +1,12 @@
 import {
+  countVotes,
   DEMO_HACKATHON_ID,
   ensureDemoEdition,
   getCurrentHackathon,
   getMyVote,
   getUser,
   listDemoDayProjects,
+  ownFinalistIds,
   voteLeaderboard,
 } from "@iw3h/db";
 import VoteApp from "@/components/VoteApp";
@@ -15,10 +17,11 @@ export const dynamic = "force-dynamic";
 
 /**
  * Gate akses (server, tak bisa dilewati UI):
- *  - Situs: admin selalu; participant/judge hanya saat demo day (votingOpen).
- *  - Leaderboard: admin selalu; selain itu hanya kalau leaderboardPublic.
+ *  - Situs: admin selalu; selain itu hanya saat voting dibuka (demo day).
+ *  - Angka per project (leaderboard): HANYA admin. Hasil diumumkan di panggung.
  *  - Demo (dry-run): HANYA admin (?demo=1) → edisi demo terpisah, vote real.
- * Aksi (vote) diproteksi lagi di /api/vote (session + finalis + eligible + demo-gate).
+ * Aksi (vote) diproteksi lagi di /api/vote (session + finalis + sekali + bukan
+ * project sendiri + demo-gate).
  */
 export default async function Page({
   searchParams,
@@ -34,9 +37,10 @@ export default async function Page({
   const demo = isAdmin && address ? (await searchParams).demo === "1" : false;
   if (demo && address) {
     await ensureDemoEdition(db, address);
-    const [finalists, myVote, leaderboard] = await Promise.all([
+    const [finalists, myVote, ownIds, leaderboard] = await Promise.all([
       listDemoDayProjects(db, DEMO_HACKATHON_ID),
       getMyVote(db, DEMO_HACKATHON_ID, address),
+      ownFinalistIds(db, DEMO_HACKATHON_ID, address),
       voteLeaderboard(db, DEMO_HACKATHON_ID),
     ]);
     return (
@@ -46,9 +50,9 @@ export default async function Page({
         isAdmin
         votingOpen
         canAccess
-        canSeeLeaderboard
         finalists={finalists}
         myVote={myVote}
+        ownIds={ownIds}
         leaderboard={leaderboard}
       />
     );
@@ -56,16 +60,19 @@ export default async function Page({
 
   const hackathon = await getCurrentHackathon(db);
   const votingOpen = hackathon?.votingOpen ?? false;
-  const leaderboardPublic = hackathon?.leaderboardPublic ?? false;
-
   const canAccess = isAdmin || votingOpen;
-  const canSeeLeaderboard = isAdmin || leaderboardPublic;
+  const show = canAccess && hackathon;
+  // Gate untuk yang belum boleh masuk: "belum dibuka" vs "sudah ditutup" (hanya total,
+  // bukan angka per project — sama dengan yang tampil di layar besar).
+  const votingClosed = !canAccess && hackathon ? (await countVotes(db, hackathon.id)) > 0 : false;
 
-  const finalists = canAccess && hackathon ? await listDemoDayProjects(db, hackathon.id) : [];
-  const myVote =
-    canAccess && address && hackathon ? await getMyVote(db, hackathon.id, address) : null;
-  const leaderboard =
-    canSeeLeaderboard && hackathon ? await voteLeaderboard(db, hackathon.id) : null;
+  const [finalists, myVote, ownIds, leaderboard] = await Promise.all([
+    show ? listDemoDayProjects(db, hackathon.id) : [],
+    show && address ? getMyVote(db, hackathon.id, address) : null,
+    show && address ? ownFinalistIds(db, hackathon.id, address) : [],
+    // Leaderboard KHUSUS admin — non-admin tak pernah menerima angka per project.
+    isAdmin && hackathon ? voteLeaderboard(db, hackathon.id) : null,
+  ]);
 
   return (
     <VoteApp
@@ -74,9 +81,10 @@ export default async function Page({
       isAdmin={isAdmin}
       votingOpen={votingOpen}
       canAccess={canAccess}
-      canSeeLeaderboard={canSeeLeaderboard}
+      votingClosed={votingClosed}
       finalists={finalists}
       myVote={myVote}
+      ownIds={ownIds}
       leaderboard={leaderboard}
     />
   );

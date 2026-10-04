@@ -6,16 +6,11 @@ import { db } from "@/lib/turso";
 
 export const dynamic = "force-dynamic";
 
-const schema = z
-  .object({
-    votingOpen: z.boolean().optional(),
-    leaderboardPublic: z.boolean().optional(),
-  })
-  .refine((v) => v.votingOpen !== undefined || v.leaderboardPublic !== undefined, {
-    message: "Tidak ada perubahan",
-  });
+// strict: field lama `leaderboardPublic` DITOLAK (400), bukan diam-diam diabaikan —
+// hasil per project kini selalu khusus admin, tak ada lagi mode publik.
+const schema = z.object({ votingOpen: z.boolean() }).strict();
 
-/** PUT /api/admin/vote-settings — buka/tutup voting & publik/tidak leaderboard. */
+/** PUT /api/admin/vote-settings — buka/tutup voting Community Choice. */
 export async function PUT(req: Request) {
   const auth = await requireAuth("admin");
   if (auth instanceof Response) return auth;

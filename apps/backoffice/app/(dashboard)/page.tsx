@@ -169,7 +169,6 @@ export default async function OverviewPage() {
           <CardContent>
             <VotingControl
               votingOpen={hackathon.votingOpen}
-              leaderboardPublic={hackathon.leaderboardPublic}
               leaderboard={leaderboard}
               voteUrl={VOTE_URL}
             />

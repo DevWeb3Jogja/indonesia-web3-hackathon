@@ -3,7 +3,7 @@
 import type { DemoDayProject, LeaderboardRow } from "@iw3h/db";
 import { useAppKit } from "@reown/appkit/react";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { getTurnstileToken } from "@/lib/turnstile";
 import { useWallet } from "@/lib/use-wallet";
 import { projectId } from "@/lib/web3";
@@ -14,9 +14,14 @@ interface Props {
   isAdmin: boolean;
   votingOpen: boolean;
   canAccess: boolean;
-  canSeeLeaderboard: boolean;
+  /** Voting sudah ditutup (bukan belum dibuka) → gate menampilkan pesan penutup. */
+  votingClosed?: boolean;
+  /** Urut presentasi (server). */
   finalists: DemoDayProject[];
   myVote: string | null;
+  /** Finalis milik wallet ini → tombol vote-nya dimatikan (server tetap menolak). */
+  ownIds: string[];
+  /** Angka per project — HANYA terisi untuk admin; null untuk semua orang lain. */
   leaderboard: LeaderboardRow[] | null;
 }
 
@@ -70,7 +75,11 @@ export default function VoteApp(props: Props) {
         </div>
       ) : null}
       <Header signedIn={props.signedIn} />
-      {props.canAccess ? <VoteBoard {...props} /> : <ClosedGate signedIn={props.signedIn} />}
+      {props.canAccess ? (
+        <VoteBoard {...props} />
+      ) : (
+        <ClosedGate signedIn={props.signedIn} closed={props.votingClosed ?? false} />
+      )}
     </main>
   );
 }
@@ -81,7 +90,6 @@ function Header({ signedIn }: { signedIn: boolean }) {
   const short = address ? `${address.slice(0, 6)}…${address.slice(-4)}` : null;
   return (
     <header className="flex items-center justify-between gap-4 py-6">
-      {/** biome-ignore lint/performance/noImgElement: logo statis, tak perlu next/image */}
       <img src="/logo.png" alt="Indonesia Web3 Hackathon" className="h-8 w-auto sm:h-9" />
       {projectId ? (
         <button
@@ -96,7 +104,7 @@ function Header({ signedIn }: { signedIn: boolean }) {
   );
 }
 
-function ClosedGate({ signedIn }: { signedIn: boolean }) {
+function ClosedGate({ signedIn, closed }: { signedIn: boolean; closed: boolean }) {
   const { open } = useAppKit();
   return (
     <section className="flex flex-col items-center gap-6 py-24 text-center fade-in">
@@ -104,10 +112,11 @@ function ClosedGate({ signedIn }: { signedIn: boolean }) {
         Vote
       </h1>
       <p className="max-w-md text-balance text-lg text-mist/70">
-        Voting demo day belum dibuka. Halaman ini terbuka untuk peserta & juri saat sesi demo day
-        berlangsung.
+        {closed
+          ? "Voting Community Choice sudah ditutup. Terima kasih sudah ikut memilih — pemenang diumumkan di panggung."
+          : "Voting Community Choice belum dibuka. Halaman ini terbuka setelah semua finalis selesai demo — sign in dulu supaya nanti tinggal pilih."}
       </p>
-      {projectId && !signedIn ? (
+      {projectId && !signedIn && !closed ? (
         <button
           type="button"
           onClick={() => open()}
@@ -124,31 +133,41 @@ function VoteBoard({
   demo,
   signedIn,
   votingOpen,
-  canSeeLeaderboard,
   finalists,
   myVote: initialVote,
+  ownIds,
   leaderboard: initialLb,
 }: Props) {
   const { open } = useAppKit();
+  const router = useRouter();
   const [myVote, setMyVote] = useState(initialVote);
   const [leaderboard, setLeaderboard] = useState(initialLb);
-  const [busy, setBusy] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [justVoted, setJustVoted] = useState(false);
+  const [confirming, setConfirming] = useState<DemoDayProject | null>(null);
 
+  // Server bisa membawa pilihan yang lebih baru (mis. vote dari tab lain → refresh).
+  useEffect(() => setMyVote(initialVote), [initialVote]);
+  useEffect(() => setLeaderboard(initialLb), [initialLb]);
+
+  const isAdminView = initialLb !== null;
   const refetchLeaderboard = useCallback(async () => {
-    if (!canSeeLeaderboard) return;
+    if (!isAdminView) return;
     const res = await fetch(`/api/leaderboard${demo ? "?demo=1" : ""}`);
     if (res.ok) setLeaderboard((await res.json()).rows);
-  }, [canSeeLeaderboard, demo]);
+  }, [isAdminView, demo]);
 
-  async function vote(id: string) {
+  function ask(p: DemoDayProject) {
     setError(null);
     if (!signedIn) {
       open();
       return;
     }
-    setBusy(id);
+    setConfirming(p);
+  }
+
+  async function vote(id: string) {
+    setBusy(true);
     try {
       const token = await getTurnstileToken();
       const res = await fetch("/api/vote", {
@@ -160,40 +179,56 @@ function VoteBoard({
         body: JSON.stringify({ projectId: id, ...(demo ? { demo: true } : {}) }),
       });
       if (!res.ok) {
-        setError((await res.json().catch(() => null))?.error ?? "Gagal menyimpan vote");
+        const body = await res.json().catch(() => null);
+        setError(body?.error ?? "Gagal menyimpan vote");
+        // Sudah pernah memilih (mis. dari HP/tab lain) → ambil pilihan aslinya dari server.
+        if (body?.code === "already_voted") router.refresh();
         return;
       }
       setMyVote(id);
-      setJustVoted(true);
       await refetchLeaderboard();
     } catch {
-      setError("Terjadi kesalahan jaringan");
+      setError("Terjadi kesalahan jaringan. Coba lagi.");
     } finally {
-      setBusy(null);
+      setBusy(false);
+      setConfirming(null);
     }
   }
+
+  const picked = myVote ? finalists.find((p) => p.id === myVote) : undefined;
+  const locked = myVote !== null;
 
   return (
     <>
       <section className="flex flex-col items-center gap-3 py-10 text-center sm:py-16 fade-in">
+        <p className="text-xs font-medium uppercase tracking-[0.2em] text-brand sm:text-sm">
+          Community Choice
+        </p>
         <h1 className="hero-heading text-[clamp(3rem,16vw,9rem)] font-black uppercase leading-none tracking-tight">
           Vote
         </h1>
         <p className="max-w-md text-balance text-mist/70">
           {votingOpen
-            ? "Pilih satu project favoritmu. Kamu bisa mengubah pilihan selama voting dibuka."
+            ? "Pilih satu finalis favoritmu. Satu orang satu suara, dan pilihan tidak bisa diganti."
             : "Voting sedang ditutup — kamu melihat halaman ini sebagai admin."}
         </p>
       </section>
 
-      {error ? (
-        <p className="mb-6 rounded-2xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-center text-sm text-red-300">
-          {error}
+      {locked ? (
+        <p
+          role="status"
+          className="mb-6 rounded-2xl border border-brand/50 bg-brand/10 px-4 py-4 text-center text-brand"
+        >
+          Suaramu untuk <strong className="font-semibold">{picked?.name ?? "pilihanmu"}</strong>{" "}
+          sudah tercatat. Terima kasih!
         </p>
       ) : null}
-      {justVoted && !canSeeLeaderboard ? (
-        <p className="mb-6 rounded-2xl border border-brand/40 bg-brand/10 px-4 py-3 text-center text-sm text-brand">
-          Vote kamu tercatat. Hasil akan diumumkan panitia.
+      {error ? (
+        <p
+          role="alert"
+          className="mb-6 rounded-2xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-center text-sm text-red-300"
+        >
+          {error}
         </p>
       ) : null}
 
@@ -201,46 +236,117 @@ function VoteBoard({
         <p className="py-10 text-center text-mist/50">Belum ada finalis demo day.</p>
       ) : (
         <div className="flex flex-col gap-4 sm:gap-6">
-          {finalists.map((p, i) => (
+          {finalists.map((p) => (
             <FinalistCard
               key={p.id}
-              n={i + 1}
               project={p}
               selected={myVote === p.id}
-              busy={busy === p.id}
-              disabled={!votingOpen || busy !== null}
-              onVote={() => vote(p.id)}
+              own={ownIds.includes(p.id)}
+              disabled={!votingOpen || locked || busy}
+              onVote={() => ask(p)}
             />
           ))}
         </div>
       )}
 
       {leaderboard ? <Leaderboard rows={leaderboard} myVote={myVote} /> : null}
+
+      {confirming ? (
+        <ConfirmVote
+          project={confirming}
+          busy={busy}
+          onCancel={() => (busy ? undefined : setConfirming(null))}
+          onConfirm={() => vote(confirming.id)}
+        />
+      ) : null}
     </>
   );
 }
 
+/** Konfirmasi sebelum POST — vote tak bisa diganti, jadi satu ketukan salah = fatal. */
+function ConfirmVote({
+  project,
+  busy,
+  onCancel,
+  onConfirm,
+}: {
+  project: DemoDayProject;
+  busy: boolean;
+  onCancel: () => void;
+  onConfirm: () => void;
+}) {
+  const confirmRef = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    confirmRef.current?.focus();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onCancel();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onCancel]);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 p-4 sm:items-center">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="confirm-vote-title"
+        className="w-full max-w-md rounded-[28px] border-2 border-mist/25 bg-ink p-6"
+      >
+        <p className="text-xs font-medium uppercase tracking-wider text-brand">
+          No. {String(project.position).padStart(2, "0")}
+        </p>
+        <h2 id="confirm-vote-title" className="mt-2 text-2xl font-light text-balance">
+          Pilih <span className="font-semibold">{project.name}</span>?
+        </h2>
+        <p className="mt-2 text-mist/70">Pilihanmu tidak bisa diganti.</p>
+        <div className="mt-6 flex gap-3">
+          <button
+            type="button"
+            onClick={onCancel}
+            disabled={busy}
+            className={`${PILL} flex-1 border-mist/40 text-mist hover:bg-mist/10 disabled:opacity-40`}
+          >
+            Batal
+          </button>
+          <button
+            ref={confirmRef}
+            type="button"
+            onClick={onConfirm}
+            disabled={busy}
+            className={`${PILL} flex-1 border-brand bg-brand text-ink hover:opacity-90 disabled:opacity-60`}
+          >
+            {busy ? "Menyimpan…" : "Ya, pilih"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function FinalistCard({
-  n,
   project,
   selected,
-  busy,
+  own,
   disabled,
   onVote,
 }: {
-  n: number;
   project: DemoDayProject;
   selected: boolean;
-  busy: boolean;
+  own: boolean;
   disabled: boolean;
   onVote: () => void;
 }) {
   return (
-    <article className="flex flex-col gap-4 rounded-[28px] border-2 border-mist/25 bg-ink p-4 sm:gap-6 sm:rounded-[44px] sm:p-6 fade-in">
+    <article
+      className={`flex flex-col gap-4 rounded-[28px] border-2 bg-ink p-4 sm:gap-6 sm:rounded-[44px] sm:p-6 fade-in ${
+        selected ? "border-brand" : "border-mist/25"
+      }`}
+    >
       <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3 sm:gap-5">
           <span className="font-black tabular-nums text-mist/30 text-[2.5rem] leading-none sm:text-[4.5rem]">
-            {String(n).padStart(2, "0")}
+            {String(project.position).padStart(2, "0")}
           </span>
           <div className="min-w-0">
             <p className="truncate text-xs font-medium uppercase tracking-wider text-brand sm:text-sm">
@@ -279,18 +385,21 @@ function FinalistCard({
             GitHub ↗
           </a>
         ) : null}
-        <button
-          type="button"
-          onClick={onVote}
-          disabled={disabled}
-          className={`${PILL} ml-auto min-w-[120px] disabled:cursor-not-allowed disabled:opacity-40 ${
-            selected
-              ? "border-brand bg-brand text-ink"
-              : "border-mist bg-transparent text-mist hover:bg-mist/10"
-          }`}
-        >
-          {busy ? "…" : selected ? "Terpilih ✓" : "Vote"}
-        </button>
+        <div className="ml-auto flex items-center gap-3">
+          {own && !selected ? <span className="text-xs text-mist/50">Project timmu</span> : null}
+          <button
+            type="button"
+            onClick={onVote}
+            disabled={disabled || own}
+            className={`${PILL} min-w-[120px] disabled:cursor-not-allowed ${
+              selected
+                ? "border-brand bg-brand text-ink"
+                : "border-mist bg-transparent text-mist hover:bg-mist/10 disabled:opacity-40"
+            }`}
+          >
+            {selected ? "Terpilih ✓" : "Vote"}
+          </button>
+        </div>
       </div>
     </article>
   );
@@ -299,7 +408,6 @@ function FinalistCard({
 function Logo({ project }: { project: DemoDayProject }) {
   if (project.logoUrl) {
     return (
-      // biome-ignore lint/performance/noImgElement: logo dari R2/eksternal, ukuran kecil
       <img
         src={project.logoUrl}
         alt={project.name}
@@ -322,7 +430,7 @@ function Leaderboard({ rows, myVote }: { rows: LeaderboardRow[]; myVote: string 
     <section className="mt-14 fade-in">
       <div className="mb-4 flex items-baseline justify-between">
         <h2 className="text-2xl font-black uppercase tracking-tight sm:text-3xl">Leaderboard</h2>
-        <span className="text-sm text-mist/50">{total} vote</span>
+        <span className="text-sm text-mist/50">{total} vote · khusus admin</span>
       </div>
       <ol className="flex flex-col gap-2">
         {rows.map((r, i) => (
