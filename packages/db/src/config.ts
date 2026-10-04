@@ -1,11 +1,12 @@
 import { randomBytes } from "node:crypto";
-import { and, eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import type { Db } from "./client";
 import {
   criteria,
   curationScores,
   hackathons,
   judgeTracks,
+  organizerScores,
   prizes,
   projectTracks,
   scores,
@@ -80,6 +81,8 @@ export interface CriterionInput {
   description?: string | null;
   weight?: number;
   sort?: number;
+  /** judge (default) | organizer — siapa yang mengisi nilai di penjurian final. */
+  filledBy?: "judge" | "organizer";
 }
 
 export async function createCriterion(db: Db, hackathonId: string, input: CriterionInput) {
@@ -94,10 +97,26 @@ export async function updateCriterion(
   id: string,
   input: Partial<CriterionInput>
 ) {
-  const res = await db
+  const update = db
     .update(criteria)
     .set(input)
     .where(and(eq(criteria.id, id), eq(criteria.hackathonId, hackathonId)));
+  // Kriteria dipindah ke juri → nilai panitia lamanya dibuang (satu transaksi dengan update),
+  // supaya tak "hidup lagi" diam-diam kalau nanti dipindah balik ke panitia.
+  const [res] =
+    input.filledBy === "judge"
+      ? await db.batch([
+          update,
+          db
+            .delete(organizerScores)
+            .where(
+              and(
+                eq(organizerScores.criterionId, id),
+                sql`exists (select 1 from criteria c where c.id = ${id} and c.hackathon_id = ${hackathonId})`
+              )
+            ),
+        ])
+      : [await update];
   if (res.rowsAffected === 0) throw new ConfigError("not_found", "Kriteria tidak ditemukan");
 }
 
@@ -109,10 +128,12 @@ export async function deleteCriterion(db: Db, hackathonId: string, id: string) {
     .limit(1);
   if (owned.length === 0) throw new ConfigError("not_found", "Kriteria tidak ditemukan");
   // Kriteria yang sudah dipakai menilai tak boleh dihapus (skor jadi orphan/ranking rusak).
-  // Termasuk nilai kurasi (curation_scores) — kriteria dipakai bersama kurasi & final.
+  // Termasuk nilai kurasi (curation_scores) & nilai panitia (organizer_scores) — kriteria
+  // dipakai bersama kurasi & final.
   const used =
     (await db.$count(scores, eq(scores.criterionId, id))) +
-    (await db.$count(curationScores, eq(curationScores.criterionId, id)));
+    (await db.$count(curationScores, eq(curationScores.criterionId, id))) +
+    (await db.$count(organizerScores, eq(organizerScores.criterionId, id)));
   if (used > 0) {
     throw new ConfigError(
       "in_use",

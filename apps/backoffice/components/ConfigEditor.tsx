@@ -28,6 +28,8 @@ export interface FieldDef {
   type?: "text" | "number" | "select";
   options?: { value: string; label: string }[];
   placeholder?: string;
+  /** Select wajib: tanpa opsi "—" (kosong = biarkan default server). */
+  required?: boolean;
 }
 export interface ConfigRow {
   id: string;
@@ -86,12 +88,12 @@ export default function ConfigEditor({
   function cell(f: FieldDef, value: string, onChange: (v: string) => void, idPrefix: string) {
     if (f.type === "select") {
       return (
-        <Select value={value || NONE} onValueChange={onChange} disabled={busy}>
+        <Select value={value || (f.required ? "" : NONE)} onValueChange={onChange} disabled={busy}>
           <SelectTrigger size="sm" className="w-full min-w-32">
-            <SelectValue />
+            <SelectValue placeholder={f.placeholder ?? f.label} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value={NONE}>—</SelectItem>
+            {!f.required && <SelectItem value={NONE}>—</SelectItem>}
             {f.options?.map((o) => (
               <SelectItem key={o.value} value={o.value}>
                 {o.label}

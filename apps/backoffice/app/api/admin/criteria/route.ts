@@ -1,4 +1,11 @@
-import { audit, ConfigError, createCriterion, getCurrentHackathon, listCriteria } from "@iw3h/db";
+import {
+  audit,
+  ConfigError,
+  CRITERION_FILLERS,
+  createCriterion,
+  getCurrentHackathon,
+  listCriteria,
+} from "@iw3h/db";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requireAuth } from "@/lib/auth";
@@ -11,6 +18,8 @@ const schema = z.object({
   description: z.string().trim().max(500).nullish(),
   weight: z.number().int().min(1).max(100).optional(),
   sort: z.number().int().min(0).max(9999).optional(),
+  // judge = dinilai juri; organizer = diisi panitia di rekap penjurian final.
+  filledBy: z.enum(CRITERION_FILLERS).optional(),
 });
 
 export async function GET() {

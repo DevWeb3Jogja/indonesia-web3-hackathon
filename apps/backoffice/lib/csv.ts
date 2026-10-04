@@ -9,6 +9,13 @@ export function toCsv(headers: string[], rows: unknown[][]): string {
   return `﻿${lines.join("\r\n")}`;
 }
 
+/** Teks bebas (dari peserta / catatan) bisa diawali =,+,-,@ → dieksekusi sebagai formula
+ *  saat CSV dibuka di Excel/Sheets. Prefix ' supaya dibaca sebagai teks. */
+export function csvText(v: string | null | undefined): string {
+  const s = v ?? "";
+  return /^[=+\-@\t\r]/.test(s) ? `'${s}` : s;
+}
+
 /** Ambil URL dari extra_links (JSON [{label,url}]) berdasarkan label. */
 export function extraLink(raw: string | null | undefined, label: string): string {
   if (!raw) return "";

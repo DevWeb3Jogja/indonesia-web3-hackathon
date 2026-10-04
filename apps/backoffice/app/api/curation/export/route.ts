@@ -1,16 +1,9 @@
 import { curationBoard, getCurrentHackathon, listTracks } from "@iw3h/db";
 import { requireAuth } from "@/lib/auth";
-import { csvResponse, toCsv } from "@/lib/csv";
+import { csvResponse, csvText as text, toCsv } from "@/lib/csv";
 import { db } from "@/lib/turso";
 
 export const dynamic = "force-dynamic";
-
-/** Teks dari peserta (nama project/tim) bisa diawali =,+,-,@ → dieksekusi sebagai
- *  formula saat CSV dibuka di Excel/Sheets. Prefix ' supaya dibaca sebagai teks. */
-const text = (v: string | null | undefined) => {
-  const s = v ?? "";
-  return /^[=+\-@\t\r]/.test(s) ? `'${s}` : s;
-};
 
 /** GET /api/curation/export — ADMIN: ranking kurasi + shortlist sebagai CSV. */
 export async function GET() {
