@@ -1,11 +1,16 @@
 import { getCurrentHackathon, listTracks } from "@iw3h/db";
 import ProjectsPanel from "@/components/ProjectsPanel";
 import { Card, CardContent } from "@/components/ui/card";
+import { pageUser } from "@/lib/page-auth";
 import { db } from "@/lib/turso";
 
 export const dynamic = "force-dynamic";
 
 export default async function ProjectsPage() {
+  // Guard dulu: page ini mengambil data di server (daftar track), dan layout tak
+  // mencegah payload RSC page terkirim. List project sendiri dimuat via API admin.
+  const user = await pageUser("admin");
+  if (!user) return null;
   const hackathon = await getCurrentHackathon(db);
   const tracks = hackathon ? await listTracks(db, hackathon.id) : [];
 

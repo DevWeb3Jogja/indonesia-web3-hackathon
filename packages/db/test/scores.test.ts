@@ -85,7 +85,7 @@ describe("scores & judging (integration)", () => {
     expect(rank[1].avgScore).toBeCloseTo(4);
   });
 
-  it("skor di luar 1-10 ditolak (CHECK)", async () => {
+  it("CHECK DB tetap 1..10 (skala final 1..5 ditegakkan di saveJudgeScores)", async () => {
     await expect(
       upsertScores(db, projectIds[0], judge, [{ criterionId: "c1", score: 11 }])
     ).rejects.toThrow();

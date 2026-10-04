@@ -14,6 +14,9 @@ import {
   curationScores,
   curationScreens,
   finalists,
+  judgeNotes,
+  organizerScores,
+  presentationOrder,
   projects,
   projectTracks,
   scores,
@@ -317,15 +320,18 @@ export async function adminEditProject(
     .where(eq(projects.id, id));
 }
 
-/** Admin: hapus permanen project + baris anak (winners, scores, tracks). */
+/** Admin: hapus permanen project + baris anak (winners, scores, kurasi, penjurian, tracks). */
 export async function deleteProject(db: Db, id: string): Promise<void> {
   await db.batch([
     db.delete(winners).where(eq(winners.projectId, id)),
     db.delete(scores).where(eq(scores.projectId, id)),
+    db.delete(organizerScores).where(eq(organizerScores.projectId, id)),
+    db.delete(judgeNotes).where(eq(judgeNotes.projectId, id)),
     db.delete(curationScores).where(eq(curationScores.projectId, id)),
     db.delete(curationReviews).where(eq(curationReviews.projectId, id)),
     db.delete(curationScreens).where(eq(curationScreens.projectId, id)),
     db.delete(finalists).where(eq(finalists.projectId, id)),
+    db.delete(presentationOrder).where(eq(presentationOrder.projectId, id)),
     db.delete(projectTracks).where(eq(projectTracks.projectId, id)),
     db.delete(projects).where(eq(projects.id, id)),
   ]);

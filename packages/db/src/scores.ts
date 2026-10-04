@@ -77,7 +77,7 @@ export async function getJudgeScores(db: Db, hackathonId: string, judgeAddress: 
 
 export interface ScoreEntry {
   criterionId: string;
-  score: number; // 1..10 (CHECK constraint di DB)
+  score: number; // DB CHECK 1..10; penjurian final memakai 1..5 (lihat saveJudgeScores)
   comment?: string | null;
 }
 

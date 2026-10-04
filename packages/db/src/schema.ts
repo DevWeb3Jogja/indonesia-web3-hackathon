@@ -178,16 +178,23 @@ export const prizes = sqliteTable("prizes", {
   sort: integer("sort").notNull().default(0),
 });
 
-export const criteria = sqliteTable("criteria", {
-  id: text("id").primaryKey(),
-  hackathonId: text("hackathon_id")
-    .notNull()
-    .references(() => hackathons.id),
-  name: text("name").notNull(),
-  description: text("description"),
-  weight: integer("weight").notNull().default(1),
-  sort: integer("sort").notNull().default(0),
-});
+/** filledBy: judge (dinilai juri di /judge) | organizer (diisi panitia di rekap backoffice,
+ *  mis. Participation). Nilai organizer TIDAK masuk `scores` → tak pernah dihitung sebagai juri. */
+export const criteria = sqliteTable(
+  "criteria",
+  {
+    id: text("id").primaryKey(),
+    hackathonId: text("hackathon_id")
+      .notNull()
+      .references(() => hackathons.id),
+    name: text("name").notNull(),
+    description: text("description"),
+    weight: integer("weight").notNull().default(1),
+    sort: integer("sort").notNull().default(0),
+    filledBy: text("filled_by").notNull().default("judge"),
+  },
+  (t) => [check("criteria_filled_by", sql`${t.filledBy} IN ('judge','organizer')`)]
+);
 
 export const judgeTracks = sqliteTable(
   "judge_tracks",
@@ -391,5 +398,71 @@ export const finalists = sqliteTable(
       "finalist_contact_status",
       sql`${t.contactStatus} IN ('pending','contacted','confirmed','declined')`
     ),
+  ]
+);
+
+// ── Penjurian final (demo day) ───────────────────────────────────────────────
+// Rahasia sampai pengumuman: hanya route backoffice (admin) yang membaca rekap;
+// juri hanya membaca nilai/catatan miliknya sendiri lewat /api/judge/*.
+
+/** Nilai kriteria `filled_by = organizer` (mis. Participation), 1..5, satu per
+ *  (project, kriteria). Terpisah dari `scores` supaya tak dihitung sebagai juri. */
+export const organizerScores = sqliteTable(
+  "organizer_scores",
+  {
+    projectId: text("project_id")
+      .notNull()
+      .references(() => projects.id),
+    criterionId: text("criterion_id")
+      .notNull()
+      .references(() => criteria.id),
+    score: integer("score").notNull(),
+    updatedBy: text("updated_by").notNull(),
+    updatedAt: text("updated_at").notNull().default(now),
+  },
+  (t) => [
+    primaryKey({ columns: [t.projectId, t.criterionId] }),
+    check("organizer_score_range", sql`${t.score} BETWEEN 1 AND 5`),
+  ]
+);
+
+/** Catatan juri per project (satu baris per juri), menggantikan `scores.comment` yang
+ *  dulu diduplikasi di tiap baris skor. teamNote = untuk tim; internalNote = untuk panitia. */
+export const judgeNotes = sqliteTable(
+  "judge_notes",
+  {
+    projectId: text("project_id")
+      .notNull()
+      .references(() => projects.id),
+    judgeAddress: text("judge_address")
+      .notNull()
+      .references(() => users.address),
+    teamNote: text("team_note"),
+    internalNote: text("internal_note"),
+    createdAt: text("created_at").notNull().default(now),
+    updatedAt: text("updated_at").notNull().default(now),
+  },
+  (t) => [primaryKey({ columns: [t.projectId, t.judgeAddress] })]
+);
+
+/** Urutan presentasi finalis di demo day (diatur admin; form juri & rekap mengikutinya).
+ *  Tabel terpisah, BUKAN kolom di `projects`: baris project sampai ke peserta, dan urutan
+ *  ini membocorkan siapa finalisnya. Diganti utuh tiap simpan (setPresentationOrder). */
+export const presentationOrder = sqliteTable(
+  "presentation_order",
+  {
+    projectId: text("project_id")
+      .primaryKey()
+      .references(() => projects.id),
+    hackathonId: text("hackathon_id")
+      .notNull()
+      .references(() => hackathons.id),
+    position: integer("position").notNull(),
+    updatedBy: text("updated_by").notNull(),
+    updatedAt: text("updated_at").notNull().default(now),
+  },
+  (t) => [
+    check("presentation_position", sql`${t.position} >= 1`),
+    uniqueIndex("uq_presentation_position").on(t.hackathonId, t.position),
   ]
 );

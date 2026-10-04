@@ -1,9 +1,14 @@
 import UsersPanel from "@/components/UsersPanel";
 import { Card, CardContent } from "@/components/ui/card";
+import { pageUser } from "@/lib/page-auth";
 
 export const dynamic = "force-dynamic";
 
-export default function UsersPage() {
+export default async function UsersPage() {
+  // Data page ini dimuat client lewat API admin (sudah requireAuth); guard tetap dipasang
+  // supaya semua page dashboard seragam — layout tak mencegah payload RSC page terkirim.
+  const user = await pageUser("admin");
+  if (!user) return null;
   return (
     <div className="space-y-6">
       <div>

@@ -6,15 +6,19 @@ import { toast } from "sonner";
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
 
-interface Option {
+export interface WinnerOption {
   projectId: string;
   name: string;
-  avgScore: number;
+  /** Nilai akhir penjurian final (1..5); null = belum dinilai / bukan finalis. */
+  score: number | null;
+  finalist: boolean;
 }
 
 const NONE = "__none__";
@@ -26,7 +30,7 @@ export default function WinnerPicker({
 }: {
   prizeId: string;
   current: string | null;
-  options: Option[];
+  options: WinnerOption[];
 }) {
   const router = useRouter();
   const [value, setValue] = useState(current ?? NONE);
@@ -58,11 +62,21 @@ export default function WinnerPicker({
       </SelectTrigger>
       <SelectContent>
         <SelectItem value={NONE}>— none yet —</SelectItem>
-        {options.map((o) => (
-          <SelectItem key={o.projectId} value={o.projectId}>
-            {o.name} ({o.avgScore.toFixed(1)})
-          </SelectItem>
-        ))}
+        {[true, false].map((finalist) => {
+          const group = options.filter((o) => o.finalist === finalist);
+          if (group.length === 0) return null;
+          return (
+            <SelectGroup key={String(finalist)}>
+              <SelectLabel>{finalist ? "Finalists" : "Other submitted projects"}</SelectLabel>
+              {group.map((o) => (
+                <SelectItem key={o.projectId} value={o.projectId}>
+                  {o.name}
+                  {o.score !== null ? ` (${o.score.toFixed(3)})` : ""}
+                </SelectItem>
+              ))}
+            </SelectGroup>
+          );
+        })}
       </SelectContent>
     </Select>
   );

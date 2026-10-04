@@ -1,4 +1,10 @@
-import { audit, deleteCriterion, getCurrentHackathon, updateCriterion } from "@iw3h/db";
+import {
+  audit,
+  CRITERION_FILLERS,
+  deleteCriterion,
+  getCurrentHackathon,
+  updateCriterion,
+} from "@iw3h/db";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requireAuth } from "@/lib/auth";
@@ -13,6 +19,7 @@ const schema = z
     description: z.string().trim().max(500).nullish(),
     weight: z.number().int().min(1).max(100),
     sort: z.number().int().min(0).max(9999),
+    filledBy: z.enum(CRITERION_FILLERS),
   })
   .partial();
 

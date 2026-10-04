@@ -4,6 +4,7 @@ import PhaseControl from "@/components/PhaseControl";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import VotingControl from "@/components/VotingControl";
+import { pageUser } from "@/lib/page-auth";
 import { db } from "@/lib/turso";
 
 export const dynamic = "force-dynamic";
@@ -11,6 +12,9 @@ export const dynamic = "force-dynamic";
 const VOTE_URL = process.env.NEXT_PUBLIC_VOTE_URL ?? "https://vote.indonesiaweb3hack.xyz";
 
 export default async function OverviewPage() {
+  // Guard di PAGE (layout tak mencegah payload RSC page terkirim) — lihat lib/page-auth.ts.
+  const user = await pageUser("admin");
+  if (!user) return null;
   const [stats, hackathon] = await Promise.all([adminStats(db), getCurrentHackathon(db)]);
   const [funnel, leaderboard] = hackathon
     ? await Promise.all([userFunnel(db, hackathon.id), voteLeaderboard(db, hackathon.id)])

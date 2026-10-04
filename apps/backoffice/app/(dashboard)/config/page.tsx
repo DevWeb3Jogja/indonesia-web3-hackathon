@@ -1,11 +1,15 @@
 import { getCurrentHackathon, listCriteria, listPrizes, listTracks } from "@iw3h/db";
 import ConfigEditor from "@/components/ConfigEditor";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { pageUser } from "@/lib/page-auth";
 import { db } from "@/lib/turso";
 
 export const dynamic = "force-dynamic";
 
 export default async function ConfigPage() {
+  // Guard di PAGE (layout tak mencegah payload RSC page terkirim) — lihat lib/page-auth.ts.
+  const user = await pageUser("admin");
+  if (!user) return null;
   const hackathon = await getCurrentHackathon(db);
   if (!hackathon) {
     return (
@@ -52,6 +56,10 @@ export default async function ConfigPage() {
       <Card>
         <CardHeader>
           <CardTitle>Scoring criteria</CardTitle>
+          <CardDescription>
+            Shared by curation and final judging. “Organizers” criteria (e.g. Participation) are
+            hidden from the judge form and filled in on the Judging page.
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <ConfigEditor
@@ -61,6 +69,17 @@ export default async function ConfigPage() {
               { key: "name", label: "Name" },
               { key: "weight", label: "Weight", type: "number" },
               { key: "description", label: "Description" },
+              {
+                key: "filledBy",
+                label: "Filled by",
+                type: "select",
+                required: true,
+                placeholder: "Judges (default)",
+                options: [
+                  { value: "judge", label: "Judges" },
+                  { value: "organizer", label: "Organizers" },
+                ],
+              },
               { key: "sort", label: "Order", type: "number" },
             ]}
           />

@@ -1,5 +1,8 @@
 import {
+  ALL_TRACKS,
+  finalJudgingBoard,
   getCurrentHackathon,
+  isFrozen,
   listJudgeAssignments,
   listPrizes,
   listTracks,
@@ -8,56 +11,84 @@ import {
   projectRankings,
 } from "@iw3h/db";
 import JudgeTracks from "@/components/JudgeTracks";
+import JudgingBoard from "@/components/JudgingBoard";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import WinnerPicker from "@/components/WinnerPicker";
+import WinnerPicker, { type WinnerOption } from "@/components/WinnerPicker";
+import { pageUser } from "@/lib/page-auth";
 import { db } from "@/lib/turso";
 import { short } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
 export default async function JudgingPage() {
+  // Guard di PAGE (layout tak mencegah payload RSC page terkirim) — lihat lib/page-auth.ts.
+  // Halaman ini memuat nilai, peringkat & catatan internal juri: RAHASIA.
+  const user = await pageUser("admin");
+  if (!user) return null;
   const hackathon = await getCurrentHackathon(db);
-  const [users, rankings, prizes, winners, tracks, judgeAssign] = await Promise.all([
+  if (!hackathon) {
+    return (
+      <div className="space-y-6">
+        <h1 className="text-xl font-semibold">Judging</h1>
+        <p className="text-sm text-gray-500 dark:text-gray-400">No hackathon yet.</p>
+      </div>
+    );
+  }
+  const [users, board, submitted, prizes, winners, tracks, judgeAssign] = await Promise.all([
     listUsers(db, 100),
-    hackathon ? projectRankings(db, hackathon.id) : Promise.resolve([]),
-    hackathon ? listPrizes(db, hackathon.id) : Promise.resolve([]),
+    finalJudgingBoard(db, hackathon.id),
+    projectRankings(db, hackathon.id),
+    listPrizes(db, hackathon.id),
     listWinners(db),
-    hackathon ? listTracks(db, hackathon.id) : Promise.resolve([]),
-    hackathon ? listJudgeAssignments(db, hackathon.id) : Promise.resolve([]),
+    listTracks(db, hackathon.id),
+    listJudgeAssignments(db, hackathon.id),
   ]);
   const judges = users.filter((u) => u.role === "judge" || u.role === "admin");
   const tracksOf = (addr: string) =>
     judgeAssign.filter((a) => a.judgeAddress === addr).map((a) => a.trackId);
   const winnerOf = (id: string) => winners.find((w) => w.prizeId === id)?.projectId ?? null;
-  const rankOptions = rankings.map((r) => ({
-    projectId: r.projectId,
-    name: r.name,
-    avgScore: r.avgScore,
-  }));
+
+  // Pemenang: finalis dulu (urut peringkat final + nilainya), lalu project submitted lain
+  // (route winners tetap menerima semua project submitted — perilaku lama dipertahankan).
+  const finalistIds = new Set(board.rows.map((r) => r.id));
+  const winnerOptions: WinnerOption[] = [
+    ...[...board.rows]
+      .sort(
+        (a, b) =>
+          (a.ranks[ALL_TRACKS]?.rank ?? Number.POSITIVE_INFINITY) -
+            (b.ranks[ALL_TRACKS]?.rank ?? Number.POSITIVE_INFINITY) || a.name.localeCompare(b.name)
+      )
+      .map((r) => ({ projectId: r.id, name: r.name, score: r.score, finalist: true })),
+    ...submitted
+      .filter((p) => !finalistIds.has(p.projectId))
+      .sort((a, b) => a.name.localeCompare(b.name))
+      .map((p) => ({ projectId: p.projectId, name: p.name, score: null, finalist: false })),
+  ];
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-xl font-semibold">Judging</h1>
         <p className="text-sm text-gray-500 dark:text-gray-400">
-          Assign judges, ranking, and winners.
+          Demo day final judging: live recap, scoreboard, judge assignment, and winners.
         </p>
       </div>
+
+      <JudgingBoard
+        initial={board}
+        tracks={tracks.map((t) => ({ id: t.id, name: t.name }))}
+        frozen={isFrozen(hackathon)}
+        phase={hackathon.status}
+      />
 
       <div className="grid gap-4 lg:grid-cols-2">
         <Card>
           <CardHeader>
             <CardTitle>Assign judges → track</CardTitle>
-            <CardDescription>Empty = a judge scores all tracks.</CardDescription>
+            <CardDescription>
+              Empty = a judge scores all tracks. Only wallets with the Judge role can submit scores.
+            </CardDescription>
           </CardHeader>
           <CardContent>
             {judges.length === 0 ? (
@@ -91,67 +122,37 @@ export default async function JudgingPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Judging ranking</CardTitle>
+            <CardTitle>Winners</CardTitle>
+            <CardDescription>
+              Finalists are listed first with their final score (1–5).
+            </CardDescription>
           </CardHeader>
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-8">#</TableHead>
-                  <TableHead>Project</TableHead>
-                  <TableHead className="text-right">Score</TableHead>
-                  <TableHead className="text-right">Judge</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {rankings.length === 0 && (
-                  <TableRow>
-                    <TableCell colSpan={4} className="text-center text-gray-500 dark:text-gray-400">
-                      No scores yet.
-                    </TableCell>
-                  </TableRow>
-                )}
-                {rankings.map((r, i) => (
-                  <TableRow key={r.projectId}>
-                    <TableCell>{i + 1}</TableCell>
-                    <TableCell>{r.name}</TableCell>
-                    <TableCell className="text-right tabular-nums">
-                      {r.judges > 0 ? r.avgScore.toFixed(2) : "—"}
-                    </TableCell>
-                    <TableCell className="text-right tabular-nums">{r.judges}</TableCell>
-                  </TableRow>
+            {prizes.length === 0 ? (
+              <p className="text-sm text-gray-500 dark:text-gray-400">No prizes configured yet.</p>
+            ) : (
+              <div className="space-y-3">
+                {prizes.map((pz) => (
+                  <div
+                    key={pz.id}
+                    className="flex flex-wrap items-center justify-between gap-2 border-b pb-3 last:border-0"
+                  >
+                    <span className="text-sm font-medium">
+                      {pz.name}
+                      {pz.amountUsd ? ` · $${pz.amountUsd.toLocaleString()}` : ""}
+                    </span>
+                    <WinnerPicker
+                      prizeId={pz.id}
+                      current={winnerOf(pz.id)}
+                      options={winnerOptions}
+                    />
+                  </div>
                 ))}
-              </TableBody>
-            </Table>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Winners</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {prizes.length === 0 ? (
-            <p className="text-sm text-gray-500 dark:text-gray-400">No prizes configured yet.</p>
-          ) : (
-            <div className="space-y-3">
-              {prizes.map((pz) => (
-                <div
-                  key={pz.id}
-                  className="flex flex-wrap items-center justify-between gap-2 border-b pb-3 last:border-0"
-                >
-                  <span className="text-sm font-medium">
-                    {pz.name}
-                    {pz.amountUsd ? ` · $${pz.amountUsd.toLocaleString()}` : ""}
-                  </span>
-                  <WinnerPicker prizeId={pz.id} current={winnerOf(pz.id)} options={rankOptions} />
-                </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
     </div>
   );
 }

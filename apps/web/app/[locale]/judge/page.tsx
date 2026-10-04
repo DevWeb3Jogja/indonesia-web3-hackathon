@@ -22,6 +22,7 @@ export default async function JudgePage({ params }: { params: Promise<{ locale: 
         <h1 className="page-title mt-4">
           {t.title1} {t.title2}
         </h1>
+        <p className="mt-4 max-w-2xl text-sm leading-relaxed text-ink/70">{t.lead}</p>
         <div className="mt-10">
           <JudgePanel t={t} />
         </div>
