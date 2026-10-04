@@ -19,10 +19,12 @@ const body = z.object({ projectId: z.string().min(1).max(64), demo: z.boolean().
 const STATUS: Record<VoteError["code"], number> = {
   voting_closed: 409,
   not_finalist: 400,
-  not_eligible: 403,
+  own_project: 403,
+  already_voted: 409,
 };
 
-/** POST /api/vote — pilih 1 project finalis. Alamat SELALU dari session. */
+/** POST /api/vote — pilih 1 project finalis, SEKALI (tak bisa diganti). Siapa pun yang
+ *  sign-in boleh; alamat SELALU dari session. Aturan lengkap di castVote (@iw3h/db). */
 export async function POST(req: Request) {
   const auth = await requireAuth();
   if (auth instanceof Response) return auth;
@@ -54,11 +56,12 @@ export async function POST(req: Request) {
   }
 
   try {
-    const res = await castVote(db, hackathonId, auth.address, auth.role, parsed.data.projectId);
+    const res = await castVote(db, hackathonId, auth.address, parsed.data.projectId);
     return NextResponse.json(res);
   } catch (e) {
-    if (e instanceof VoteError)
-      return NextResponse.json({ error: e.message }, { status: STATUS[e.code] });
+    if (e instanceof VoteError) {
+      return NextResponse.json({ error: e.message, code: e.code }, { status: STATUS[e.code] });
+    }
     throw e;
   }
 }

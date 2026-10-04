@@ -1,27 +1,40 @@
 /**
- * Vote demo day (offline). Aturan keamanan hidup di sini, WAJIB dipanggil server
- * sebelum menulis — bukan di UI:
+ * Community Choice (vote penonton demo day). Aturan keamanan hidup di sini, WAJIB
+ * dipanggil server sebelum menulis — bukan di UI:
  *  - voterAddress SELALU dari session (route mengoper auth.address), bukan input.
- *  - Satu vote per wallet per edisi → dijaga PK votes(hackathonId, voterAddress).
+ *  - Siapa pun yang sudah sign-in boleh vote, SEKALI per edisi, tak bisa diganti.
+ *    Tulis insert-only (tanpa upsert) + PK votes(hackathonId, voterAddress) sebagai
+ *    backstop → dua request balapan tak bisa membalik pilihan.
  *  - Hanya boleh saat votingOpen, dan hanya untuk project finalis demo day.
- *  - Yang boleh vote: anggota project finalis, ATAU role non-participant
- *    (judge/admin/panitia). role dibaca segar dari DB oleh requireAuth.
+ *  - Tak boleh memilih project sendiri (submitter/anggota tim). Kecuali edisi demo:
+ *    finalis mock-nya milik admin pemicu dry-run.
+ *  - Hasil per project RAHASIA: hanya admin (backoffice / view admin). Layar besar
+ *    hanya menampilkan TOTAL suara (voteScreen).
  */
 import { and, count, eq, sql } from "drizzle-orm";
 import type { Db } from "./client";
-import { hackathons, projects, teamMembers, teams, votes } from "./schema";
+import { getPresentationOrder, sortByPresentation } from "./judging";
+import { hackathons, presentationOrder, projects, teamMembers, teams, votes } from "./schema";
 
 /** Edisi demo (dry-run vote, admin-only). Hackathon TERPISAH → terisolasi total dari
  *  edisi live: vote/leaderboard pakai logika ASLI, cuma di-scope ke id ini.
  *  getCurrentHackathon & adminStats mengecualikan id ini supaya tak bocor ke situs live. */
 export const DEMO_HACKATHON_ID = "iw3h-demo";
 
+// 10 finalis mock = sama dengan jumlah finalis asli → layar besar (grid 5×2) bisa
+// digladikan persis. Tambah baris di sini aman: seed idempotent (onConflictDoNothing).
 const DEMO_PROJECTS = [
-  { n: 1, name: "Demo — Nusantara Pay", tagline: "Contoh finalis demo day" },
-  { n: 2, name: "Demo — RantauChain", tagline: "Contoh finalis demo day" },
-  { n: 3, name: "Demo — Garuda ID", tagline: "Contoh finalis demo day" },
-  { n: 4, name: "Demo — Warung DeFi", tagline: "Contoh finalis demo day" },
-];
+  { n: 1, name: "Demo — Nusantara Pay" },
+  { n: 2, name: "Demo — RantauChain" },
+  { n: 3, name: "Demo — Garuda ID" },
+  { n: 4, name: "Demo — Warung DeFi" },
+  { n: 5, name: "Demo — Lumbung DAO" },
+  { n: 6, name: "Demo — Batik NFT" },
+  { n: 7, name: "Demo — Ojol Onchain" },
+  { n: 8, name: "Demo — Sawah Yield" },
+  { n: 9, name: "Demo — Pasar Kripto" },
+  { n: 10, name: "Demo — Merapi Bridge" },
+].map((p) => ({ ...p, tagline: "Contoh finalis demo day" }));
 
 /** Seed edisi demo (idempotent). leaderAddress/submitter = admin pemicu (user ASLI,
  *  tak bikin user palsu). Tiap finalis punya teamId sendiri utk lolos uq_project_solo. */
@@ -63,6 +76,16 @@ export async function ensureDemoEdition(db: Db, adminAddress: string) {
         status: "submitted",
       })
       .onConflictDoNothing();
+    // Urutan presentasi demo = nomor seed (1..10) → gladi menampilkan 01–10 seperti hari H.
+    await db
+      .insert(presentationOrder)
+      .values({
+        projectId: `demo-proj-${p.n}`,
+        hackathonId: DEMO_HACKATHON_ID,
+        position: p.n,
+        updatedBy: adminAddress,
+      })
+      .onConflictDoNothing();
   }
 }
 
@@ -73,7 +96,7 @@ export async function resetDemoVotes(db: Db) {
 
 export class VoteError extends Error {
   constructor(
-    public code: "voting_closed" | "not_finalist" | "not_eligible",
+    public code: "voting_closed" | "not_finalist" | "own_project" | "already_voted",
     message: string
   ) {
     super(message);
@@ -98,59 +121,63 @@ export interface DemoDayProject {
   logoUrl: string | null;
   demoUrl: string | null;
   githubUrl: string | null;
+  /** Nomor urut presentasi 1..n (sama dengan form juri & panggung). */
+  position: number;
 }
 
-/** Kartu-kartu yang tampil di halaman vote (finalis, urut nama). */
+/** Kartu-kartu yang tampil di halaman vote & layar besar: finalis, URUT PRESENTASI
+ *  (urutan yang diatur admin; finalis tanpa posisi di belakang, lalu nama). */
 export async function listDemoDayProjects(db: Db, hackathonId: string): Promise<DemoDayProject[]> {
-  return db
-    .select({
-      id: projects.id,
-      name: projects.name,
-      tagline: projects.tagline,
-      logoUrl: projects.logoUrl,
-      demoUrl: projects.demoUrl,
-      githubUrl: projects.githubUrl,
-    })
-    .from(projects)
-    .where(and(eq(projects.hackathonId, hackathonId), eq(projects.demoDay, true)))
-    .orderBy(projects.name);
+  const [rows, saved] = await Promise.all([
+    db
+      .select({
+        id: projects.id,
+        name: projects.name,
+        tagline: projects.tagline,
+        logoUrl: projects.logoUrl,
+        demoUrl: projects.demoUrl,
+        githubUrl: projects.githubUrl,
+      })
+      .from(projects)
+      .where(and(eq(projects.hackathonId, hackathonId), eq(projects.demoDay, true))),
+    getPresentationOrder(db, hackathonId),
+  ]);
+  // positionSaved sengaja dibuang: info internal admin, tak perlu sampai ke pemilih.
+  return sortByPresentation(rows, saved).map(({ positionSaved: _, ...r }) => r);
 }
 
-/** Boleh vote? Non-participant (judge/admin/panitia) selalu boleh; participant
- *  hanya kalau dia anggota salah satu project finalis. */
-async function isEligibleVoter(
+/** Finalis yang DIMILIKI wallet ini (submitter / anggota / ketua tim) → tak boleh
+ *  dipilihnya sendiri. Edisi demo selalu kosong: finalis mock milik admin pemicu. */
+export async function ownFinalistIds(
   db: Db,
   hackathonId: string,
-  address: string,
-  role: string
-): Promise<boolean> {
-  // ponytail: "staff bisa vote" = role apa pun selain participant. Kalau perlu
-  // kontrol lebih halus (allowlist role), ganti cek ini dengan tabel role→canVote.
-  if (role !== "participant") return true;
+  address: string
+): Promise<string[]> {
+  if (hackathonId === DEMO_HACKATHON_ID) return [];
+  const me = address.toLowerCase();
   const rows = await db
-    .select({ id: projects.id })
+    .selectDistinct({ id: projects.id })
     .from(projects)
+    .leftJoin(teams, eq(teams.id, projects.teamId))
     .leftJoin(teamMembers, eq(teamMembers.teamId, projects.teamId))
     .where(
       and(
         eq(projects.hackathonId, hackathonId),
         eq(projects.demoDay, true),
-        sql`(${projects.submitterAddress} = ${address} or ${teamMembers.address} = ${address})`
+        sql`(lower(${projects.submitterAddress}) = ${me} or lower(${teams.leaderAddress}) = ${me} or lower(${teamMembers.address}) = ${me})`
       )
-    )
-    .limit(1);
-  return rows.length > 0;
+    );
+  return rows.map((r) => r.id);
 }
 
-/** Vote satu project. Melempar VoteError yang dipetakan route ke 4xx.
- *  Mengizinkan ganti pilihan selama voting terbuka (tetap 1 baris/wallet). */
+/** Vote satu project, SEKALI. Melempar VoteError yang dipetakan route ke 4xx.
+ *  Urutan cek: voting dibuka → finalis → belum pernah vote → bukan project sendiri. */
 export async function castVote(
   db: Db,
   hackathonId: string,
   voterAddress: string,
-  role: string,
   projectId: string
-): Promise<{ ok: true; changed: boolean }> {
+): Promise<{ ok: true }> {
   const h = await db
     .select({ votingOpen: hackathons.votingOpen })
     .from(hackathons)
@@ -171,19 +198,23 @@ export async function castVote(
     .limit(1);
   if (!finalist[0]) throw new VoteError("not_finalist", "Project bukan finalis demo day");
 
-  if (!(await isEligibleVoter(db, hackathonId, voterAddress, role))) {
-    throw new VoteError("not_eligible", "Kamu tidak berhak memilih");
+  const already = () =>
+    new VoteError("already_voted", "Kamu sudah memilih. Pilihan tidak bisa diganti.");
+  if ((await getMyVote(db, hackathonId, voterAddress)) !== null) throw already();
+
+  if ((await ownFinalistIds(db, hackathonId, voterAddress)).includes(projectId)) {
+    throw new VoteError("own_project", "Kamu tidak bisa memilih project timmu sendiri.");
   }
 
-  const prev = await getMyVote(db, hackathonId, voterAddress);
-  await db
+  // Insert-only: kalau request lain (balapan) sudah menulis duluan, PK bentrok →
+  // tak ada baris yang ditulis → already_voted. Pilihan pertama TIDAK pernah tertimpa.
+  const inserted = await db
     .insert(votes)
     .values({ hackathonId, voterAddress, projectId })
-    .onConflictDoUpdate({
-      target: [votes.hackathonId, votes.voterAddress],
-      set: { projectId, createdAt: sql`(datetime('now'))` },
-    });
-  return { ok: true, changed: prev !== null && prev !== projectId };
+    .onConflictDoNothing()
+    .returning({ projectId: votes.projectId });
+  if (inserted.length === 0) throw already();
+  return { ok: true };
 }
 
 /** projectId pilihan wallet ini, atau null kalau belum vote. */
@@ -195,7 +226,11 @@ export async function getMyVote(
   const rows = await db
     .select({ projectId: votes.projectId })
     .from(votes)
-    .where(and(eq(votes.hackathonId, hackathonId), eq(votes.voterAddress, address)))
+    // Tak peka huruf: alamat yang sama dalam varian lowercase/checksum = orang yang sama
+    // (SIWE menerima keduanya) → tak bisa dipakai untuk vote kedua.
+    .where(
+      and(eq(votes.hackathonId, hackathonId), sql`lower(${votes.voterAddress}) = lower(${address})`)
+    )
     .limit(1);
   return rows[0]?.projectId ?? null;
 }
@@ -218,14 +253,74 @@ export async function voteLeaderboard(db: Db, hackathonId: string): Promise<Lead
   const finalists = await listDemoDayProjects(db, hackathonId);
   return finalists
     .map((p) => ({ ...p, votes: byId.get(p.id) ?? 0 }))
-    .sort((a, b) => b.votes - a.votes || a.name.localeCompare(b.name));
+    .sort((a, b) => b.votes - a.votes || a.position - b.position);
 }
 
-/** Setelan vote per edisi (buka/tutup, publik/tidak). Partial update. */
+/** Total suara masuk di edisi ini (satu angka, tanpa rincian per project). */
+export async function countVotes(db: Db, hackathonId: string): Promise<number> {
+  const rows = await db
+    .select({ n: count() })
+    .from(votes)
+    .where(eq(votes.hackathonId, hackathonId));
+  return rows[0]?.n ?? 0;
+}
+
+export type ScreenState = "waiting" | "open" | "closed";
+
+/** waiting = belum dibuka & belum ada suara; open = sedang dibuka;
+ *  closed = sudah ditutup setelah ada suara masuk. */
+export function screenState(votingOpen: boolean, total: number): ScreenState {
+  if (votingOpen) return "open";
+  return total > 0 ? "closed" : "waiting";
+}
+
+export interface ScreenFinalist {
+  id: string;
+  name: string;
+  logoUrl: string | null;
+  position: number;
+}
+
+export interface VoteScreen {
+  state: ScreenState;
+  total: number;
+  finalists: ScreenFinalist[];
+}
+
+/** Data layar besar (videotron). Sengaja HANYA total: tak ada angka per project di
+ *  sini, jadi tak mungkin bocor ke layar walau komponen salah render. Edisi tak ada
+ *  → waiting tanpa finalis (layar tetap tampil, bukan error). */
+export async function voteScreen(db: Db, hackathonId: string): Promise<VoteScreen> {
+  const [h, total, finalists] = await Promise.all([
+    db
+      .select({ votingOpen: hackathons.votingOpen })
+      .from(hackathons)
+      .where(eq(hackathons.id, hackathonId))
+      .limit(1),
+    countVotes(db, hackathonId),
+    listDemoDayProjects(db, hackathonId),
+  ]);
+  return {
+    state: screenState(h[0]?.votingOpen ?? false, total),
+    total,
+    finalists: finalists.map((f) => ({
+      id: f.id,
+      name: f.name,
+      logoUrl: f.logoUrl,
+      position: f.position,
+    })),
+  };
+}
+
+/** Buka/tutup voting per edisi. (Kolom leaderboard_public masih ada di skema tapi
+ *  tak dipakai lagi: hasil per project selalu khusus admin.) */
 export async function setVotingSettings(
   db: Db,
   hackathonId: string,
-  patch: { votingOpen?: boolean; leaderboardPublic?: boolean }
+  patch: { votingOpen: boolean }
 ) {
-  await db.update(hackathons).set(patch).where(eq(hackathons.id, hackathonId));
+  await db
+    .update(hackathons)
+    .set({ votingOpen: patch.votingOpen })
+    .where(eq(hackathons.id, hackathonId));
 }
