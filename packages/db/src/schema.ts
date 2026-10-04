@@ -275,3 +275,121 @@ export const rateLimits = sqliteTable("rate_limits", {
   windowStart: integer("window_start").notNull(),
   count: integer("count").notNull().default(0),
 });
+
+// ── Kurasi (backoffice, panitia + admin) ─────────────────────────────────────
+// Semua tabel kurasi INTERNAL: hanya dibaca route backoffice. Jangan pernah join
+// ke query publik/peserta — hasil kurasi & finalis rahasia sampai demo day.
+
+/** organization: binance-academy | coinvestasi | devweb3jogja. Dipilih sekali oleh
+ *  penilai (wallet), disalin ke tiap penilaian sebagai jejak. */
+export const curationReviewers = sqliteTable(
+  "curation_reviewers",
+  {
+    hackathonId: text("hackathon_id")
+      .notNull()
+      .references(() => hackathons.id),
+    address: text("address")
+      .notNull()
+      .references(() => users.address),
+    organization: text("organization").notNull(),
+    createdAt: text("created_at").notNull().default(now),
+    updatedAt: text("updated_at").notNull().default(now),
+  },
+  (t) => [
+    primaryKey({ columns: [t.hackathonId, t.address] }),
+    check(
+      "curation_reviewer_org",
+      sql`${t.organization} IN ('binance-academy','coinvestasi','devweb3jogja')`
+    ),
+  ]
+);
+
+/** Tahap 1 — saring lolos/gugur. SATU keputusan per project (penilai terakhir menang;
+ *  riwayat lengkap ada di audit_logs). decision: pass | fail. */
+export const curationScreens = sqliteTable(
+  "curation_screens",
+  {
+    projectId: text("project_id")
+      .primaryKey()
+      .references(() => projects.id),
+    decision: text("decision").notNull(),
+    reason: text("reason"),
+    note: text("note"),
+    reviewerAddress: text("reviewer_address")
+      .notNull()
+      .references(() => users.address),
+    organization: text("organization").notNull(),
+    updatedAt: text("updated_at").notNull().default(now),
+  },
+  (t) => [check("curation_screen_decision", sql`${t.decision} IN ('pass','fail')`)]
+);
+
+/** Tahap 2 — satu penilaian per (project, penilai): catatan + organisasi saat menilai.
+ *  Nilai per kriteria di curation_scores. */
+export const curationReviews = sqliteTable(
+  "curation_reviews",
+  {
+    projectId: text("project_id")
+      .notNull()
+      .references(() => projects.id),
+    reviewerAddress: text("reviewer_address")
+      .notNull()
+      .references(() => users.address),
+    organization: text("organization").notNull(),
+    note: text("note"),
+    createdAt: text("created_at").notNull().default(now),
+    updatedAt: text("updated_at").notNull().default(now),
+  },
+  (t) => [primaryKey({ columns: [t.projectId, t.reviewerAddress] })]
+);
+
+/** Nilai kurasi 1..5 per kriteria. Terpisah dari `scores` (juri final) supaya dua
+ *  babak tak tercampur di ranking. */
+export const curationScores = sqliteTable(
+  "curation_scores",
+  {
+    projectId: text("project_id")
+      .notNull()
+      .references(() => projects.id),
+    reviewerAddress: text("reviewer_address")
+      .notNull()
+      .references(() => users.address),
+    criterionId: text("criterion_id")
+      .notNull()
+      .references(() => criteria.id),
+    score: integer("score").notNull(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.projectId, t.reviewerAddress, t.criterionId] }),
+    check("curation_score_range", sql`${t.score} BETWEEN 1 AND 5`),
+  ]
+);
+
+/** Shortlist hasil kurasi (admin). slot: main (maks 10) | reserve (maks 5);
+ *  contactStatus: pending | contacted | confirmed | declined. Yang declined tak
+ *  dihitung ke kuota. TERPISAH dari projects.demoDay — demoDay baru dinyalakan
+ *  saat demo day supaya tak ada yang bocor. */
+export const finalists = sqliteTable(
+  "finalists",
+  {
+    projectId: text("project_id")
+      .primaryKey()
+      .references(() => projects.id),
+    hackathonId: text("hackathon_id")
+      .notNull()
+      .references(() => hackathons.id),
+    slot: text("slot").notNull(),
+    contactStatus: text("contact_status").notNull().default("pending"),
+    note: text("note"),
+    updatedBy: text("updated_by").notNull(),
+    createdAt: text("created_at").notNull().default(now),
+    updatedAt: text("updated_at").notNull().default(now),
+  },
+  (t) => [
+    check("finalist_slot", sql`${t.slot} IN ('main','reserve')`),
+    check(
+      "finalist_contact_status",
+      sql`${t.contactStatus} IN ('pending','contacted','confirmed','declined')`
+    ),
+  ]
+);

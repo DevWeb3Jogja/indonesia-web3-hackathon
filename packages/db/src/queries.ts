@@ -21,7 +21,8 @@ import {
 } from "./schema";
 import { DEMO_HACKATHON_ID } from "./votes";
 
-export type Role = "participant" | "judge" | "admin";
+/** panitia = penilai kurasi (backoffice /curation saja, bukan admin penuh). */
+export type Role = "participant" | "judge" | "admin" | "panitia";
 
 export async function getUser(db: Db, address: string) {
   const rows = await db.select().from(users).where(eq(users.address, address)).limit(1);

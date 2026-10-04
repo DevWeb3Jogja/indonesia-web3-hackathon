@@ -11,7 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-const DEFAULTS = ["participant", "judge", "admin"];
+const DEFAULTS = ["participant", "judge", "admin", "panitia"];
 const ADD = "__add__";
 const ROLE_RE = /^[a-z][a-z0-9_-]{1,19}$/;
 
