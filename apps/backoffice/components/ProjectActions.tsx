@@ -1,6 +1,6 @@
 "use client";
 
-import { Pencil, Trash2 } from "lucide-react";
+import { Ban, MoreHorizontal, Pencil, RotateCcw, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -13,6 +13,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
@@ -76,30 +83,35 @@ export default function ProjectActions({
   }
 
   return (
-    <div className="flex justify-end gap-1">
-      <Button
-        size="icon-xs"
-        variant="ghost"
-        onClick={() => {
-          setForm({ name, tagline: tagline ?? "" });
-          setEditOpen(true);
-        }}
-        disabled={busy}
-        title="Edit"
-      >
-        <Pencil />
-      </Button>
-      <Button
-        variant={next === "disqualified" ? "destructive" : "outline"}
-        size="sm"
-        onClick={toggleStatus}
-        disabled={busy}
-      >
-        {next === "disqualified" ? "Disqualify" : "Restore"}
-      </Button>
-      <Button size="icon-xs" variant="ghost" onClick={remove} disabled={busy} title="Delete">
-        <Trash2 className="text-red-600 dark:text-red-400" />
-      </Button>
+    <>
+      {/* Aksi jarang + berbahaya disimpan di menu ⋯ — tabel 100+ baris tak penuh tombol merah. */}
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button size="icon-xs" variant="ghost" disabled={busy} aria-label={`Actions for ${name}`}>
+            <MoreHorizontal />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem
+            onSelect={() => {
+              setForm({ name, tagline: tagline ?? "" });
+              setEditOpen(true);
+            }}
+          >
+            <Pencil />
+            Edit
+          </DropdownMenuItem>
+          <DropdownMenuItem onSelect={toggleStatus}>
+            {next === "disqualified" ? <Ban /> : <RotateCcw />}
+            {next === "disqualified" ? "Disqualify" : "Restore"}
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem variant="destructive" onSelect={remove}>
+            <Trash2 />
+            Delete
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
 
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
         <DialogContent>
@@ -137,6 +149,6 @@ export default function ProjectActions({
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </>
   );
 }

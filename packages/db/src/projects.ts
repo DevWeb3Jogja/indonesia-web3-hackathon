@@ -411,6 +411,8 @@ export type ProjectStatusFilter = "submitted" | "draft" | "disqualified";
 export interface AdminProjectListOpts extends PageParams {
   status?: ProjectStatusFilter;
   track?: string;
+  /** true = finalis demo day saja, false = non-finalis. */
+  demoDay?: boolean;
   sort?: ProjectSort;
 }
 
@@ -429,6 +431,7 @@ export async function listAllProjectsPaged(
 
   const conds = [eq(projects.hackathonId, hackathonId)];
   if (opts.status) conds.push(eq(projects.status, opts.status));
+  if (opts.demoDay !== undefined) conds.push(eq(projects.demoDay, opts.demoDay));
   const q = opts.q?.trim().toLowerCase();
   if (q) {
     const like = `%${q}%`;

@@ -13,7 +13,7 @@ export const dynamic = "force-dynamic";
 
 const STATUSES: ProjectStatusFilter[] = ["submitted", "draft", "disqualified"];
 
-/** GET /api/admin/projects — SEMUA status, meta page+cursor, search, filter status/track, sort. */
+/** GET /api/admin/projects — SEMUA status, meta page+cursor, search, filter status/track/finalist, sort. */
 export async function GET(req: Request) {
   const auth = await requireAuth("admin");
   if (auth instanceof Response) return auth;
@@ -29,6 +29,7 @@ export async function GET(req: Request) {
   const sp = new URL(req.url).searchParams;
   const status = sp.get("status");
   const sort = sp.get("sort");
+  const finalist = sp.get("finalist");
   const result = await listAllProjectsPaged(db, hackathon.id, {
     page: Number(sp.get("page")) || 1,
     limit: Number(sp.get("limit")) || 20,
@@ -38,6 +39,7 @@ export async function GET(req: Request) {
       ? (status as ProjectStatusFilter)
       : undefined,
     track: sp.get("track") ?? undefined,
+    demoDay: finalist === "yes" ? true : finalist === "no" ? false : undefined,
     sort: PROJECT_SORTS.includes(sort as ProjectSort) ? (sort as ProjectSort) : undefined,
   });
   return NextResponse.json(result);

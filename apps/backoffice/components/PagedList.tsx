@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronLeft, ChevronRight, Search } from "lucide-react";
+import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Search } from "lucide-react";
 import { type ReactNode, useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -39,6 +39,7 @@ interface Meta {
 }
 
 const ALL = "__all__";
+const PAGE_SIZES = [20, 50, 100]; // maks 100 = MAX_LIMIT di @iw3h/db
 const SKELETON_ROWS = ["sk1", "sk2", "sk3", "sk4", "sk5"];
 
 /** Tabel data-banyak: search + filter + sort + paginasi (page; API juga cursor). */
@@ -49,6 +50,7 @@ export default function PagedList<T>({
   searchPlaceholder = "Search…",
   filters = [],
   sorts = [],
+  toolbar,
 }: {
   endpoint: string;
   columns: Column<T>[];
@@ -56,18 +58,21 @@ export default function PagedList<T>({
   searchPlaceholder?: string;
   filters?: SelectFilter[];
   sorts?: { value: string; label: string }[];
+  /** Aksi tambahan di ujung kanan baris toolbar (mis. tombol export). */
+  toolbar?: ReactNode;
 }) {
   const [q, setQ] = useState("");
   const [filterVals, setFilterVals] = useState<Record<string, string>>({});
   const [sort, setSort] = useState("");
   const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(PAGE_SIZES[0]);
   const [items, setItems] = useState<T[]>([]);
   const [meta, setMeta] = useState<Meta | null>(null);
   const [state, setState] = useState<"loading" | "ready" | "error">("loading");
 
   const load = useCallback(async () => {
     setState("loading");
-    const sp = new URLSearchParams({ page: String(page), limit: "20" });
+    const sp = new URLSearchParams({ page: String(page), limit: String(limit) });
     if (q.trim()) sp.set("q", q.trim());
     if (sort) sp.set("sort", sort);
     for (const [k, v] of Object.entries(filterVals)) if (v) sp.set(k, v);
@@ -81,7 +86,7 @@ export default function PagedList<T>({
     } catch {
       setState("error");
     }
-  }, [endpoint, page, q, sort, filterVals]);
+  }, [endpoint, page, limit, q, sort, filterVals]);
 
   useEffect(() => {
     const t = setTimeout(load, 250);
@@ -147,11 +152,7 @@ export default function PagedList<T>({
             </SelectContent>
           </Select>
         )}
-        {meta && (
-          <span className="ml-auto text-xs text-gray-500 dark:text-gray-400">
-            {meta.total} total{state === "loading" ? " · loading…" : ""}
-          </span>
-        )}
+        {toolbar && <div className="ml-auto flex items-center gap-2">{toolbar}</div>}
       </div>
 
       {state === "error" ? (
@@ -162,7 +163,7 @@ export default function PagedList<T>({
           </Button>
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-lg border">
+        <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-800">
           <Table>
             <TableHeader>
               <TableRow>
@@ -206,26 +207,72 @@ export default function PagedList<T>({
       )}
 
       {meta && (
-        <div className="flex items-center justify-end gap-3 text-xs text-gray-500 dark:text-gray-400">
+        <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-gray-500 dark:text-gray-400">
           <span>
-            Page {meta.page} / {meta.totalPages}
+            {meta.total === 0
+              ? "0 results"
+              : `${(meta.page - 1) * meta.limit + 1}–${Math.min(meta.page * meta.limit, meta.total)} of ${meta.total}`}
+            {state === "loading" ? " · loading…" : ""}
           </span>
-          <Button
-            size="icon-xs"
-            variant="outline"
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
-            disabled={page <= 1}
-          >
-            <ChevronLeft />
-          </Button>
-          <Button
-            size="icon-xs"
-            variant="outline"
-            onClick={() => setPage((p) => p + 1)}
-            disabled={!meta.hasMore}
-          >
-            <ChevronRight />
-          </Button>
+          <div className="flex items-center gap-2">
+            <Select
+              value={String(limit)}
+              onValueChange={(v) => {
+                setPage(1);
+                setLimit(Number(v));
+              }}
+            >
+              <SelectTrigger size="sm" className="w-28" aria-label="Rows per page">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {PAGE_SIZES.map((n) => (
+                  <SelectItem key={n} value={String(n)}>
+                    {n} / page
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button
+              size="icon-xs"
+              variant="outline"
+              onClick={() => setPage(1)}
+              disabled={page <= 1}
+              aria-label="First page"
+            >
+              <ChevronsLeft />
+            </Button>
+            <Button
+              size="icon-xs"
+              variant="outline"
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page <= 1}
+              aria-label="Previous page"
+            >
+              <ChevronLeft />
+            </Button>
+            <span className="tabular-nums">
+              Page {meta.page} / {meta.totalPages}
+            </span>
+            <Button
+              size="icon-xs"
+              variant="outline"
+              onClick={() => setPage((p) => p + 1)}
+              disabled={!meta.hasMore}
+              aria-label="Next page"
+            >
+              <ChevronRight />
+            </Button>
+            <Button
+              size="icon-xs"
+              variant="outline"
+              onClick={() => setPage(meta.totalPages)}
+              disabled={!meta.hasMore}
+              aria-label="Last page"
+            >
+              <ChevronsRight />
+            </Button>
+          </div>
         </div>
       )}
     </div>
