@@ -89,9 +89,19 @@ async function teamInfo(db: Db, teamId: string | null) {
   return { name: t[0].name, memberAddresses: members.map((m) => m.address) };
 }
 
-async function hydrate(db: Db, row: typeof projects.$inferSelect): Promise<ProjectFull> {
+type ProjectRow = typeof projects.$inferSelect;
+
+/** Buang kolom internal panitia dari row. ProjectFull dikirim ke banyak tempat (termasuk
+ *  browser peserta) — status finalis demo day rahasia sampai demo day. Admin yang butuh
+ *  harus minta eksplisit (lihat listAllProjectsPaged). */
+function publicRow(row: ProjectRow): Omit<ProjectRow, "demoDay"> {
+  const { demoDay: _internal, ...rest } = row;
+  return rest;
+}
+
+async function hydrate(db: Db, row: ProjectRow): Promise<ProjectFull> {
   return {
-    ...row,
+    ...publicRow(row),
     trackIds: await trackIdsOf(db, row.id),
     team: await teamInfo(db, row.teamId),
   };
@@ -102,7 +112,7 @@ async function hydrate(db: Db, row: typeof projects.$inferSelect): Promise<Proje
  * halaman, bukan 2 query per baris. Penting untuk latency & ketahanan galeri
  * publik — tiap round-trip ke Turso menambah waktu dan peluang gagal.
  */
-async function hydrateMany(db: Db, rows: (typeof projects.$inferSelect)[]): Promise<ProjectFull[]> {
+async function hydrateMany(db: Db, rows: ProjectRow[]): Promise<ProjectFull[]> {
   if (rows.length === 0) return [];
   const ids = rows.map((r) => r.id);
   const teamIds = [...new Set(rows.map((r) => r.teamId).filter((t): t is string => t !== null))];
@@ -139,7 +149,7 @@ async function hydrateMany(db: Db, rows: (typeof projects.$inferSelect)[]): Prom
   }
 
   return rows.map((r) => ({
-    ...r,
+    ...publicRow(r),
     trackIds: tracksByProject.get(r.id) ?? [],
     team: r.teamId ? (teamById.get(r.teamId) ?? null) : null,
   }));
@@ -408,6 +418,8 @@ export async function listProjectsPaged(
 }
 
 export type ProjectStatusFilter = "submitted" | "draft" | "disqualified";
+/** Khusus backoffice (admin): ProjectFull + status finalis demo day. */
+export type AdminProjectFull = ProjectFull & { demoDay: boolean };
 export interface AdminProjectListOpts extends PageParams {
   status?: ProjectStatusFilter;
   track?: string;
@@ -425,7 +437,7 @@ export async function listAllProjectsPaged(
   db: Db,
   hackathonId: string,
   opts: AdminProjectListOpts = {}
-): Promise<Paged<ProjectFull>> {
+): Promise<Paged<AdminProjectFull>> {
   const page = normPage(opts.page);
   const limit = normLimit(opts.limit);
 
@@ -479,6 +491,11 @@ export async function listAllProjectsPaged(
     db.$count(projects, where),
   ]);
   // Hydrate SEMUA (limit+1); buildPage yang memotong ke limit & bikin nextCursor.
-  const items = await hydrateMany(db, rows);
+  // demoDay dibuang hydrateMany (rahasia) — list admin memasangnya balik secara eksplisit.
+  const demoDayOf = new Map(rows.map((r) => [r.id, r.demoDay]));
+  const items = (await hydrateMany(db, rows)).map((p) => ({
+    ...p,
+    demoDay: demoDayOf.get(p.id) ?? false,
+  }));
   return buildPage(items, { page, limit, total }, (p) => [byName ? p.name : p.createdAt, p.id]);
 }
