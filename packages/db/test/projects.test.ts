@@ -2,8 +2,10 @@ import { beforeEach, describe, expect, it } from "vitest";
 import {
   canEditProject,
   createProject,
+  getProjectById,
   getProjectForUser,
   listAllProjects,
+  listAllProjectsPaged,
   listProjectsPaged,
   listSubmittedProjects,
   ProjectError,
@@ -12,6 +14,7 @@ import {
 } from "../src/projects";
 import { ensureUser } from "../src/queries";
 import { createTeam, joinTeam } from "../src/teams";
+import { markDemoDay } from "../src/votes";
 import { testDb } from "./helpers";
 
 const H = "iw3h-2026";
@@ -93,6 +96,80 @@ describe("projects (integration)", () => {
     expect(await canEditProject(db, p, addr(3))).toBe(false); // bukan anggota
     // getProjectForUser lewat tim juga untuk anggota lain
     expect((await getProjectForUser(db, H, addr(2)))?.id).toBe(p.id);
+  });
+
+  it("view pemilik tak membocorkan status finalis (solo & tim), data lain utuh", async () => {
+    const solo = await createProject(db, {
+      hackathonId: H,
+      submitterAddress: addr(1),
+      teamId: null,
+      input: baseInput,
+      trackIds: ["ai"],
+    });
+    const team = await createTeam(db, H, addr(2), "Rocket");
+    await joinTeam(db, H, addr(3), team.inviteCode);
+    const tp = await createProject(db, {
+      hackathonId: H,
+      submitterAddress: addr(2),
+      teamId: team.id,
+      input: { name: "TeamDex" },
+      trackIds: ["fin"],
+    });
+    await markDemoDay(db, solo.id, true);
+    await markDemoDay(db, tp.id, true);
+
+    for (const who of [addr(1), addr(2), addr(3)]) {
+      const mine = await getProjectForUser(db, H, who);
+      expect(mine).not.toBeNull();
+      expect(mine && "demoDay" in mine).toBe(false);
+      expect(JSON.stringify(mine)).not.toContain("demoDay");
+    }
+    // Field yang dipakai form edit tetap ada.
+    const mineSolo = await getProjectForUser(db, H, addr(1));
+    expect(mineSolo?.name).toBe("DemoDex");
+    expect(mineSolo?.tagline).toBe("swap cepat");
+    expect(mineSolo?.trackIds).toEqual(["ai"]);
+    expect(mineSolo?.status).toBe("submitted");
+    expect((await getProjectForUser(db, H, addr(3)))?.team?.name).toBe("Rocket");
+  });
+
+  it("status finalis tak bocor lewat fungsi publik/pemilik; hanya list admin yang membawanya", async () => {
+    const p = await createProject(db, {
+      hackathonId: H,
+      submitterAddress: addr(1),
+      teamId: null,
+      input: baseInput,
+      trackIds: ["ai"],
+    });
+    await markDemoDay(db, p.id, true);
+
+    const leaks = (x: unknown) => JSON.stringify(x).includes("demoDay");
+    expect(leaks(await getProjectById(db, p.id))).toBe(false);
+    expect(leaks(await listSubmittedProjects(db, H))).toBe(false);
+    expect(leaks(await listAllProjects(db, H))).toBe(false);
+    expect(leaks(await listProjectsPaged(db, H, {}))).toBe(false);
+    // Response edit pemilik (PUT /api/projects/[id]) memakai hasil updateProject.
+    expect(leaks(await updateProject(db, p.id, { name: "DemoDex 2" }, ["ai"]))).toBe(false);
+
+    const admin = await listAllProjectsPaged(db, H, {});
+    expect(admin.items.find((x) => x.id === p.id)?.demoDay).toBe(true);
+  });
+
+  it("menandai finalis tidak mengubah updatedAt (cegah bocor lewat 'Last edit' publik)", async () => {
+    const p = await createProject(db, {
+      hackathonId: H,
+      submitterAddress: addr(1),
+      teamId: null,
+      input: baseInput,
+      trackIds: ["ai"],
+    });
+    // Tanggal lama → perubahan sekecil apa pun oleh markDemoDay pasti terdeteksi.
+    await db.run(
+      `UPDATE projects SET updated_at = '2026-09-01T00:00:00.000Z' WHERE id = '${p.id}'`
+    );
+    await markDemoDay(db, p.id, true);
+    await markDemoDay(db, p.id, false);
+    expect((await getProjectById(db, p.id))?.updatedAt).toBe("2026-09-01T00:00:00.000Z");
   });
 
   it("satu project per user/tim", async () => {
