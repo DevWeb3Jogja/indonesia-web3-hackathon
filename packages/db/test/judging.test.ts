@@ -4,6 +4,7 @@ import {
   finalJudgingBoard,
   finalScore,
   getJudgeNotes,
+  getPresentationOrder,
   JudgingError,
   judgeCovers,
   listJudgeCriteria,
@@ -11,6 +12,8 @@ import {
   rankFinal,
   saveJudgeScores,
   setOrganizerScore,
+  setPresentationOrder,
+  sortByPresentation,
   tieBreakOrder,
 } from "../src/judging";
 import { createProject, deleteProject } from "../src/projects";
@@ -584,5 +587,171 @@ describe("integritas hapus", () => {
       const r = await db.run(`SELECT count(*) AS n FROM ${t}`);
       expect(Number(r.rows[0].n)).toBe(0);
     }
+  });
+});
+
+describe("urutan presentasi (demo day)", () => {
+  let db: DB;
+  let p1: string;
+  let p2: string;
+  let p3: string;
+  const order = (projectIds: string[], hackathonId = H) =>
+    setPresentationOrder(db, { hackathonId, projectIds, actor: ADMIN });
+  const judgeIds = async (judge = J1) => (await listJudgeFinalists(db, H, judge)).map((p) => p.id);
+  const boardIds = async () => (await finalJudgingBoard(db, H)).rows.map((r) => r.id);
+
+  beforeEach(async () => {
+    db = await testDb();
+    await seed(db);
+    // Nama P01..P03 → urutan default (tanpa urutan tersimpan) = nama.
+    p1 = await project(db, 1, { tracks: ["ai"] });
+    p2 = await project(db, 2, { tracks: ["fin"] });
+    p3 = await project(db, 3, { tracks: ["ai"] });
+  });
+
+  it("fungsi murni: posisi naik, tanpa posisi di belakang lalu nama; nomor 1..n tanpa celah", () => {
+    const rows = [
+      { id: "c", name: "Charlie" },
+      { id: "a", name: "Alpha" },
+      { id: "b", name: "Bravo" },
+      { id: "d", name: "Delta" },
+    ];
+    // Posisi 2 & 7 (celah karena finalis lain dicabut); a & c belum diurutkan.
+    const out = sortByPresentation(
+      rows,
+      new Map([
+        ["d", 2],
+        ["b", 7],
+        ["zz", 1],
+      ])
+    );
+    expect(out.map((r) => [r.id, r.position, r.positionSaved])).toEqual([
+      ["d", 1, true],
+      ["b", 2, true],
+      ["a", 3, false],
+      ["c", 4, false],
+    ]);
+    expect(sortByPresentation([], new Map())).toEqual([]);
+  });
+
+  it("tanpa urutan tersimpan → urut nama; setelah disimpan → form juri & rekap ikut", async () => {
+    expect(await judgeIds()).toEqual([p1, p2, p3]);
+    expect(await boardIds()).toEqual([p1, p2, p3]);
+    await order([p3, p1, p2]);
+    expect(await judgeIds()).toEqual([p3, p1, p2]);
+    const rows = (await finalJudgingBoard(db, H)).rows;
+    expect(rows.map((r) => [r.id, r.position, r.positionSaved])).toEqual([
+      [p3, 1, true],
+      [p1, 2, true],
+      [p2, 3, true],
+    ]);
+    expect([...(await getPresentationOrder(db, H)).entries()].sort()).toEqual(
+      [
+        [p3, 1],
+        [p1, 2],
+        [p2, 3],
+      ].sort()
+    );
+  });
+
+  it("urut ulang mengganti utuh (bukan menumpuk)", async () => {
+    await order([p3, p1, p2]);
+    await order([p2, p3, p1]);
+    expect(await judgeIds()).toEqual([p2, p3, p1]);
+    const r = await db.run("SELECT count(*) AS n FROM presentation_order");
+    expect(Number(r.rows[0].n)).toBe(3);
+  });
+
+  it("nomor juri = nomor panggung walau juri hanya melihat sebagian track", async () => {
+    await order([p2, p3, p1]);
+    await setJudgeTracks(db, H, J1, ["ai"]);
+    const mine = await listJudgeFinalists(db, H, J1);
+    expect(mine.map((p) => [p.id, p.position])).toEqual([
+      [p3, 2],
+      [p1, 3],
+    ]);
+  });
+
+  it("finalis baru (demo_day dinyalakan setelah diurutkan) di belakang, lalu nama", async () => {
+    await order([p3, p1, p2]);
+    const late2 = await project(db, 9); // P09
+    const late1 = await project(db, 4); // P04
+    expect(await judgeIds()).toEqual([p3, p1, p2, late1, late2]);
+    const rows = (await finalJudgingBoard(db, H)).rows;
+    expect(rows.map((r) => r.positionSaved)).toEqual([true, true, true, false, false]);
+    expect(rows.map((r) => r.position)).toEqual([1, 2, 3, 4, 5]);
+    // Urutan lama kini basi (tak memuat finalis baru) → ditolak.
+    await expectCode(order([p3, p1, p2]), "invalid_order");
+    await order([late1, p3, p1, p2, late2]);
+    expect(await judgeIds()).toEqual([late1, p3, p1, p2, late2]);
+  });
+
+  it("finalis dicabut → hilang dari daftar, nomor dirapatkan; simpan berikutnya tanpa dia", async () => {
+    await order([p3, p1, p2]);
+    await markDemoDay(db, p1, false);
+    const rows = (await finalJudgingBoard(db, H)).rows;
+    expect(rows.map((r) => [r.id, r.position])).toEqual([
+      [p3, 1],
+      [p2, 2],
+    ]);
+    await expectCode(order([p3, p1, p2]), "invalid_order"); // p1 bukan finalis lagi
+    await order([p2, p3]);
+    const r = await db.run("SELECT project_id FROM presentation_order");
+    expect(r.rows.map((x) => x.project_id).sort()).toEqual([p2, p3].sort());
+  });
+
+  it("tolak: finalis kurang, non-finalis/DQ/lintas hackathon, tak dikenal, ganda, kosong", async () => {
+    const nonFinalist = await project(db, 5, { finalist: false });
+    const other = await project(db, 6, { hackathonId: OTHER });
+    const dq = await project(db, 7);
+    await db.run(`UPDATE projects SET status='disqualified' WHERE id='${dq}'`);
+    await expectCode(order([p1, p2]), "invalid_order"); // kurang satu finalis
+    await expectCode(order([p1, p2, p3, nonFinalist]), "invalid_order");
+    await expectCode(order([p1, p2, nonFinalist]), "invalid_order"); // jumlah pas, isi salah
+    await expectCode(order([p1, p2, other]), "invalid_order");
+    await expectCode(order([p1, p2, dq]), "invalid_order");
+    await expectCode(order([p1, p2, "nope"]), "invalid_order");
+    await expectCode(order([p1, p2, p2]), "invalid_order");
+    await expectCode(order([p1, p2, p3, p3]), "invalid_order");
+    await expectCode(order([]), "invalid_order");
+    // Hackathon lain tak punya finalis selain `other` → finalis H ditolak di sana.
+    await expectCode(order([p1, p2, p3], OTHER), "invalid_order");
+    const r = await db.run("SELECT count(*) AS n FROM presentation_order");
+    expect(Number(r.rows[0].n)).toBe(0);
+    // Tetap tak berubah setelah penolakan.
+    expect(await judgeIds()).toEqual([p1, p2, p3]);
+  });
+
+  it("urutan per hackathon terpisah", async () => {
+    const other = await project(db, 6, { hackathonId: OTHER });
+    await order([other], OTHER);
+    await order([p2, p1, p3]);
+    expect((await getPresentationOrder(db, OTHER)).get(other)).toBe(1);
+    expect((await getPresentationOrder(db, H)).has(other)).toBe(false);
+    expect(await judgeIds()).toEqual([p2, p1, p3]);
+  });
+
+  it("CHECK DB: posisi >= 1 dan unik per hackathon", async () => {
+    await expect(
+      db.run(
+        `INSERT INTO presentation_order (project_id, hackathon_id, position, updated_by) VALUES ('${p1}','${H}',0,'x')`
+      )
+    ).rejects.toThrow();
+    await db.run(
+      `INSERT INTO presentation_order (project_id, hackathon_id, position, updated_by) VALUES ('${p1}','${H}',1,'x')`
+    );
+    await expect(
+      db.run(
+        `INSERT INTO presentation_order (project_id, hackathon_id, position, updated_by) VALUES ('${p2}','${H}',1,'x')`
+      )
+    ).rejects.toThrow();
+  });
+
+  it("hapus project ikut membersihkan urutan presentasi", async () => {
+    await order([p3, p1, p2]);
+    await deleteProject(db, p1);
+    const r = await db.run("SELECT project_id FROM presentation_order");
+    expect(r.rows.map((x) => x.project_id).sort()).toEqual([p2, p3].sort());
+    expect(await judgeIds()).toEqual([p3, p2]);
   });
 });

@@ -1,8 +1,16 @@
 "use client";
 
 import { useAppKit } from "@reown/appkit/react";
-import { useCallback, useEffect, useState } from "react";
+import { type TouchEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Dict } from "@/lib/i18n";
+import {
+  type Draft,
+  fullyScored,
+  indexOfProject,
+  isDirty,
+  stepIndex,
+  swipeStep,
+} from "@/lib/judge-stepper";
 import { trackLabel } from "@/lib/types";
 import { useWallet } from "@/lib/use-wallet";
 import { projectId as wcProjectId } from "@/lib/web3";
@@ -27,6 +35,8 @@ interface Project {
   githubUrl: string | null;
   demoUrl: string | null;
   demoVideoUrl: string | null;
+  /** Nomor urut presentasi (diatur admin) atas semua finalis. */
+  position: number;
 }
 type Notes = { teamNote: string | null; internalNote: string | null };
 interface Data {
@@ -75,6 +85,11 @@ function Inner({ t }: { t: T }) {
     "loading"
   );
   const [data, setData] = useState<Data | null>(null);
+  // Render pertama di client WAJIB sama dengan server (server tak tahu status wallet →
+  // dulu server merender Gate, client merender WalletLoading → "Hydration failed").
+  // Sampai ter-mount keduanya merender WalletLoading; setelah itu logika tetap sama.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
   const load = useCallback(async () => {
     setStatus("loading");
@@ -100,7 +115,7 @@ function Inner({ t }: { t: T }) {
     return () => window.removeEventListener("iw3h:session", onSession);
   }, [load]);
 
-  if (connecting) return <WalletLoading />;
+  if (!mounted || connecting) return <WalletLoading />;
   if (!isConnected || status === "unauth") {
     return <Gate t={t} onSignIn={isConnected ? () => open() : undefined} />;
   }
@@ -134,10 +149,6 @@ function Inner({ t }: { t: T }) {
     );
   }
 
-  const done = data.projects.filter((p) =>
-    data.criteria.every((c) => (data.scores[p.id]?.[c.id] ?? 0) >= 1)
-  ).length;
-
   return (
     <div className="space-y-6">
       {data.readOnly && (
@@ -146,21 +157,224 @@ function Inner({ t }: { t: T }) {
           {t.readOnly}
         </p>
       )}
+      {data.projects.length === 0 ? (
+        <p className="text-sm text-ink/60">{t.noFinalists}</p>
+      ) : (
+        <Stepper t={t} data={data} />
+      )}
+    </div>
+  );
+}
+
+const draftOf = (criteria: Criterion[], scores?: Record<string, number>, notes?: Notes): Draft => ({
+  vals: Object.fromEntries(criteria.map((c) => [c.id, scores?.[c.id] ?? 0])),
+  teamNote: notes?.teamNote ?? "",
+  internalNote: notes?.internalNote ?? "",
+});
+
+/** Satu project sekali tampil, urut presentasi. Hanya dirender di client setelah data
+ *  dimuat (tak pernah di server) → aman membaca window di initializer. */
+function Stepper({ t, data }: { t: T; data: Data }) {
+  const { projects, criteria, readOnly } = data;
+  const critIds = useMemo(() => criteria.map((c) => c.id), [criteria]);
+  // Nilai/catatan TERSIMPAN per project (baseline "belum disimpan" + tanda ✓ di chip).
+  const [saved, setSaved] = useState<Record<string, Draft>>(() =>
+    Object.fromEntries(
+      projects.map((p) => [p.id, draftOf(criteria, data.scores[p.id], data.notes[p.id])])
+    )
+  );
+  // ?p=<projectId> → refresh tetap di project yang sama.
+  const [idx, setIdx] = useState(() =>
+    indexOfProject(
+      projects.map((p) => p.id),
+      new URLSearchParams(window.location.search).get("p")
+    )
+  );
+  const [finished, setFinished] = useState(false);
+  // Diisi kartu aktif; dibaca saat pindah (konfirmasi) & beforeunload.
+  const dirty = useRef(false);
+  const setDirty = useCallback((d: boolean) => {
+    dirty.current = d;
+  }, []);
+  const touch = useRef<{ x: number; y: number } | null>(null);
+  // Simpan sedang berjalan → SEMUA navigasi dikunci (chip, prev/next, swipe). Tanpa ini,
+  // simpan yang selesai belakangan bisa melempar juri ke project lain & membuang editannya.
+  const savingRef = useRef(false);
+  const [saving, setSaving] = useState(false);
+  const setBusy = useCallback((b: boolean) => {
+    savingRef.current = b;
+    setSaving(b);
+  }, []);
+  // Fokus ke judul kartu hanya setelah juri pindah (bukan saat halaman pertama dibuka).
+  const navigated = useRef(false);
+
+  const current = projects[idx];
+  const isScored = (id: string) => fullyScored(critIds, saved[id]?.vals);
+  const done = projects.filter((p) => isScored(p.id)).length;
+
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    if (url.searchParams.get("p") === current.id) return;
+    url.searchParams.set("p", current.id);
+    window.history.replaceState(window.history.state, "", url);
+  }, [current.id]);
+
+  useEffect(() => {
+    const onUnload = (e: BeforeUnloadEvent) => {
+      if (dirty.current) e.preventDefault();
+    };
+    window.addEventListener("beforeunload", onUnload);
+    return () => window.removeEventListener("beforeunload", onUnload);
+  }, []);
+
+  /** Pindah project; ada perubahan belum disimpan → minta konfirmasi dulu. */
+  function go(next: number | "finish") {
+    if (savingRef.current) return;
+    if (next === (finished ? "finish" : idx)) return;
+    if (dirty.current && !window.confirm(t.discardConfirm)) return;
+    dirty.current = false;
+    navigated.current = true;
+    if (next === "finish") return setFinished(true);
+    setFinished(false);
+    setIdx(next);
+  }
+
+  /** Dipanggil kartu setelah simpan sukses: perbarui baseline, lanjut tanpa konfirmasi. */
+  function onSaved(projectId: string, draft: Draft, advance: boolean) {
+    setSaved((s) => ({
+      ...s,
+      [projectId]: {
+        vals: { ...draft.vals },
+        teamNote: draft.teamNote.trim(),
+        internalNote: draft.internalNote.trim(),
+      },
+    }));
+    if (!advance) return;
+    dirty.current = false;
+    savingRef.current = false; // simpan selesai → boleh pindah
+    const next = stepIndex(idx, 1, projects.length);
+    go(next === null ? "finish" : next);
+  }
+
+  function onTouchStart(e: TouchEvent) {
+    const el = e.target as HTMLElement;
+    // Multi-touch (pinch) atau mengetik/memilih teks → bukan swipe.
+    if (e.touches.length !== 1 || el.closest("textarea, input:not([type=radio]), select, a")) {
+      touch.current = null;
+      return;
+    }
+    touch.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+  }
+  function onTouchEnd(e: TouchEvent) {
+    const start = touch.current;
+    touch.current = null;
+    if (!start || e.changedTouches.length === 0) return;
+    const step = swipeStep(
+      e.changedTouches[0].clientX - start.x,
+      e.changedTouches[0].clientY - start.y
+    );
+    if (step === 0) return;
+    if (finished) {
+      if (step === -1) go(idx);
+      return;
+    }
+    const next = stepIndex(idx, step, projects.length);
+    if (next !== null) go(next);
+  }
+
+  const label = (p: Project) => t.presenter.replace("{n}", String(p.position));
+  const pending = projects.filter((p) => !isScored(p.id));
+
+  return (
+    <div className="space-y-5">
       <p className="text-[10px] uppercase tracking-[0.2em] text-teal/70">
-        {data.projects.length} {t.projectsCount} · {done} {t.doneCount}
+        {projects.length} {t.projectsCount} · {done} {t.doneCount}
       </p>
-      {data.projects.length === 0 && <p className="text-sm text-ink/60">{t.noFinalists}</p>}
-      {data.projects.map((p) => (
-        <JudgeCard
-          key={p.id}
-          t={t}
-          project={p}
-          criteria={data.criteria}
-          initial={data.scores[p.id]}
-          initialNotes={data.notes[p.id]}
-          readOnly={data.readOnly}
-        />
-      ))}
+      <nav aria-label={t.stepperLabel}>
+        <ol className="flex flex-wrap gap-2">
+          {projects.map((p, i) => {
+            const active = !finished && i === idx;
+            const ok = isScored(p.id);
+            return (
+              <li key={p.id}>
+                <button
+                  type="button"
+                  onClick={() => go(i)}
+                  disabled={saving}
+                  aria-current={active ? "step" : undefined}
+                  aria-label={`${label(p)}: ${p.name}${ok ? ` — ${t.scored}` : ""}`}
+                  title={p.name}
+                  className={`flex h-10 min-w-10 items-center justify-center gap-1 rounded-full border px-3 text-sm tabular-nums transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 focus-visible:ring-offset-black ${
+                    active
+                      ? "border-ink bg-ink font-semibold text-black"
+                      : ok
+                        ? "border-teal/60 text-teal hover:border-teal"
+                        : "border-ink/25 text-ink/80 hover:border-ink/60"
+                  }`}
+                >
+                  {p.position}
+                  {ok && <span aria-hidden="true">✓</span>}
+                </button>
+              </li>
+            );
+          })}
+        </ol>
+      </nav>
+      <p className="text-[11px] text-ink/50 sm:hidden">{t.swipeHint}</p>
+
+      <div onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
+        {finished ? (
+          <Panel clip="chamfer-lg">
+            <div className="p-6" role="status" aria-live="polite">
+              {pending.length === 0 ? (
+                <h3 className="font-firs text-xl font-semibold text-ink">{t.doneTitle}</h3>
+              ) : (
+                <>
+                  <h3 className="font-firs text-xl font-semibold text-ink">
+                    {t.doneIncomplete.replace("{n}", String(pending.length))}
+                  </h3>
+                  <ul className="mt-3 flex flex-wrap gap-2">
+                    {pending.map((p) => (
+                      <li key={p.id}>
+                        <button
+                          type="button"
+                          className="btn-outline"
+                          onClick={() => go(projects.indexOf(p))}
+                        >
+                          {t.backTo.replace("{n}", String(p.position))} · {p.name}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              )}
+              <p className="mt-3 text-sm text-ink/70">{t.doneDesc}</p>
+            </div>
+          </Panel>
+        ) : (
+          <JudgeCard
+            key={current.id}
+            t={t}
+            project={current}
+            label={label(current)}
+            criteria={criteria}
+            saved={saved[current.id]}
+            scored={isScored(current.id)}
+            readOnly={readOnly}
+            isFirst={idx === 0}
+            isLast={idx === projects.length - 1}
+            onDirty={setDirty}
+            onBusy={setBusy}
+            autoFocus={navigated.current}
+            onPrev={() => {
+              const prev = stepIndex(idx, -1, projects.length);
+              if (prev !== null) go(prev);
+            }}
+            onNext={() => go(stepIndex(idx, 1, projects.length) ?? "finish")}
+            onSaved={onSaved}
+          />
+        )}
+      </div>
     </div>
   );
 }
@@ -168,33 +382,64 @@ function Inner({ t }: { t: T }) {
 function JudgeCard({
   t,
   project,
+  label,
   criteria,
-  initial,
-  initialNotes,
+  saved,
+  scored,
   readOnly,
+  isFirst,
+  isLast,
+  onDirty,
+  onBusy,
+  autoFocus,
+  onPrev,
+  onNext,
+  onSaved,
 }: {
   t: T;
   project: Project;
+  label: string;
   criteria: Criterion[];
-  initial?: Record<string, number>;
-  initialNotes?: Notes;
+  saved: Draft;
+  scored: boolean;
   readOnly: boolean;
+  isFirst: boolean;
+  isLast: boolean;
+  onDirty: (dirty: boolean) => void;
+  /** Lapor ke Stepper: simpan sedang berjalan (navigasi dikunci). */
+  onBusy: (busy: boolean) => void;
+  autoFocus: boolean;
+  onPrev: () => void;
+  /** Pindah tanpa menyimpan (konfirmasi kalau ada perubahan). */
+  onNext: () => void;
+  onSaved: (projectId: string, draft: Draft, advance: boolean) => void;
 }) {
-  const [vals, setVals] = useState<Record<string, number>>(() =>
-    Object.fromEntries(criteria.map((c) => [c.id, initial?.[c.id] ?? 0]))
-  );
-  const [teamNote, setTeamNote] = useState(initialNotes?.teamNote ?? "");
-  const [internalNote, setInternalNote] = useState(initialNotes?.internalNote ?? "");
+  const [vals, setVals] = useState<Record<string, number>>(() => ({ ...saved.vals }));
+  const [teamNote, setTeamNote] = useState(saved.teamNote);
+  const [internalNote, setInternalNote] = useState(saved.internalNote);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<"saved" | "error" | null>(null);
-  const [wasScored, setWasScored] = useState(
-    () => criteria.length > 0 && criteria.every((c) => (initial?.[c.id] ?? 0) >= 1)
-  );
 
-  const allScored = criteria.length > 0 && criteria.every((c) => vals[c.id] >= 1);
+  const critIds = criteria.map((c) => c.id);
+  const draft: Draft = { vals, teamNote, internalNote };
+  const dirty = !readOnly && isDirty(saved, draft, critIds);
+  const allScored = fullyScored(critIds, vals);
 
-  async function save() {
+  useEffect(() => {
+    onDirty(dirty);
+  }, [dirty, onDirty]);
+  // Kartu dilepas (pindah project) → tak ada lagi perubahan yang menggantung.
+  useEffect(() => () => onDirty(false), [onDirty]);
+  const heading = useRef<HTMLHeadingElement>(null);
+  // Setelah pindah project, fokus ke judul kartu baru (keyboard/screen reader tak "hilang").
+  // biome-ignore lint/correctness/useExhaustiveDependencies: hanya saat kartu dipasang
+  useEffect(() => {
+    if (autoFocus) heading.current?.focus();
+  }, []);
+
+  async function save(advance: boolean) {
     setBusy(true);
+    onBusy(true);
     setMsg(null);
     try {
       const res = await fetch("/api/judge/scores", {
@@ -208,11 +453,12 @@ function JudgeCard({
         }),
       });
       setMsg(res.ok ? "saved" : "error");
-      if (res.ok) setWasScored(true);
+      if (res.ok) onSaved(project.id, draft, advance);
     } catch {
       setMsg("error");
     } finally {
       setBusy(false);
+      onBusy(false);
     }
   }
 
@@ -227,7 +473,14 @@ function JudgeCard({
       <div className="p-6">
         <div className="flex flex-wrap items-start justify-between gap-2">
           <div className="min-w-0">
-            <h3 className="font-firs text-xl font-semibold text-ink">{project.name}</h3>
+            <p className="text-[10px] uppercase tracking-[0.2em] text-teal/70">{label}</p>
+            <h3
+              ref={heading}
+              tabIndex={-1}
+              className="mt-1 font-firs text-xl font-semibold text-ink focus:outline-none"
+            >
+              {project.name}
+            </h3>
             <p className="text-sm text-ink/55">{project.teamName ?? "Solo"}</p>
             {project.tagline && <p className="mt-1 text-sm text-ink/70">{project.tagline}</p>}
             {links.length > 0 && (
@@ -252,7 +505,8 @@ function JudgeCard({
                 {trackLabel(id)}
               </span>
             ))}
-            {wasScored && <span className="tag">{t.scored}</span>}
+            {scored && <span className="tag">{t.scored}</span>}
+            {dirty && <span className="tag border-amber-400/60 text-amber-300">{t.unsaved}</span>}
           </div>
         </div>
 
@@ -321,20 +575,52 @@ function JudgeCard({
           </label>
         </div>
 
-        <div className="mt-4 flex flex-wrap items-center gap-3">
-          <button
-            type="button"
-            className="btn-teal"
-            disabled={busy || !allScored || readOnly}
-            onClick={save}
-          >
-            {busy ? t.saving : t.save}
+        <div className="mt-5 flex flex-wrap items-center gap-3">
+          <button type="button" className="btn-outline" disabled={isFirst || busy} onClick={onPrev}>
+            {t.prev}
           </button>
-          {!allScored && !readOnly && <span className="text-[11px] text-ink/50">{t.pickAll}</span>}
           <span role="status" aria-live="polite" className="text-sm">
-            {msg === "saved" && <span className="text-teal">{t.saved}</span>}
-            {msg === "error" && <span className="text-red-600">{t.error}</span>}
+            {busy && <span className="text-ink/60">{t.saving}</span>}
+            {!busy && msg === "saved" && <span className="text-teal">{t.saved}</span>}
+            {!busy && msg === "error" && <span className="text-red-600">{t.error}</span>}
           </span>
+          <div className="ml-auto flex flex-wrap items-center justify-end gap-3">
+            {dirty && !allScored && <span className="text-[11px] text-ink/50">{t.pickAll}</span>}
+            {dirty ? (
+              <>
+                {/* Baru diisi sebagian → tetap bisa lewati dulu (onNext minta konfirmasi). */}
+                {!allScored && !isLast && (
+                  <button type="button" className="btn-outline" disabled={busy} onClick={onNext}>
+                    {t.next}
+                  </button>
+                )}
+                <button
+                  type="button"
+                  className="btn-outline"
+                  disabled={busy || !allScored}
+                  onClick={() => save(false)}
+                >
+                  {t.saveOnly}
+                </button>
+                <button
+                  type="button"
+                  className="btn-teal"
+                  disabled={busy || !allScored}
+                  onClick={() => save(true)}
+                >
+                  {isLast ? t.saveFinish : t.saveNext}
+                </button>
+              </>
+            ) : (
+              // Tak ada perubahan: lanjut tanpa menyimpan ulang. Pratinjau admin tak punya
+              // ringkasan "selesai" → tombol berhenti di project terakhir.
+              !(readOnly && isLast) && (
+                <button type="button" className="btn-teal" disabled={busy} onClick={onNext}>
+                  {isLast ? t.finish : t.next}
+                </button>
+              )
+            )}
+          </div>
         </div>
       </div>
     </Panel>

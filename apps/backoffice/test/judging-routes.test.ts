@@ -42,6 +42,7 @@ import UsersPage from "@/app/(dashboard)/users/page";
 import { DELETE as critDelete, PUT as critPut } from "@/app/api/admin/criteria/[id]/route";
 import { POST as critPost } from "@/app/api/admin/criteria/route";
 import { GET as exportGet } from "@/app/api/admin/judging/export/route";
+import { PUT as orderPut } from "@/app/api/admin/judging/order/route";
 import { PUT as orgPut } from "@/app/api/admin/judging/organizer-score/route";
 import { GET as boardGet } from "@/app/api/admin/judging/route";
 
@@ -158,6 +159,7 @@ describe("RBAC API penjurian final (admin saja)", () => {
       boardGet(),
       orgPut(req("PUT", { projectId: finalist, criterionId: "part", score: 3 })),
       exportGet(req("GET")),
+      orderPut(req("PUT", { projectIds: [finalist] })),
     ];
     login(null);
     for (const r of await Promise.all(calls())) expect(r.status).toBe(401);
@@ -166,6 +168,76 @@ describe("RBAC API penjurian final (admin saja)", () => {
       for (const r of await Promise.all(calls())) expect(r.status).toBe(403);
     }
     const n = await store.db.run("SELECT count(*) AS n FROM organizer_scores");
+    expect(Number(n.rows[0].n)).toBe(0);
+    const o = await store.db.run("SELECT count(*) AS n FROM presentation_order");
+    expect(Number(o.rows[0].n)).toBe(0);
+  });
+});
+
+describe("urutan presentasi (PUT /api/admin/judging/order)", () => {
+  let second = "";
+  beforeEach(async () => {
+    const { markDemoDay } = await import("@iw3h/db");
+    // "Bukan finalis" dijadikan finalis kedua; namanya > "=HYPERLINK" → default urut nama.
+    second = other;
+    await markDemoDay(store.db, second, true);
+  });
+  const orderOf = async () =>
+    ((await (await boardGet()).json()).rows as { id: string; position: number }[]).map((r) => [
+      r.id,
+      r.position,
+    ]);
+
+  it("admin 200: rekap ikut urutan + nomor, audit judging.order", async () => {
+    login(ADMIN);
+    expect(await orderOf()).toEqual([
+      [finalist, 1],
+      [second, 2],
+    ]);
+    const res = await orderPut(req("PUT", { projectIds: [second, finalist] }));
+    expect(res.status).toBe(200);
+    expect(await orderOf()).toEqual([
+      [second, 1],
+      [finalist, 2],
+    ]);
+    const a = await store.db.run(
+      "SELECT actor_address, target, detail FROM audit_logs WHERE action='judging.order'"
+    );
+    expect(a.rows).toHaveLength(1);
+    expect(a.rows[0].actor_address).toBe(ADMIN);
+    expect(a.rows[0].target).toBe("H");
+    expect(JSON.parse(String(a.rows[0].detail)).order).toEqual([
+      "1. Bukan finalis",
+      "2. =HYPERLINK(evil)",
+    ]);
+  });
+
+  it("input tak valid 400; daftar finalis tak lengkap/ganda/asing 400; tak tersimpan", async () => {
+    login(ADMIN);
+    for (const body of [
+      null,
+      {},
+      { projectIds: "x" },
+      { projectIds: [] },
+      { projectIds: [1, 2] },
+      { projectIds: [""] },
+      { projectIds: Array.from({ length: 51 }, (_, i) => `p${i}`) },
+      { projectIds: [finalist] }, // kurang satu finalis
+      { projectIds: [finalist, finalist] },
+      { projectIds: [finalist, second, "nope"] },
+    ]) {
+      const res = await orderPut(req("PUT", body));
+      expect(res.status, JSON.stringify(body)).toBe(400);
+    }
+    const n = await store.db.run("SELECT count(*) AS n FROM presentation_order");
+    expect(Number(n.rows[0].n)).toBe(0);
+  });
+
+  it("hackathon completed → 409 (urutan beku)", async () => {
+    login(ADMIN);
+    await store.db.run("UPDATE hackathons SET status='completed' WHERE id='H'");
+    expect((await orderPut(req("PUT", { projectIds: [second, finalist] }))).status).toBe(409);
+    const n = await store.db.run("SELECT count(*) AS n FROM presentation_order");
     expect(Number(n.rows[0].n)).toBe(0);
   });
 });

@@ -32,6 +32,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn, short } from "@/lib/utils";
+import PresentationOrder from "./PresentationOrder";
 
 export interface Board {
   criteria: FinalCriterion[];
@@ -118,10 +119,11 @@ export default function JudgingBoard({
 
   const rows = useMemo(() => {
     const inCtx = board.rows.filter((r) => track === ALL || r.trackIds.includes(track));
+    // Peringkat dulu; belum bernilai / seri peringkat → urutan presentasi.
     return inCtx.sort(
       (a, b) =>
         (a.ranks[track]?.rank ?? Number.POSITIVE_INFINITY) -
-          (b.ranks[track]?.rank ?? Number.POSITIVE_INFINITY) || a.name.localeCompare(b.name)
+          (b.ranks[track]?.rank ?? Number.POSITIVE_INFINITY) || a.position - b.position
     );
   }, [board.rows, track]);
 
@@ -200,15 +202,18 @@ export default function JudgingBoard({
       )}
 
       {view === "rekap" ? (
-        <RecapTable
-          rows={rows}
-          criteria={board.criteria}
-          ctx={track}
-          frozen={frozen}
-          trackName={trackName}
-          stats={stats}
-          onChanged={reload}
-        />
+        <>
+          <RecapTable
+            rows={rows}
+            criteria={board.criteria}
+            ctx={track}
+            frozen={frozen}
+            trackName={trackName}
+            stats={stats}
+            onChanged={reload}
+          />
+          <PresentationOrder rows={board.rows} frozen={frozen} onSaved={reload} />
+        </>
       ) : (
         <Scoreboard
           rows={rows}
@@ -273,6 +278,9 @@ function RecapTable({
             <TableHeader>
               <TableRow>
                 <TableHead className="w-12">#</TableHead>
+                <TableHead className="w-12" title="Presentation order">
+                  Order
+                </TableHead>
                 <TableHead>Project</TableHead>
                 <TableHead>Tracks</TableHead>
                 <TableHead className="text-right">Final</TableHead>
@@ -298,7 +306,7 @@ function RecapTable({
               {rows.length === 0 && (
                 <TableRow>
                   <TableCell
-                    colSpan={7 + criteria.length}
+                    colSpan={8 + criteria.length}
                     className="py-8 text-center text-gray-500 dark:text-gray-400"
                   >
                     No finalists yet. Mark the demo day finalists (star) on the Projects page.
@@ -311,6 +319,13 @@ function RecapTable({
                   <TableRow key={r.id}>
                     <TableCell>
                       <RankCell rank={r.ranks[ctx]?.rank} tie={r.ranks[ctx]?.tie} />
+                    </TableCell>
+                    <TableCell
+                      className="tabular-nums text-gray-500 dark:text-gray-400"
+                      title={r.positionSaved ? undefined : "Not in the saved presentation order"}
+                    >
+                      {r.position}
+                      {!r.positionSaved && "*"}
                     </TableCell>
                     <TableCell className="max-w-56">
                       <p className="truncate font-medium text-gray-800 dark:text-white/90">

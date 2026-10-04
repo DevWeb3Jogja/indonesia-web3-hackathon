@@ -568,7 +568,22 @@
     "internalNotePlaceholder": "Only organizers see this, never the team…",
     "linkDemo": "Live demo",
     "linkRepo": "Repository",
-    "linkVideo": "Demo video"
+    "linkVideo": "Demo video",
+    "stepperLabel": "Finalists in presentation order",
+    "presenter": "Presentation #{n}",
+    "prev": "← Previous",
+    "next": "Next →",
+    "saveOnly": "Save",
+    "saveNext": "Save & next →",
+    "saveFinish": "Save & finish",
+    "finish": "Finish",
+    "unsaved": "Unsaved changes",
+    "discardConfirm": "This project has unsaved changes. Leave without saving?",
+    "swipeHint": "Swipe left or right to move between projects.",
+    "doneTitle": "All finalists scored",
+    "doneIncomplete": "{n} finalist(s) not scored yet:",
+    "doneDesc": "While judging is open you can reopen any project from the numbers above to change your scores.",
+    "backTo": "Back to #{n}"
   },
   "support": {
     "open": "Need help?",

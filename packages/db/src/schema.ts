@@ -444,3 +444,25 @@ export const judgeNotes = sqliteTable(
   },
   (t) => [primaryKey({ columns: [t.projectId, t.judgeAddress] })]
 );
+
+/** Urutan presentasi finalis di demo day (diatur admin; form juri & rekap mengikutinya).
+ *  Tabel terpisah, BUKAN kolom di `projects`: baris project sampai ke peserta, dan urutan
+ *  ini membocorkan siapa finalisnya. Diganti utuh tiap simpan (setPresentationOrder). */
+export const presentationOrder = sqliteTable(
+  "presentation_order",
+  {
+    projectId: text("project_id")
+      .primaryKey()
+      .references(() => projects.id),
+    hackathonId: text("hackathon_id")
+      .notNull()
+      .references(() => hackathons.id),
+    position: integer("position").notNull(),
+    updatedBy: text("updated_by").notNull(),
+    updatedAt: text("updated_at").notNull().default(now),
+  },
+  (t) => [
+    check("presentation_position", sql`${t.position} >= 1`),
+    uniqueIndex("uq_presentation_position").on(t.hackathonId, t.position),
+  ]
+);

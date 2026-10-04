@@ -568,7 +568,22 @@
     "internalNotePlaceholder": "Hanya dilihat panitia, tidak dikirim ke tim…",
     "linkDemo": "Demo",
     "linkRepo": "Repositori",
-    "linkVideo": "Video demo"
+    "linkVideo": "Video demo",
+    "stepperLabel": "Finalis sesuai urutan presentasi",
+    "presenter": "Presentasi #{n}",
+    "prev": "← Sebelumnya",
+    "next": "Berikutnya →",
+    "saveOnly": "Simpan",
+    "saveNext": "Simpan & lanjut →",
+    "saveFinish": "Simpan & selesai",
+    "finish": "Selesai",
+    "unsaved": "Belum disimpan",
+    "discardConfirm": "Ada perubahan yang belum disimpan di project ini. Tinggalkan tanpa menyimpan?",
+    "swipeHint": "Geser ke kiri atau kanan untuk pindah project.",
+    "doneTitle": "Semua finalis sudah dinilai",
+    "doneIncomplete": "{n} finalis belum kamu nilai:",
+    "doneDesc": "Selama penjurian dibuka, kamu bisa membuka lagi project mana pun lewat nomor di atas untuk mengubah nilai.",
+    "backTo": "Kembali ke #{n}"
   },
   "support": {
     "open": "Butuh bantuan?",

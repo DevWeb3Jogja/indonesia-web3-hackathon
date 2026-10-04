@@ -16,6 +16,7 @@ import {
   finalists,
   judgeNotes,
   organizerScores,
+  presentationOrder,
   projects,
   projectTracks,
   scores,
@@ -320,6 +321,7 @@ export async function deleteProject(db: Db, id: string): Promise<void> {
     db.delete(curationReviews).where(eq(curationReviews.projectId, id)),
     db.delete(curationScreens).where(eq(curationScreens.projectId, id)),
     db.delete(finalists).where(eq(finalists.projectId, id)),
+    db.delete(presentationOrder).where(eq(presentationOrder.projectId, id)),
     db.delete(projectTracks).where(eq(projectTracks.projectId, id)),
     db.delete(projects).where(eq(projects.id, id)),
   ]);

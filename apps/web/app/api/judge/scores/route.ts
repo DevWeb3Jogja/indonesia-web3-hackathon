@@ -34,6 +34,7 @@ const STATUS: Record<JudgingError["code"], number> = {
   invalid_project: 404,
   out_of_track: 403,
   invalid_criteria: 400,
+  invalid_order: 400,
 };
 
 /** PUT /api/judge/scores — juri menyimpan nilai 1..5 SEMUA kriteria juri untuk satu

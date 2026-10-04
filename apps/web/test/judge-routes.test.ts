@@ -163,6 +163,30 @@ describe("GET /api/judge/data", () => {
     expect(json.readOnly).toBe(false);
   });
 
+  it("finalis urut presentasi (diatur admin) + nomor; tanpa urutan → nama di belakang", async () => {
+    const { markDemoDay, setPresentationOrder } = await import("@iw3h/db");
+    await markDemoDay(store.db, notFinalist, true); // "Bukan finalis" < "Finalis"
+    login(J1);
+    const ids = async () =>
+      ((await (await dataGet()).json()).projects as { id: string; position: number }[]).map((p) => [
+        p.id,
+        p.position,
+      ]);
+    expect(await ids()).toEqual([
+      [notFinalist, 1],
+      [finalist, 2],
+    ]);
+    await setPresentationOrder(store.db, {
+      hackathonId: "H",
+      projectIds: [finalist, notFinalist],
+      actor: ADMIN,
+    });
+    expect(await ids()).toEqual([
+      [finalist, 1],
+      [notFinalist, 2],
+    ]);
+  });
+
   it("hanya nilai & catatan milik juri yang login (tak bocor milik juri lain)", async () => {
     login(J2);
     await put({

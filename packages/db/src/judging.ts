@@ -21,6 +21,7 @@ import {
   judgeNotes,
   judgeTracks,
   organizerScores,
+  presentationOrder,
   projects,
   projectTracks,
   scores,
@@ -36,7 +37,7 @@ export type CriterionFiller = (typeof CRITERION_FILLERS)[number];
 
 export class JudgingError extends Error {
   constructor(
-    public code: "invalid_project" | "out_of_track" | "invalid_criteria",
+    public code: "invalid_project" | "out_of_track" | "invalid_criteria" | "invalid_order",
     message: string
   ) {
     super(message);
@@ -60,6 +61,89 @@ const finalistWhere = (hackathonId: string) =>
     eq(projects.status, "submitted"),
     eq(projects.demoDay, true)
   );
+
+// ── Urutan presentasi (demo day) ─────────────────────────────────────────────
+
+/** Posisi tersimpan (diatur admin) per projectId untuk hackathon ini. Bisa memuat
+ *  project yang sudah bukan finalis — pemakai selalu menyaring lewat daftar finalis. */
+export async function getPresentationOrder(
+  db: Db,
+  hackathonId: string
+): Promise<Map<string, number>> {
+  const rows = await db
+    .select({ projectId: presentationOrder.projectId, position: presentationOrder.position })
+    .from(presentationOrder)
+    .where(eq(presentationOrder.hackathonId, hackathonId));
+  return new Map(rows.map((r) => [r.projectId, r.position]));
+}
+
+export interface Presented {
+  /** Nomor tampil 1..n atas SEMUA finalis (urut presentasi), tanpa celah. */
+  position: number;
+  /** false = belum masuk urutan yang disimpan admin (mis. demo_day dinyalakan belakangan). */
+  positionSaved: boolean;
+}
+
+/** Urutkan finalis: posisi tersimpan naik; tanpa posisi di belakang, lalu nama, lalu id.
+ *  Nomor dihitung ulang 1..n (celah karena finalis dicabut/dihapus tak terlihat). */
+export function sortByPresentation<T extends { id: string; name: string }>(
+  rows: T[],
+  saved: Map<string, number>
+): (T & Presented)[] {
+  const pos = (r: T) => saved.get(r.id) ?? Number.POSITIVE_INFINITY;
+  return [...rows]
+    .sort((a, b) => {
+      const pa = pos(a);
+      const pb = pos(b);
+      if (pa !== pb) return pa < pb ? -1 : 1;
+      return a.name.localeCompare(b.name) || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
+    })
+    .map((r, i) => ({ ...r, position: i + 1, positionSaved: saved.has(r.id) }));
+}
+
+export const PRESENTATION_MAX = 50;
+
+/** Admin mengganti SELURUH urutan presentasi (atomik). Wajib memuat semua finalis saat
+ *  ini tepat sekali — daftar basi (finalis berubah sejak halaman dimuat) ditolak supaya
+ *  tak ada finalis yang diam-diam terlempar ke belakang. Posisi = urutan array (1..n). */
+export async function setPresentationOrder(
+  db: Db,
+  input: { hackathonId: string; projectIds: string[]; actor: string }
+): Promise<{ order: { id: string; name: string }[] }> {
+  const { hackathonId, projectIds, actor } = input;
+  if (new Set(projectIds).size !== projectIds.length) {
+    throw new JudgingError("invalid_order", "Urutan memuat project ganda");
+  }
+  const current = await db
+    .select({ id: projects.id, name: projects.name })
+    .from(projects)
+    .where(finalistWhere(hackathonId));
+  if (current.length === 0) {
+    throw new JudgingError("invalid_order", "Belum ada finalis demo day");
+  }
+  const byId = new Map(current.map((p) => [p.id, p.name]));
+  if (projectIds.length !== current.length || !projectIds.every((id) => byId.has(id))) {
+    throw new JudgingError(
+      "invalid_order",
+      "Daftar finalis sudah berubah — muat ulang lalu atur urutan lagi"
+    );
+  }
+  const now = new Date().toISOString();
+  await db.batch([
+    // Ganti utuh: baris lama (termasuk project yang sudah bukan finalis) ikut bersih.
+    db.delete(presentationOrder).where(eq(presentationOrder.hackathonId, hackathonId)),
+    ...projectIds.map((projectId, i) =>
+      db.insert(presentationOrder).values({
+        projectId,
+        hackathonId,
+        position: i + 1,
+        updatedBy: actor,
+        updatedAt: now,
+      })
+    ),
+  ]);
+  return { order: projectIds.map((id) => ({ id, name: byId.get(id) as string })) };
+}
 
 /** Project wajib finalis demo day hackathon ini (cegah nilai lintas-hackathon/non-finalis). */
 async function requireFinalist(db: Db, hackathonId: string, projectId: string) {
@@ -101,15 +185,19 @@ export interface JudgeFinalist {
   demoVideoUrl: string | null;
   teamName: string | null;
   trackIds: string[];
+  /** Nomor urut presentasi atas SEMUA finalis (bukan hanya yang terlihat juri ini). */
+  position: number;
+  positionSaved: boolean;
 }
 
-/** Finalis yang boleh dinilai juri ini (filter assignment track; kosong = semua). */
+/** Finalis yang boleh dinilai juri ini (filter assignment track; kosong = semua), urut
+ *  presentasi. Nomor dihitung sebelum filter track → sama dengan nomor di panggung. */
 export async function listJudgeFinalists(
   db: Db,
   hackathonId: string,
   judgeAddress: string
 ): Promise<JudgeFinalist[]> {
-  const [rows, assigned] = await Promise.all([
+  const [rows, assigned, saved] = await Promise.all([
     db
       .select({
         id: projects.id,
@@ -123,9 +211,9 @@ export async function listJudgeFinalists(
       })
       .from(projects)
       .leftJoin(teams, eq(teams.id, projects.teamId))
-      .where(finalistWhere(hackathonId))
-      .orderBy(asc(projects.name)),
+      .where(finalistWhere(hackathonId)),
     getJudgeTracks(db, hackathonId, judgeAddress),
+    getPresentationOrder(db, hackathonId),
   ]);
   if (rows.length === 0) return [];
   const trackRows = await db
@@ -137,7 +225,7 @@ export async function listJudgeFinalists(
         rows.map((r) => r.id)
       )
     );
-  return rows
+  return sortByPresentation(rows, saved)
     .map((r) => ({
       ...r,
       trackIds: trackRows.filter((t) => t.projectId === r.id).map((t) => t.trackId),
@@ -375,7 +463,7 @@ export interface FinalNote {
   updatedAt: string;
 }
 
-export interface FinalRow {
+export interface FinalRow extends Presented {
   id: string;
   name: string;
   teamName: string | null;
@@ -399,7 +487,8 @@ export interface FinalRow {
 
 export const ALL_TRACKS = "all";
 
-/** Seluruh data rekap penjurian final untuk satu hackathon (±10 finalis). */
+/** Seluruh data rekap penjurian final untuk satu hackathon (±10 finalis), baris urut
+ *  presentasi (UI rekap mengurutkan ulang per peringkat). */
 export async function finalJudgingBoard(
   db: Db,
   hackathonId: string
@@ -412,13 +501,12 @@ export async function finalJudgingBoard(
     ...c,
     filledBy: c.filledBy as CriterionFiller,
   }));
-  const [projs, judgeUsers, assignments] = await Promise.all([
+  const [finalistRows, judgeUsers, assignments, saved] = await Promise.all([
     db
       .select({ id: projects.id, name: projects.name, teamName: teams.name })
       .from(projects)
       .leftJoin(teams, eq(teams.id, projects.teamId))
-      .where(finalistWhere(hackathonId))
-      .orderBy(asc(projects.name)),
+      .where(finalistWhere(hackathonId)),
     db
       .select({ address: users.address, username: users.username })
       .from(users)
@@ -427,7 +515,9 @@ export async function finalJudgingBoard(
       .select({ judgeAddress: judgeTracks.judgeAddress, trackId: judgeTracks.trackId })
       .from(judgeTracks)
       .where(eq(judgeTracks.hackathonId, hackathonId)),
+    getPresentationOrder(db, hackathonId),
   ]);
+  const projs = sortByPresentation(finalistRows, saved);
   const judges = judgeUsers.map((u) => ({
     address: u.address,
     name: u.username,
@@ -509,6 +599,8 @@ export async function finalJudgingBoard(
       id: p.id,
       name: p.name,
       teamName: p.teamName,
+      position: p.position,
+      positionSaved: p.positionSaved,
       trackIds,
       values,
       judgeCounts,
