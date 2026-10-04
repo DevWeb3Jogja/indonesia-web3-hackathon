@@ -199,9 +199,6 @@
   margin-top: calc(var(--u) * 18);
   font-size: calc(var(--u) * 56);
 }
-.screen-wait .screen-steps {
-  margin-top: auto;
-}
 
 /* Panduan 3 langkah (layar menunggu & di bawah URL saat voting dibuka). */
 .screen-steps {
@@ -227,6 +224,10 @@
   font-variant-numeric: tabular-nums;
   color: #f2ba2b;
 }
+.screen-wait .screen-steps {
+  margin-top: auto;
+}
+
 /* Saat voting dibuka: satu baris ringkas di bawah URL supaya angka total tetap muat. */
 .screen-right > .screen-steps {
   width: calc(var(--u) * 520);
