@@ -1,6 +1,8 @@
 "use client";
 
 import ReactMarkdown from "react-markdown";
+import rehypeRaw from "rehype-raw";
+import rehypeSanitize from "rehype-sanitize";
 import remarkGfm from "remark-gfm";
 import Mermaid from "./Mermaid";
 
@@ -18,6 +20,9 @@ export default function MarkdownRenderer({
     <div className="md-body">
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
+        // README hasil salin sering pakai HTML (<img>, <div align>). Render seperti GitHub:
+        // raw → sanitize (skema GitHub; buang script/event handler/iframe). Urutan wajib.
+        rehypePlugins={[rehypeRaw, rehypeSanitize]}
         components={{
           code({ className, children, ...props }) {
             const match = /language-(\w+)/.exec(className ?? "");
