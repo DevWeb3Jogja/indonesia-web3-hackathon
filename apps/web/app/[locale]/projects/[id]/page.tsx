@@ -12,7 +12,7 @@ import { deckDownloadUrl, resolveDeckEmbed } from "@/lib/deck-embed";
 import { getDict, localePath } from "@/lib/i18n";
 import { PITCH_DECK_LABEL } from "@/lib/project-socials";
 import { db } from "@/lib/turso";
-import { explorerUrl, NETWORKS, type NetworkId, trackLabel } from "@/lib/types";
+import { explorerUrl, networkOf, trackLabel } from "@/lib/types";
 
 // ISR: cache render per-id 30s — lindungi DB dari hammering, edit tampil dalam ≤30s.
 export const revalidate = 30;
@@ -67,7 +67,7 @@ export default async function ProjectDetailPage(props: {
   const profiles = await getPublicProfiles(db, memberAddresses);
   const profileOf = (addr: string) => profiles.find((x) => x.address === addr);
 
-  const network = p.network ? NETWORKS.find((n) => n.id === p.network) : undefined;
+  const network = p.network ? networkOf(p.network) : undefined;
   const extraLinks = parseLinks(p.extraLinks);
   const deck = extraLinks.find((l) => l.label === PITCH_DECK_LABEL);
   const deckEmbed = deck ? await resolveDeckEmbed(deck.url) : null;
@@ -139,7 +139,7 @@ export default async function ProjectDetailPage(props: {
           <div className="mt-7 flex flex-wrap items-center gap-3">
             {p.contractAddress && network && (
               <a
-                href={explorerUrl(p.network as NetworkId, p.contractAddress)}
+                href={explorerUrl(p.network, p.contractAddress)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-medium text-black transition hover:bg-white/90"
@@ -228,6 +228,7 @@ export default async function ProjectDetailPage(props: {
                   <MarkdownRenderer
                     content={p.problemStatement}
                     errorLabel={dict.form.mermaidError}
+                    network={p.network}
                   />
                 </div>
               </div>
@@ -236,7 +237,11 @@ export default async function ProjectDetailPage(props: {
               <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-6">
                 <p className="eyebrow">{t.solution}</p>
                 <div className="mt-3 text-sm text-white/75">
-                  <MarkdownRenderer content={p.solution} errorLabel={dict.form.mermaidError} />
+                  <MarkdownRenderer
+                    content={p.solution}
+                    errorLabel={dict.form.mermaidError}
+                    network={p.network}
+                  />
                 </div>
               </div>
             )}
@@ -248,7 +253,11 @@ export default async function ProjectDetailPage(props: {
           <section className="mt-8">
             <p className="eyebrow mb-4">{t.detail}</p>
             <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-6 sm:p-8">
-              <MarkdownRenderer content={p.description} errorLabel={dict.form.mermaidError} />
+              <MarkdownRenderer
+                content={p.description}
+                errorLabel={dict.form.mermaidError}
+                network={p.network}
+              />
             </div>
           </section>
         )}

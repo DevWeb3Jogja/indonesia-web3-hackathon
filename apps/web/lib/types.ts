@@ -30,9 +30,29 @@ export interface PublicProjectCard {
   members: { address: string; githubUrl: string | null; username: string | null }[];
 }
 
-export function explorerUrl(network: NetworkId, address: string): string {
-  const net = NETWORKS.find((n) => n.id === network) ?? NETWORKS[0];
-  return net.explorer + address;
+/**
+ * Network project → entri NETWORKS. Kolom `network` berisi id dari form ("bsc-testnet")
+ * ATAU label dari data impor ("BNB Smart Chain Testnet", "opBNB Testnet"). Tak dikenal → BSC mainnet.
+ */
+export function networkOf(raw: string | null | undefined): (typeof NETWORKS)[number] {
+  const s = (raw ?? "").toLowerCase();
+  const byId = NETWORKS.find((n) => n.id === s);
+  if (byId) return byId;
+  const id = `${s.includes("opbnb") ? "opbnb" : "bsc"}${s.includes("test") ? "-testnet" : ""}`;
+  return NETWORKS.find((n) => n.id === id) ?? NETWORKS[0];
+}
+
+export function explorerUrl(network: string | null | undefined, address: string): string {
+  return networkOf(network).explorer + address;
+}
+
+/** Link explorer untuk address (0x + 40 hex) atau tx hash (0x + 64 hex); null kalau bukan keduanya. */
+export function explorerLink(network: string | null | undefined, value: string): string | null {
+  if (/^0x[0-9a-fA-F]{40}$/.test(value)) return explorerUrl(network, value);
+  if (/^0x[0-9a-fA-F]{64}$/.test(value)) {
+    return networkOf(network).explorer.replace(/address\/$/, "tx/") + value;
+  }
+  return null;
 }
 
 export function trackLabel(id: string): string {
