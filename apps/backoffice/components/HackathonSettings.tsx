@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { fromWibInput, toWibInput } from "@/lib/wib";
 
 const FIELDS: { key: string; label: string; type: "text" | "number" | "date" }[] = [
   { key: "name", label: "Name", type: "text" },
@@ -18,11 +19,6 @@ const FIELDS: { key: string; label: string; type: "text" | "number" | "date" }[]
   { key: "winnersAnnouncedAt", label: "Winners announced", type: "date" },
 ];
 
-/** Native <input type=date> butuh "YYYY-MM-DD"; nilai tersimpan bisa ISO penuh. */
-function toDateInput(v: unknown): string {
-  return v == null ? "" : String(v).slice(0, 10);
-}
-
 export default function HackathonSettings({ current }: { current: Record<string, unknown> }) {
   const router = useRouter();
   const [vals, setVals] = useState<Record<string, string>>(
@@ -30,7 +26,7 @@ export default function HackathonSettings({ current }: { current: Record<string,
       FIELDS.map((f) => [
         f.key,
         f.type === "date"
-          ? toDateInput(current[f.key])
+          ? toWibInput(current[f.key], f.key.endsWith("ClosesAt"))
           : current[f.key] == null
             ? ""
             : String(current[f.key]),
@@ -46,6 +42,8 @@ export default function HackathonSettings({ current }: { current: Record<string,
       const raw = vals[f.key];
       if (f.type === "number") {
         if (raw !== "") body[f.key] = Number(raw);
+      } else if (f.type === "date") {
+        body[f.key] = fromWibInput(raw);
       } else {
         body[f.key] = raw === "" ? null : raw;
       }
@@ -67,7 +65,7 @@ export default function HackathonSettings({ current }: { current: Record<string,
   return (
     <div className="space-y-4">
       <p className="text-xs text-gray-500 dark:text-gray-400">
-        Pick a date. Empty = no deadline (deadlines count as end of day).
+        All times in WIB (UTC+7). Empty = no deadline.
       </p>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {FIELDS.map((f) => (
@@ -77,7 +75,7 @@ export default function HackathonSettings({ current }: { current: Record<string,
             </Label>
             <Input
               id={`hs-${f.key}`}
-              type={f.type}
+              type={f.type === "date" ? "datetime-local" : f.type}
               className={f.type === "date" ? "[color-scheme:dark]" : undefined}
               value={vals[f.key]}
               onChange={(e) => setVals((s) => ({ ...s, [f.key]: e.target.value }))}
