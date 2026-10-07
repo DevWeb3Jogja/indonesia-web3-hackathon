@@ -17,7 +17,7 @@ export interface PhaseInfo {
 function beforeDeadline(deadline: string | null | undefined, now: Date): boolean {
   if (!deadline) return true;
   let raw = deadline.trim().replace(" ", "T");
-  if (raw.length === 10) raw += "T23:59:59"; // date-only → akhir hari
+  if (raw.length === 10) raw += "T23:59:59+07:00"; // date-only → akhir hari WIB (= tampilan schedule)
   if (!/[zZ]|[+-]\d\d:?\d\d$/.test(raw)) raw += "Z"; // tanpa timezone → anggap UTC
   const t = new Date(raw).getTime();
   // Deadline tak valid → jangan diam-diam mengunci fase; status yang menentukan.

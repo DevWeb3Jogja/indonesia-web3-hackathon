@@ -27,10 +27,10 @@ describe("phase guards", () => {
     expect(canSubmitProject({ status: "submission", submissionClosesAt: null })).toBe(true);
   });
 
-  it("deadline date-only dianggap akhir hari (UTC)", () => {
+  it("deadline date-only dianggap akhir hari WIB (23:59:59+07:00)", () => {
     const h = { status: "submission", submissionClosesAt: "2026-10-01" };
-    expect(canSubmitProject(h, at("2026-10-01T23:00:00Z"))).toBe(true); // masih hari itu
-    expect(canSubmitProject(h, at("2026-10-02T00:00:01Z"))).toBe(false); // lewat hari
+    expect(canSubmitProject(h, at("2026-10-01T16:59:00Z"))).toBe(true); // 23:59 WIB
+    expect(canSubmitProject(h, at("2026-10-01T17:00:00Z"))).toBe(false); // 00:00 WIB besoknya
   });
 
   it("deadline ISO dengan Z tidak double-append", () => {
