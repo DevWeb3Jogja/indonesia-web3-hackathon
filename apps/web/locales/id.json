@@ -95,7 +95,10 @@
         "value": "4 bulan",
         "desc": "Juli sampai Oktober 2026, dari workshop perdana sampai Demo Day"
       }
-    ]
+    ],
+    "ctaClosed": "Lihat project",
+    "ctaSchedule": "Lihat jadwal",
+    "statProjects": "Project masuk"
   },
   "prizes": {
     "metaTitle": "Prizes",
@@ -171,7 +174,12 @@
         "title": "Demo Day",
         "desc": "Finalis presentasi langsung di hadapan juri. Pengumuman pemenang."
       }
-    ]
+    ],
+    "closedNote": "Submission ditutup pada",
+    "closedTail": ". Terima kasih untuk semua builder yang sudah submit — berikutnya pengumuman finalis.",
+    "browse": "Lihat project",
+    "done": "Selesai",
+    "next": "Berikutnya"
   },
   "faq": {
     "metaTitle": "FAQ",
@@ -537,7 +545,8 @@
     "profileRequiredCta": "Lengkapi profil",
     "errorGeneric": "Gagal memproses. Coba lagi.",
     "errorRate": "Terlalu sering. Tunggu sebentar.",
-    "soloInstead": "Mau submit solo? Keluar tim dulu →"
+    "soloInstead": "Mau submit solo? Keluar tim dulu →",
+    "browseCta": "Lihat project"
   },
   "judge": {
     "metaTitle": "Penjurian",

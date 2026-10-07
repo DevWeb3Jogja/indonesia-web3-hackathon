@@ -95,7 +95,10 @@
         "value": "4 months",
         "desc": "July to October 2026, from the first workshop through to Demo Day"
       }
-    ]
+    ],
+    "ctaClosed": "Explore projects",
+    "ctaSchedule": "View schedule",
+    "statProjects": "Projects submitted"
   },
   "prizes": {
     "metaTitle": "Prizes",
@@ -171,7 +174,12 @@
         "title": "Demo Day",
         "desc": "Finalists present live to the judges. Winners announced."
       }
-    ]
+    ],
+    "closedNote": "Submissions closed on",
+    "closedTail": ". Thank you to every builder who submitted — finalists are announced next.",
+    "browse": "Browse projects",
+    "done": "Done",
+    "next": "Next"
   },
   "faq": {
     "metaTitle": "FAQ",
@@ -537,7 +545,8 @@
     "profileRequiredCta": "Complete profile",
     "errorGeneric": "Something went wrong. Try again.",
     "errorRate": "Too many requests. Wait a moment.",
-    "soloInstead": "Want to submit solo? Leave your team first →"
+    "soloInstead": "Want to submit solo? Leave your team first →",
+    "browseCta": "Browse projects"
   },
   "judge": {
     "metaTitle": "Judging",

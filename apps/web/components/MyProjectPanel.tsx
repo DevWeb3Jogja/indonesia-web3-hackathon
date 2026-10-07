@@ -24,7 +24,19 @@ interface Mine {
   project: Project | null;
 }
 
-function SubmitButton({ locale, t }: { locale: string; t: PT }) {
+function SubmitButton({ locale, t, open }: { locale: string; t: PT; open: boolean }) {
+  if (!open) {
+    // Deadline lewat: jangan tawarkan submit — arahkan ke galeri.
+    return (
+      <div className="max-w-2xl space-y-4">
+        <p className="text-sm text-white/60">{t.closed}</p>
+        <Link href={localePath(locale, "/projects")} className="btn-outline">
+          {t.browseCta}
+          <ArrowUpRight />
+        </Link>
+      </div>
+    );
+  }
   return (
     <Link href={localePath(locale, "/submit")} className="btn-teal">
       {t.openCta}
@@ -55,26 +67,32 @@ function CardSkeleton() {
 
 export default function MyProjectPanel({
   locale,
+  open,
   t,
   byLabel,
   soloLabel,
 }: {
   locale: string;
+  /** Dari server (getPhase): false → tombol submit/edit disembunyikan. */
+  open: boolean;
   t: PT;
   byLabel: string;
   soloLabel: string;
 }) {
-  if (!projectId) return <SubmitButton locale={locale} t={t} />;
-  return <Inner locale={locale} t={t} byLabel={byLabel} soloLabel={soloLabel} />;
+  if (!projectId) return <SubmitButton locale={locale} t={t} open={open} />;
+  return <Inner locale={locale} open={open} t={t} byLabel={byLabel} soloLabel={soloLabel} />;
 }
 
 function Inner({
   locale,
+  open,
   t,
   byLabel,
   soloLabel,
 }: {
   locale: string;
+  /** Dari server (getPhase): false → tombol submit/edit disembunyikan. */
+  open: boolean;
   t: PT;
   byLabel: string;
   soloLabel: string;
@@ -104,8 +122,9 @@ function Inner({
   }, [load]);
 
   if (connecting || (state === "loading" && isConnected)) return <CardSkeleton />;
-  if (!isConnected || state === "unauth") return <SubmitButton locale={locale} t={t} />;
-  if (!project) return <SubmitButton locale={locale} t={t} />;
+  if (!isConnected || state === "unauth" || !project) {
+    return <SubmitButton locale={locale} t={t} open={open} />;
+  }
 
   return (
     <div className="max-w-2xl space-y-5">
@@ -145,10 +164,12 @@ function Inner({
       </div>
 
       <div className="flex flex-wrap gap-3">
-        <Link href={`${localePath(locale, "/submit")}?edit=1`} className="btn-teal">
-          {t.edit}
-          <ArrowUpRight />
-        </Link>
+        {open && (
+          <Link href={`${localePath(locale, "/submit")}?edit=1`} className="btn-teal">
+            {t.edit}
+            <ArrowUpRight />
+          </Link>
+        )}
         <Link href={localePath(locale, `/projects/${project.id}`)} className="btn-outline">
           {t.viewGallery}
           <ArrowUpRight />

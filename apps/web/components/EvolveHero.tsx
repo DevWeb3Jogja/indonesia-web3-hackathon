@@ -116,14 +116,20 @@ export default function EvolveHero(props: Props) {
           <Link className="ev-cta" href={props.primary.href}>
             {props.primary.label}
           </Link>
-          <a
-            className="ev-cta-alt"
-            href={props.secondary.href}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            {props.secondary.label}
-          </a>
+          {/^https?:/.test(props.secondary.href) ? (
+            <a
+              className="ev-cta-alt"
+              href={props.secondary.href}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {props.secondary.label}
+            </a>
+          ) : (
+            <Link className="ev-cta-alt" href={props.secondary.href}>
+              {props.secondary.label}
+            </Link>
+          )}
         </div>
 
         <a

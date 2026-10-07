@@ -236,15 +236,17 @@ function Inner({ t }: { t: T }) {
   }
 
   // Belum punya tim → buat / gabung.
-  const closed = data && !data.canManage;
+  // Fase tutup & belum punya tim → cukup pesan; form create/join yang mati cuma membingungkan.
+  if (data && !data.canManage) {
+    return (
+      <p className="flex items-center gap-2 text-sm text-ink/70">
+        <Alert />
+        {t.closed}
+      </p>
+    );
+  }
   return (
     <div className="max-w-2xl space-y-6">
-      {closed && (
-        <p className="flex items-center gap-2 text-sm text-ink/70">
-          <Alert />
-          {t.closed}
-        </p>
-      )}
       <div className="grid gap-6 md:grid-cols-2">
         <Panel clip="chamfer-lg" tone="bg-white/[0.02]">
           <form
@@ -268,10 +270,10 @@ function Inner({ t }: { t: T }) {
                 minLength={2}
                 maxLength={60}
                 required
-                disabled={closed || busy}
+                disabled={busy}
               />
             </div>
-            <button type="submit" className="btn-teal" disabled={closed || busy}>
+            <button type="submit" className="btn-teal" disabled={busy}>
               {t.createCta}
             </button>
           </form>
@@ -298,10 +300,10 @@ function Inner({ t }: { t: T }) {
                 placeholder={t.codePlaceholder}
                 maxLength={8}
                 required
-                disabled={closed || busy}
+                disabled={busy}
               />
             </div>
-            <button type="submit" className="btn-ink" disabled={closed || busy}>
+            <button type="submit" className="btn-ink" disabled={busy}>
               {t.joinCta}
             </button>
           </form>

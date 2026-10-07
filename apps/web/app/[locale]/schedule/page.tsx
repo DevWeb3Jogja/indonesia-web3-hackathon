@@ -1,11 +1,10 @@
-import { getCurrentHackathon } from "@iw3h/db";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowUpRight, Panel } from "@/components/ui";
 import { REGISTER_URL } from "@/lib/content";
 import { getDict, localePath } from "@/lib/i18n";
 import { ogMeta } from "@/lib/og-meta";
-import { db } from "@/lib/turso";
+import { getPhase } from "@/lib/phase";
 
 // ISR: tanggal dari DB (backoffice) tercermin di sini, refresh tiap 10 menit.
 export const revalidate = 600;
@@ -47,7 +46,15 @@ export default async function SchedulePage(props: { params: Promise<{ locale: st
   const t = getDict(params.locale).schedule;
 
   // Tanggal DB (kalau diisi di backoffice) override konten statis per item timeline.
-  const h = await getCurrentHackathon(db).catch(() => null);
+  const { hackathon: h, submissionOpen, registrationOpen } = await getPhase();
+  // Submission sudah lewat (deadline atau fase judging/completed): tahap s.d. deadline
+  // ditandai selesai, tahap sesudahnya disorot "berikutnya".
+  const submissionOver =
+    !!h && !submissionOpen && h.status !== "draft" && h.status !== "registration";
+  const closeIdx = t.timeline.findIndex((x) => x.key === "submission-close");
+  const isDone = (i: number) => submissionOver && i <= closeIdx;
+  const isNext = (i: number) => submissionOver && i === closeIdx + 1;
+  const isHot = (i: number) => (submissionOver ? isNext(i) : i < 2);
   const dbDate: Record<string, string | null> = {
     registration: fmtDate(h?.registrationOpensAt, params.locale),
     "submission-open": fmtDate(h?.submissionOpensAt, params.locale),
@@ -73,19 +80,32 @@ export default async function SchedulePage(props: { params: Promise<{ locale: st
             <Panel
               key={item.key}
               clip="chamfer-lg"
-              tone={i < 2 ? "bg-white/[0.04]" : "bg-white/[0.02]"}
+              tone={isHot(i) ? "bg-white/[0.04]" : "bg-white/[0.02]"}
             >
-              <div className="grid gap-4 p-6 md:grid-cols-[70px_250px_1fr_auto] md:items-center md:gap-8 md:p-8">
+              <div
+                className={`grid gap-4 p-6 md:grid-cols-[70px_250px_1fr_auto] md:items-center md:gap-8 md:p-8 ${
+                  isDone(i) ? "opacity-55" : ""
+                }`}
+              >
                 <p
                   className={`font-firs text-3xl font-semibold ${
-                    i < 2 ? "grad-text" : "text-white/40"
+                    isHot(i) ? "grad-text" : "text-white/40"
                   }`}
                 >
-                  {String(i + 1).padStart(2, "0")}
+                  {isDone(i) ? "✓" : String(i + 1).padStart(2, "0")}
                 </p>
                 <div>
-                  <p className="text-[11px] uppercase tracking-[0.16em] text-teal/80">
+                  <p className="flex flex-wrap items-center gap-2 text-[11px] uppercase tracking-[0.16em] text-teal/80">
                     {dbDate[item.key] ?? item.date}
+                    {(isDone(i) || isNext(i)) && (
+                      <span
+                        className={`rounded-full px-2 py-0.5 text-[10px] font-semibold tracking-[0.14em] ${
+                          isNext(i) ? "bg-white text-black" : "border border-white/20 text-white/60"
+                        }`}
+                      >
+                        {isNext(i) ? t.next : t.done}
+                      </span>
+                    )}
                   </p>
                   <h2 className="mt-1 font-firs text-xl font-semibold uppercase tracking-tight text-ink">
                     {item.title}
@@ -103,12 +123,12 @@ export default async function SchedulePage(props: { params: Promise<{ locale: st
                 </div>
                 <p className="text-sm leading-relaxed text-ink/70">{item.desc}</p>
                 <div className="md:justify-self-end">
-                  {item.key === "submission-open" && (
+                  {item.key === "submission-open" && submissionOpen && (
                     <Link href={localePath(params.locale, "/submit")} className="btn-teal">
                       {t.submit}
                     </Link>
                   )}
-                  {item.key === "registration" && (
+                  {item.key === "registration" && registrationOpen && !submissionOver && (
                     <a
                       href={REGISTER_URL}
                       target="_blank"
@@ -128,11 +148,15 @@ export default async function SchedulePage(props: { params: Promise<{ locale: st
         <Panel clip="chamfer-lg" className="mt-8">
           <div className="flex flex-col items-center justify-between gap-4 p-6 text-center sm:flex-row sm:text-left md:p-8">
             <p className="text-sm leading-relaxed text-ink/80">
-              {t.deadlineNote} <strong className="font-semibold text-teal">{deadlineDate}</strong>
-              {t.deadlineTail}
+              {submissionOpen ? t.deadlineNote : t.closedNote}{" "}
+              <strong className="font-semibold text-teal">{deadlineDate}</strong>
+              {submissionOpen ? t.deadlineTail : t.closedTail}
             </p>
-            <Link href={localePath(params.locale, "/submit")} className="btn-teal shrink-0">
-              {t.submitNow}
+            <Link
+              href={localePath(params.locale, submissionOpen ? "/submit" : "/projects")}
+              className="btn-teal shrink-0"
+            >
+              {submissionOpen ? t.submitNow : t.browse}
             </Link>
           </div>
         </Panel>

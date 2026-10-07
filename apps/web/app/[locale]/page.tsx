@@ -1,3 +1,4 @@
+import { listProjectsPaged } from "@iw3h/db";
 import Image from "next/image";
 import Link from "next/link";
 import EligibilityWarning from "@/components/EligibilityWarning";
@@ -6,6 +7,11 @@ import { ArrowUpRight, ChamferBorder } from "@/components/ui";
 import { ASSETS } from "@/lib/assets";
 import { REGISTER_URL } from "@/lib/content";
 import { getDict, localePath } from "@/lib/i18n";
+import { getPhase } from "@/lib/phase";
+import { db } from "@/lib/turso";
+
+// ISR: CTA & statistik ikut fase/deadline DB (submit dibuka/ditutup), refresh tiap 10 menit.
+export const revalidate = 600;
 
 const STAT_STYLE = [
   { image: ASSETS.statPrize, offset: "" },
@@ -61,6 +67,14 @@ export default async function HomePage(props: { params: Promise<{ locale: string
   const dict = getDict(locale);
   const t = dict.home;
   const p = (path: string) => localePath(locale, path);
+  const { hackathon, submissionOpen } = await getPhase();
+  // Submission tutup → jumlah project masuk menggantikan "hari untuk submit".
+  const submitted =
+    !submissionOpen && hackathon
+      ? await listProjectsPaged(db, hackathon.id, { limit: 1 })
+          .then((r) => r.meta.total)
+          .catch(() => null)
+      : null;
 
   return (
     <>
@@ -73,12 +87,22 @@ export default async function HomePage(props: { params: Promise<{ locale: string
         trustPill="Co-hosted by Binance Academy · BNB Chain"
         headline={[t.title1, t.title2]}
         subtitle={t.subtitle}
-        primary={{ label: t.cta, href: p("/my") }}
-        secondary={{ label: t.ctaRegister, href: REGISTER_URL }}
+        primary={
+          submissionOpen
+            ? { label: t.cta, href: p("/my") }
+            : { label: t.ctaClosed, href: p("/projects") }
+        }
+        secondary={
+          submissionOpen
+            ? { label: t.ctaRegister, href: REGISTER_URL }
+            : { label: t.ctaSchedule, href: p("/schedule") }
+        }
         stats={[
           { icon: "$", target: 5000, prefix: "$", label: "Prize pool" },
           { icon: "#", target: 3, label: "Tracks" },
-          { icon: "*", target: 30, label: "Days to submit" },
+          submitted != null
+            ? { icon: "*", target: submitted, label: t.statProjects }
+            : { icon: "*", target: 30, label: "Days to submit" },
           { icon: "%", target: 100, suffix: "%", label: "Free to enter" },
         ]}
         bgVideo="/media/evolve-bg.mp4"
@@ -91,7 +115,12 @@ export default async function HomePage(props: { params: Promise<{ locale: string
         <div className="mx-auto grid max-w-5xl gap-10 lg:grid-cols-3 lg:gap-12">
           <div className="order-2 flex flex-col items-center gap-5 lg:order-1 lg:mt-36 lg:items-stretch">
             {t.tracks.map((c) => (
-              <NominationCard key={c.title} title={c.title} sub={c.sub} href={p("/submit")} />
+              <NominationCard
+                key={c.title}
+                title={c.title}
+                sub={c.sub}
+                href={p(submissionOpen ? "/submit" : "/projects")}
+              />
             ))}
           </div>
 

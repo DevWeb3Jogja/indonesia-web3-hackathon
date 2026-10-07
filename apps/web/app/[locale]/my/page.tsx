@@ -2,6 +2,10 @@ import type { Metadata } from "next";
 import MyProjectPanel from "@/components/MyProjectPanel";
 import TeamPanel from "@/components/TeamPanel";
 import { getDict } from "@/lib/i18n";
+import { getPhase } from "@/lib/phase";
+
+// Tombol submit/edit ikut fase & deadline DB.
+export const revalidate = 600;
 
 export async function generateMetadata(props: {
   params: Promise<{ locale: string }>;
@@ -14,6 +18,7 @@ export async function generateMetadata(props: {
 export default async function MyPage(props: { params: Promise<{ locale: string }> }) {
   const { locale } = await props.params;
   const dict = getDict(locale);
+  const { submissionOpen } = await getPhase();
 
   return (
     <div className="min-h-full">
@@ -24,6 +29,7 @@ export default async function MyPage(props: { params: Promise<{ locale: string }
         <div className="mt-8">
           <MyProjectPanel
             locale={locale}
+            open={submissionOpen}
             t={dict.psubmit}
             byLabel={dict.projects.by}
             soloLabel={dict.projects.solo}
