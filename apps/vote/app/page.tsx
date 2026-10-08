@@ -7,7 +7,6 @@ import {
   getUser,
   listDemoDayProjects,
   ownFinalistIds,
-  voteLeaderboard,
 } from "@iw3h/db";
 import VoteApp from "@/components/VoteApp";
 import { auth } from "@/lib/session";
@@ -18,7 +17,8 @@ export const dynamic = "force-dynamic";
 /**
  * Gate akses (server, tak bisa dilewati UI):
  *  - Situs: admin selalu; selain itu hanya saat voting dibuka (demo day).
- *  - Angka per project (leaderboard): HANYA admin. Hasil diumumkan di panggung.
+ *  - Angka per project TIDAK pernah tampil di app vote (termasuk admin — laptop admin
+ *    dipakai di videotron). Hasil hanya di backoffice; diumumkan di panggung.
  *  - Demo (dry-run): HANYA admin (?demo=1) → edisi demo terpisah, vote real.
  * Aksi (vote) diproteksi lagi di /api/vote (session + finalis + sekali + bukan
  * project sendiri + demo-gate).
@@ -33,15 +33,14 @@ export default async function Page({
   const user = address ? await getUser(db, address) : null;
   const isAdmin = user?.role === "admin";
 
-  // Demo mode: param HANYA dihormati untuk admin. Vote/leaderboard di edisi demo.
+  // Demo mode: param HANYA dihormati untuk admin. Vote di edisi demo.
   const demo = isAdmin && address ? (await searchParams).demo === "1" : false;
   if (demo && address) {
     await ensureDemoEdition(db, address);
-    const [finalists, myVote, ownIds, leaderboard] = await Promise.all([
+    const [finalists, myVote, ownIds] = await Promise.all([
       listDemoDayProjects(db, DEMO_HACKATHON_ID),
       getMyVote(db, DEMO_HACKATHON_ID, address),
       ownFinalistIds(db, DEMO_HACKATHON_ID, address),
-      voteLeaderboard(db, DEMO_HACKATHON_ID),
     ]);
     return (
       <VoteApp
@@ -53,7 +52,6 @@ export default async function Page({
         finalists={finalists}
         myVote={myVote}
         ownIds={ownIds}
-        leaderboard={leaderboard}
       />
     );
   }
@@ -66,12 +64,10 @@ export default async function Page({
   // bukan angka per project — sama dengan yang tampil di layar besar).
   const votingClosed = !canAccess && hackathon ? (await countVotes(db, hackathon.id)) > 0 : false;
 
-  const [finalists, myVote, ownIds, leaderboard] = await Promise.all([
+  const [finalists, myVote, ownIds] = await Promise.all([
     show ? listDemoDayProjects(db, hackathon.id) : [],
     show && address ? getMyVote(db, hackathon.id, address) : null,
     show && address ? ownFinalistIds(db, hackathon.id, address) : [],
-    // Leaderboard KHUSUS admin — non-admin tak pernah menerima angka per project.
-    isAdmin && hackathon ? voteLeaderboard(db, hackathon.id) : null,
   ]);
 
   return (
@@ -85,7 +81,6 @@ export default async function Page({
       finalists={finalists}
       myVote={myVote}
       ownIds={ownIds}
-      leaderboard={leaderboard}
     />
   );
 }
