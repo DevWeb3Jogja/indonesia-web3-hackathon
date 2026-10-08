@@ -46,9 +46,9 @@ vi.mock("@/lib/session", () => ({
   },
 }));
 
-import { GET as leaderboardGet } from "@/app/api/leaderboard/route";
 import { GET as screenGet } from "@/app/api/screen/route";
 import { POST as votePost } from "@/app/api/vote/route";
+import VotePage from "@/app/page";
 import ScreenPage from "@/app/screen/page";
 
 const addr = (n: number) => `0x${n.toString(16).padStart(40, "0")}`;
@@ -72,8 +72,6 @@ const vote = (projectId: string, demo?: boolean) =>
   );
 const screen = (demo = false) =>
   screenGet(new Request(`http://test/api/screen${demo ? "?demo=1" : ""}`));
-const leaderboard = (demo = false) =>
-  leaderboardGet(new Request(`http://test/api/leaderboard${demo ? "?demo=1" : ""}`));
 const page = (demo = false) =>
   ScreenPage({ searchParams: Promise.resolve(demo ? { demo: "1" } : {}) });
 
@@ -175,20 +173,21 @@ describe("POST /api/vote", () => {
   });
 });
 
-describe("GET /api/leaderboard — admin-only, apa pun nilai leaderboard_public", () => {
-  it("anon 401; participant & juri 403 walau leaderboard_public=1; admin 200", async () => {
-    await store.db.run("UPDATE hackathons SET leaderboard_public = 1 WHERE id = 'H'");
-    login(null);
-    expect((await leaderboard()).status).toBe(401);
-    for (const who of [VOTER, JUDGE, OWNER_A]) {
+describe("halaman vote: tak ada angka per project untuk SIAPA PUN (termasuk admin)", () => {
+  it("admin & pemilih: props tanpa leaderboard/angka vote, walau leaderboard_public=1", async () => {
+    await store.db.run(
+      "UPDATE hackathons SET leaderboard_public = 1, voting_open = 1 WHERE id = 'H'"
+    );
+    for (const who of [ADMIN, VOTER]) {
       login(who);
-      expect((await leaderboard()).status).toBe(403);
-      expect((await leaderboard(true)).status).toBe(403);
+      for (const demo of [false, true]) {
+        const el = (await VotePage({
+          searchParams: Promise.resolve(demo ? { demo: "1" } : {}),
+        })) as unknown as { props: Record<string, unknown> };
+        expect(el.props).not.toHaveProperty("leaderboard");
+        expect(JSON.stringify(el.props)).not.toMatch(/"votes"/);
+      }
     }
-    login(ADMIN);
-    const res = await leaderboard();
-    expect(res.status).toBe(200);
-    expect((await res.json()).rows).toHaveLength(2);
   });
 });
 
@@ -250,11 +249,15 @@ describe("GET /api/screen", () => {
 });
 
 describe("/screen page (guard di page)", () => {
-  it("non-admin (anon, participant, juri) → null, tanpa data", async () => {
+  it("non-admin (anon, participant, juri) → gate sign in SAJA, tanpa data apa pun", async () => {
     for (const who of [null, VOTER, JUDGE]) {
       login(who);
-      expect(await page()).toBeNull();
-      expect(await page(true)).toBeNull();
+      for (const demo of [false, true]) {
+        const el = (await page(demo)) as unknown as { props: Record<string, unknown> };
+        // Satu-satunya prop gate = status sign in; tak ada QR, finalis, atau total.
+        expect(el.props).toEqual({ signedIn: who !== null });
+        expect(JSON.stringify(el.props)).not.toMatch(/finalist|qr|total|initial/i);
+      }
     }
   });
 
