@@ -14,7 +14,7 @@ const schema = z.object({
   note: z.string().trim().max(1000).nullish(),
 });
 
-/** PUT /api/curation/screen — tahap 1: lolos/gugur (satu keputusan per project). */
+/** PUT /api/curation/screen — tahap 1: lolos/gugur (satu keputusan per penilai). */
 export async function PUT(req: Request) {
   const auth = await requireAuth("admin", "panitia");
   if (auth instanceof Response) return auth;

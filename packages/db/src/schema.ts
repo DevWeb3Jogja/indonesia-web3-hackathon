@@ -311,24 +311,27 @@ export const curationReviewers = sqliteTable(
   ]
 );
 
-/** Tahap 1 — saring lolos/gugur. SATU keputusan per project (penilai terakhir menang;
- *  riwayat lengkap ada di audit_logs). decision: pass | fail. */
+/** Tahap 1 — saring lolos/gugur. Satu keputusan per (project, penilai): tiap penilai
+ *  menyimpan pass/fail sendiri, tak saling menimpa. decision: pass | fail. */
 export const curationScreens = sqliteTable(
   "curation_screens",
   {
     projectId: text("project_id")
-      .primaryKey()
+      .notNull()
       .references(() => projects.id),
-    decision: text("decision").notNull(),
-    reason: text("reason"),
-    note: text("note"),
     reviewerAddress: text("reviewer_address")
       .notNull()
       .references(() => users.address),
+    decision: text("decision").notNull(),
+    reason: text("reason"),
+    note: text("note"),
     organization: text("organization").notNull(),
     updatedAt: text("updated_at").notNull().default(now),
   },
-  (t) => [check("curation_screen_decision", sql`${t.decision} IN ('pass','fail')`)]
+  (t) => [
+    primaryKey({ columns: [t.projectId, t.reviewerAddress] }),
+    check("curation_screen_decision", sql`${t.decision} IN ('pass','fail')`),
+  ]
 );
 
 /** Tahap 2 — satu penilaian per (project, penilai): catatan + organisasi saat menilai.

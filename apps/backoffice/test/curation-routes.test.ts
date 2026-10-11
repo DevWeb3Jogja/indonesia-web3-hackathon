@@ -210,8 +210,8 @@ describe("aturan kurasi lewat route", () => {
     await screenPut(put({ projectId, decision: "pass", reviewerAddress: ADMIN }));
     const { curationBoard } = await import("@iw3h/db");
     const row = (await curationBoard(store.db, "H", PANITIA)).rows[0];
-    expect(row.screen?.reviewerAddress).toBe(PANITIA);
-    expect(row.screen?.organization).toBe("coinvestasi");
+    expect(row.screens).toHaveLength(1);
+    expect(row.screens[0]).toMatchObject({ reviewerAddress: PANITIA, organization: "coinvestasi" });
   });
 
   it("diskualifikasi mengeluarkan project dari shortlist", async () => {
