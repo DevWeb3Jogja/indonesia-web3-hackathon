@@ -28,7 +28,9 @@ export async function GET() {
     "Team",
     "Tracks",
     "Screening",
-    "Fail reason",
+    "Pass votes",
+    "Fail votes",
+    "Screened by",
     "Score (1-5)",
     "Reviewers",
     "Reviewer orgs",
@@ -42,8 +44,17 @@ export async function GET() {
     text(r.name),
     text(r.teamName ?? "Solo"),
     text(r.trackIds.map((id) => trackName.get(id) ?? id).join(" | ")),
-    r.screen?.decision ?? "pending",
-    r.screen?.reason ?? "",
+    r.screenStatus,
+    r.screens.filter((v) => v.decision === "pass").length,
+    r.screens.filter((v) => v.decision === "fail").length,
+    text(
+      r.screens
+        .map(
+          (v) =>
+            `${v.reviewerName || v.reviewerAddress} (${v.organization}): ${v.decision}${v.reason ? ` - ${v.reason}` : ""}`
+        )
+        .join(" | ")
+    ),
     r.score === null ? "" : r.score.toFixed(3),
     r.reviews.length,
     [...new Set(r.reviews.map((v) => v.organization))].join(" | "),

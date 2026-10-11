@@ -113,7 +113,7 @@ describe("kurasi (integration)", () => {
     ).rejects.toMatchObject({ code: "no_org" });
   });
 
-  it("saring: satu keputusan per project, penilai terakhir menang; gugur wajib beralasan", async () => {
+  it("saring: tiap penilai menyimpan keputusannya sendiri; gugur wajib beralasan", async () => {
     const p = await project(db, 1);
     await setReviewerOrg(db, H, R1, "devweb3jogja");
     await setReviewerOrg(db, H, R2, "coinvestasi");
@@ -123,13 +123,12 @@ describe("kurasi (integration)", () => {
       reviewer: R1,
       decision: "fail",
       reason: null,
+      note: "demo 404",
     });
     let row = (await curationBoard(db, H, R1)).rows[0];
-    expect(row.screen).toMatchObject({
-      decision: "fail",
-      reason: "other",
-      organization: "devweb3jogja",
-    });
+    expect(row.screenStatus).toBe("fail");
+    expect(row.screens).toHaveLength(1);
+    expect(row.myScreen).toMatchObject({ decision: "fail", reason: "other", note: "demo 404" });
 
     await screenProject(db, {
       hackathonId: H,
@@ -139,12 +138,46 @@ describe("kurasi (integration)", () => {
       reason: "demo_broken", // diabaikan saat lolos
     });
     row = (await curationBoard(db, H, R1)).rows[0];
-    expect(row.screen).toMatchObject({
+    // Keputusan R1 tidak tertimpa R2 — keduanya terlihat.
+    expect(row.screens).toHaveLength(2);
+    expect(row.screens.find((v) => v.reviewerAddress === R1)).toMatchObject({
+      decision: "fail",
+      reason: "other",
+      organization: "devweb3jogja",
+    });
+    expect(row.screens.find((v) => v.reviewerAddress === R2)).toMatchObject({
       decision: "pass",
       reason: null,
-      reviewerAddress: R2,
       organization: "coinvestasi",
     });
+    // Minimal satu lolos → project lolos.
+    expect(row.screenStatus).toBe("pass");
+    expect(row.myScreen?.decision).toBe("fail");
+
+    // Menyaring ulang hanya menimpa milik penilai itu sendiri.
+    await screenProject(db, { hackathonId: H, projectId: p.id, reviewer: R1, decision: "pass" });
+    row = (await curationBoard(db, H, R1)).rows[0];
+    expect(row.screens).toHaveLength(2);
+    expect(row.myScreen).toMatchObject({ decision: "pass", reason: null });
+  });
+
+  it("status saring: belum ada → pending; semua gugur → fail", async () => {
+    const p = await project(db, 1);
+    await setReviewerOrg(db, H, R1, "devweb3jogja");
+    await setReviewerOrg(db, H, R2, "coinvestasi");
+    expect((await curationBoard(db, H, R1)).rows[0].screenStatus).toBe("pending");
+    for (const reviewer of [R1, R2]) {
+      await screenProject(db, {
+        hackathonId: H,
+        projectId: p.id,
+        reviewer,
+        decision: "fail",
+        reason: "off_track",
+      });
+    }
+    const row = (await curationBoard(db, H, R1)).rows[0];
+    expect(row.screenStatus).toBe("fail");
+    expect(row.screens).toHaveLength(2);
   });
 
   it("hanya project submitted milik hackathon ini (bukan DQ, bukan lintas-hackathon)", async () => {

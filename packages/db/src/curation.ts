@@ -1,5 +1,5 @@
 /**
- * Kurasi (backoffice): saring lolos/gugur → nilai 1..5 per kriteria → shortlist
+ * Kurasi (backoffice): saring lolos/gugur (per penilai) → nilai 1..5 per kriteria → shortlist
  * 10 finalis utama + 5 cadangan. Aturan hidup di sini, WAJIB dipanggil server
  * sebelum menulis — UI hanya menyembunyikan tombol.
  *  - reviewer SELALU dari session (route mengoper auth.address), bukan input.
@@ -7,7 +7,7 @@
  *  - Hanya project `submitted` milik hackathon aktif yang bisa dikurasi.
  *  - Semua data di sini rahasia: hanya route backoffice yang boleh membacanya.
  */
-import { and, asc, eq, inArray, ne, or } from "drizzle-orm";
+import { and, asc, eq, inArray, ne, or, sql } from "drizzle-orm";
 import type { Db } from "./client";
 import type { PhaseInfo } from "./phase";
 import { canSubmitProject, isFrozen } from "./phase";
@@ -22,6 +22,7 @@ import {
   projectTracks,
   teamMembers,
   teams,
+  users,
 } from "./schema";
 
 export const CURATION_ORGS = ["binance-academy", "coinvestasi", "devweb3jogja"] as const;
@@ -148,7 +149,8 @@ export interface ScreenInput {
   note?: string | null;
 }
 
-/** Tahap 1: satu keputusan per project; penilai terakhir menang (riwayat di audit). */
+/** Tahap 1: satu keputusan per (project, penilai) — penilai lain tak tertimpa;
+ *  menyaring ulang menimpa keputusan milik penilai itu sendiri. */
 export async function screenProject(db: Db, input: ScreenInput) {
   const organization = await requireOrg(db, input.hackathonId, input.reviewer);
   const project = await requireSubmitted(db, input.hackathonId, input.projectId);
@@ -174,7 +176,10 @@ export async function screenProject(db: Db, input: ScreenInput) {
   await db
     .insert(curationScreens)
     .values({ projectId: input.projectId, ...row })
-    .onConflictDoUpdate({ target: curationScreens.projectId, set: row });
+    .onConflictDoUpdate({
+      target: [curationScreens.projectId, curationScreens.reviewerAddress],
+      set: row,
+    });
   return { name: project.name, organization };
 }
 
@@ -193,12 +198,11 @@ export async function saveCurationReview(db: Db, input: ReviewInput) {
   const project = await requireSubmitted(db, input.hackathonId, input.projectId);
   await assertNotOwnProject(db, input.projectId, input.reviewer);
 
-  const screen = await db
+  const screens = await db
     .select({ decision: curationScreens.decision })
     .from(curationScreens)
-    .where(eq(curationScreens.projectId, input.projectId))
-    .limit(1);
-  if (screen[0]?.decision !== "pass") {
+    .where(eq(curationScreens.projectId, input.projectId));
+  if (screenStatus(screens) !== "pass") {
     throw new CurationError("not_passed", "Project belum lolos tahap saring");
   }
 
@@ -315,6 +319,26 @@ export async function clearFinalistForProject(db: Db, projectId: string): Promis
   await db.delete(finalists).where(eq(finalists.projectId, projectId));
 }
 
+export interface ScreenVote {
+  reviewerAddress: string;
+  /** Nama lengkap / username penilai; null → tampilkan alamat wallet. */
+  reviewerName: string | null;
+  organization: string;
+  decision: "pass" | "fail";
+  reason: string | null;
+  note: string | null;
+  updatedAt: string;
+}
+
+export type ScreenStatus = "pending" | "pass" | "fail";
+
+/** Status project dari semua keputusan penilai: lolos bila minimal satu penilai
+ *  meloloskan; gugur hanya bila semua penilai menggugurkan. */
+export function screenStatus(votes: { decision: string }[]): ScreenStatus {
+  if (votes.length === 0) return "pending";
+  return votes.some((v) => v.decision === "pass") ? "pass" : "fail";
+}
+
 export interface CurationRow {
   id: string;
   name: string;
@@ -322,14 +346,11 @@ export interface CurationRow {
   logoUrl: string | null;
   teamName: string | null;
   trackIds: string[];
-  screen: {
-    decision: "pass" | "fail";
-    reason: string | null;
-    note: string | null;
-    reviewerAddress: string;
-    organization: string;
-    updatedAt: string;
-  } | null;
+  /** Semua keputusan saring, terlama dulu. */
+  screens: ScreenVote[];
+  screenStatus: ScreenStatus;
+  /** Keputusan saring milik penilai yang sedang login (prefill form). */
+  myScreen: ScreenVote | null;
   reviews: { reviewerAddress: string; organization: string; note: string | null }[];
   /** Rata-rata per kriteria (lintas penilai), 1..5. */
   criterionAvg: Record<string, number>;
@@ -386,7 +407,21 @@ export async function curationBoard(
     teamIds.length
       ? db.select({ id: teams.id, name: teams.name }).from(teams).where(inArray(teams.id, teamIds))
       : Promise.resolve([] as { id: string; name: string }[]),
-    db.select().from(curationScreens).where(inArray(curationScreens.projectId, ids)),
+    db
+      .select({
+        projectId: curationScreens.projectId,
+        reviewerAddress: curationScreens.reviewerAddress,
+        reviewerName: sql<string | null>`coalesce(${users.fullName}, ${users.username})`,
+        organization: curationScreens.organization,
+        decision: curationScreens.decision,
+        reason: curationScreens.reason,
+        note: curationScreens.note,
+        updatedAt: curationScreens.updatedAt,
+      })
+      .from(curationScreens)
+      .leftJoin(users, eq(users.address, curationScreens.reviewerAddress))
+      .where(inArray(curationScreens.projectId, ids))
+      .orderBy(asc(curationScreens.updatedAt)),
     db.select().from(curationReviews).where(inArray(curationReviews.projectId, ids)),
     db.select().from(curationScores).where(inArray(curationScores.projectId, ids)),
     opts.includeFinalists
@@ -406,7 +441,7 @@ export async function curationBoard(
   };
   const tracksBy = group(trackRows, (r) => r.projectId);
   const teamName = new Map(teamRows.map((t) => [t.id, t.name]));
-  const screenBy = new Map(screens.map((s) => [s.projectId, s]));
+  const screensBy = group(screens, (s) => s.projectId);
   const reviewsBy = group(reviews, (r) => r.projectId);
   const scoresBy = group(scoreRows, (r) => r.projectId);
   const finalistBy = new Map(finalistRows.map((f) => [f.projectId, f]));
@@ -425,7 +460,10 @@ export async function curationBoard(
       ? scored.reduce((a, c) => a + criterionAvg[c.id] * c.weight, 0) / wSum
       : null;
     const mine = ps.filter((s) => s.reviewerAddress === viewer);
-    const s = screenBy.get(p.id);
+    const sv: ScreenVote[] = (screensBy.get(p.id) ?? []).map(({ projectId: _, ...v }) => ({
+      ...v,
+      decision: v.decision as "pass" | "fail",
+    }));
     const f = finalistBy.get(p.id);
     const rv = reviewsBy.get(p.id) ?? [];
     return {
@@ -435,16 +473,9 @@ export async function curationBoard(
       logoUrl: p.logoUrl,
       teamName: p.teamId ? (teamName.get(p.teamId) ?? null) : null,
       trackIds: (tracksBy.get(p.id) ?? []).map((t) => t.trackId),
-      screen: s
-        ? {
-            decision: s.decision as "pass" | "fail",
-            reason: s.reason,
-            note: s.note,
-            reviewerAddress: s.reviewerAddress,
-            organization: s.organization,
-            updatedAt: s.updatedAt,
-          }
-        : null,
+      screens: sv,
+      screenStatus: screenStatus(sv),
+      myScreen: sv.find((v) => v.reviewerAddress === viewer) ?? null,
       reviews: rv.map((r) => ({
         reviewerAddress: r.reviewerAddress,
         organization: r.organization,

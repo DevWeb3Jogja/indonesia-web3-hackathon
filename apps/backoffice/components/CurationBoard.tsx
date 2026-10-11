@@ -1,7 +1,7 @@
 "use client";
 
 // Hanya TIPE dari @iw3h/db — import nilai akan menyeret drizzle/node:crypto ke bundle client.
-import type { ContactStatus, CurationOrg, CurationRow, FinalistSlot } from "@iw3h/db";
+import type { ContactStatus, CurationOrg, CurationRow, FinalistSlot, ScreenVote } from "@iw3h/db";
 import { Download } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
@@ -37,12 +37,15 @@ interface Criterion {
   weight: number;
 }
 
+// binance-academy tetap valid di DB, tapi tak ikut menilai edisi ini — tak ditawarkan.
 const ORGS: { value: CurationOrg; label: string }[] = [
-  { value: "binance-academy", label: "Binance Academy" },
   { value: "coinvestasi", label: "Coinvestasi" },
   { value: "devweb3jogja", label: "DevWeb3Jogja" },
 ];
-const orgLabel = (v: string) => ORGS.find((o) => o.value === v)?.label ?? v;
+const orgLabel = (v: string) =>
+  ORGS.find((o) => o.value === v)?.label ?? (v === "binance-academy" ? "Binance Academy" : v);
+const shortAddr = (a: string) => `${a.slice(0, 6)}…${a.slice(-4)}`;
+const reviewerLabel = (v: ScreenVote) => v.reviewerName || shortAddr(v.reviewerAddress);
 
 const REASONS: { value: string; label: string }[] = [
   { value: "demo_broken", label: "Demo doesn't work" },
@@ -62,6 +65,7 @@ const CONTACT: { value: ContactStatus; label: string }[] = [
 ];
 const QUOTA: Record<FinalistSlot, number> = { main: 10, reserve: 5 };
 const NONE = "__none__";
+type ScreenFilter = "pending" | "mine" | "pass" | "fail" | typeof ALL;
 const ALL = "__all__";
 
 type Tab = "screen" | "score" | "rank";
@@ -97,9 +101,7 @@ export default function CurationBoard({
   const [tab, setTab] = useState<Tab>("screen");
   const [q, setQ] = useState("");
   const [track, setTrack] = useState(ALL);
-  const [screenFilter, setScreenFilter] = useState<"pending" | "pass" | "fail" | typeof ALL>(
-    "pending"
-  );
+  const [screenFilter, setScreenFilter] = useState<ScreenFilter>("pending");
   const canAct = open && organization !== null;
 
   const stats = useMemo(() => {
@@ -108,9 +110,9 @@ export default function CurationBoard({
         .length;
     return {
       total: rows.length,
-      pending: rows.filter((r) => !r.screen).length,
-      pass: rows.filter((r) => r.screen?.decision === "pass").length,
-      fail: rows.filter((r) => r.screen?.decision === "fail").length,
+      pending: rows.filter((r) => r.screenStatus === "pending").length,
+      pass: rows.filter((r) => r.screenStatus === "pass").length,
+      fail: rows.filter((r) => r.screenStatus === "fail").length,
       scored: rows.filter((r) => r.reviews.length > 0).length,
       main: active("main"),
       reserve: active("reserve"),
@@ -214,9 +216,9 @@ export default function CurationBoard({
           rows={filtered.filter((r) =>
             screenFilter === ALL
               ? true
-              : screenFilter === "pending"
-                ? !r.screen
-                : r.screen?.decision === screenFilter
+              : screenFilter === "mine"
+                ? !r.myScreen
+                : r.screenStatus === screenFilter
           )}
           filter={screenFilter}
           setFilter={setScreenFilter}
@@ -226,7 +228,7 @@ export default function CurationBoard({
       )}
       {tab === "score" && (
         <ScoringTable
-          rows={filtered.filter((r) => r.screen?.decision === "pass")}
+          rows={filtered.filter((r) => r.screenStatus === "pass")}
           criteria={criteria}
           canAct={canAct && criteria.length > 0}
           trackName={trackName}
@@ -234,7 +236,7 @@ export default function CurationBoard({
       )}
       {tab === "rank" && (
         <RankingTable
-          rows={filtered.filter((r) => r.screen?.decision === "pass" || r.finalist)}
+          rows={filtered.filter((r) => r.screenStatus === "pass" || r.finalist)}
           criteria={criteria}
           isAdmin={isAdmin}
           canAct={open}
@@ -347,7 +349,7 @@ function ScreeningTable({
 }: {
   rows: CurationRow[];
   filter: string;
-  setFilter: (v: "pending" | "pass" | "fail" | typeof ALL) => void;
+  setFilter: (v: ScreenFilter) => void;
   canAct: boolean;
   trackName: (id: string) => string;
 }) {
@@ -357,16 +359,17 @@ function ScreeningTable({
         <div>
           <CardTitle>Screening — pass / fail</CardTitle>
           <CardDescription>
-            Quick eligibility check. One decision per project; the latest one wins (full history in
-            the audit log).
+            Quick eligibility check. Every reviewer records their own pass / fail. A project passes
+            if at least one reviewer passes it, and fails only if every reviewer fails it.
           </CardDescription>
         </div>
-        <Select value={filter} onValueChange={(v) => setFilter(v as typeof filter & "pending")}>
+        <Select value={filter} onValueChange={(v) => setFilter(v as ScreenFilter)}>
           <SelectTrigger size="sm" className="w-40">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="pending">Not screened</SelectItem>
+            <SelectItem value="mine">Not screened by me</SelectItem>
             <SelectItem value="pass">Passed</SelectItem>
             <SelectItem value="fail">Failed</SelectItem>
             <SelectItem value={ALL}>All</SelectItem>
@@ -379,7 +382,7 @@ function ScreeningTable({
             <TableRow>
               <TableHead>Project</TableHead>
               <TableHead>Tracks</TableHead>
-              <TableHead>Decision</TableHead>
+              <TableHead>Reviewers</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -394,20 +397,7 @@ function ScreeningTable({
                   <Tracks ids={r.trackIds} trackName={trackName} />
                 </TableCell>
                 <TableCell>
-                  {r.screen ? (
-                    <div className="space-y-0.5">
-                      <Badge variant={r.screen.decision === "pass" ? "default" : "destructive"}>
-                        {r.screen.decision === "pass"
-                          ? "Passed"
-                          : `Failed · ${reasonLabel(r.screen.reason)}`}
-                      </Badge>
-                      <p className="text-theme-xs text-gray-500 dark:text-gray-400">
-                        by {orgLabel(r.screen.organization)}
-                      </p>
-                    </div>
-                  ) : (
-                    <span className="text-theme-xs text-gray-400">—</span>
-                  )}
+                  <ScreenVotes votes={r.screens} />
                 </TableCell>
                 <TableCell>
                   <div className="flex items-center justify-end gap-1">
@@ -417,7 +407,7 @@ function ScreeningTable({
                       name={r.name}
                       endpoint={`/api/curation/projects/${r.id}`}
                       trackName={trackName}
-                      trigger={r.screen ? "Review · change" : "Review"}
+                      trigger={r.myScreen ? "Review · change" : "Review"}
                       footer={(close) => <ScreenForm row={r} disabled={!canAct} onDone={close} />}
                     />
                   </div>
@@ -431,6 +421,29 @@ function ScreeningTable({
   );
 }
 
+/** Siapa menyaring apa — satu baris per penilai. */
+function ScreenVotes({ votes, detailed = false }: { votes: ScreenVote[]; detailed?: boolean }) {
+  if (votes.length === 0) return <span className="text-theme-xs text-gray-400">—</span>;
+  return (
+    <ul className="space-y-1">
+      {votes.map((v) => (
+        <li key={v.reviewerAddress} className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+          <Badge variant={v.decision === "pass" ? "default" : "destructive"}>
+            {v.decision === "pass" ? "Pass" : `Fail · ${reasonLabel(v.reason)}`}
+          </Badge>
+          <span className="text-theme-xs text-gray-700 dark:text-gray-300">
+            {reviewerLabel(v)}
+            <span className="text-gray-500 dark:text-gray-400"> · {orgLabel(v.organization)}</span>
+          </span>
+          {detailed && v.note && (
+            <p className="w-full text-theme-xs text-gray-500 dark:text-gray-400">“{v.note}”</p>
+          )}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 function ScreenForm({
   row,
   disabled,
@@ -441,9 +454,9 @@ function ScreenForm({
   onDone: () => void;
 }) {
   const router = useRouter();
-  const [decision, setDecision] = useState<"pass" | "fail" | null>(row.screen?.decision ?? null);
-  const [reason, setReason] = useState(row.screen?.reason ?? "demo_broken");
-  const [note, setNote] = useState(row.screen?.note ?? "");
+  const [decision, setDecision] = useState<"pass" | "fail" | null>(row.myScreen?.decision ?? null);
+  const [reason, setReason] = useState(row.myScreen?.reason ?? "demo_broken");
+  const [note, setNote] = useState(row.myScreen?.note ?? "");
   const [busy, setBusy] = useState(false);
 
   async function save() {
@@ -463,18 +476,31 @@ function ScreenForm({
     }
   }
 
+  const others = (
+    <div className="space-y-1.5">
+      <h3 className="text-sm font-semibold text-gray-800 dark:text-white/90">
+        Screening by reviewers ({row.screens.length})
+      </h3>
+      <ScreenVotes votes={row.screens} detailed />
+    </div>
+  );
+
   if (disabled) {
-    return <ClosedNote />;
+    return (
+      <div className="space-y-4">
+        {others}
+        <ClosedNote />
+      </div>
+    );
   }
   return (
     <div className="space-y-4">
+      {others}
       <div>
-        <h3 className="text-sm font-semibold text-gray-800 dark:text-white/90">
-          Screening decision
-        </h3>
+        <h3 className="text-sm font-semibold text-gray-800 dark:text-white/90">Your decision</h3>
         <p className="text-theme-xs text-gray-500 dark:text-gray-400">
-          {row.screen
-            ? `Current: ${row.screen.decision === "pass" ? "Passed" : `Failed · ${reasonLabel(row.screen.reason)}`} (by ${orgLabel(row.screen.organization)})`
+          {row.myScreen
+            ? "You already screened this — saving replaces only your own decision."
             : "Does this submission pass the eligibility check?"}
         </p>
       </div>
