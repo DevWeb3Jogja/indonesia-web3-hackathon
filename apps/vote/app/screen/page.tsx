@@ -1,6 +1,7 @@
 import { ensureDemoEdition, getUser } from "@iw3h/db";
 import type { Metadata } from "next";
 import BigScreen from "@/components/BigScreen";
+import ScreenGate from "@/components/ScreenGate";
 import { displayUrl, loadScreen, qrDataUri, voteTarget } from "@/lib/screen";
 import { auth } from "@/lib/session";
 import { db } from "@/lib/turso";
@@ -12,7 +13,8 @@ export const metadata: Metadata = { title: "Community Choice — Layar" };
 
 /**
  * Layar besar demo day (videotron 16:9). KHUSUS ADMIN — dijaga DI PAGE INI (bukan
- * layout): session + role segar dari DB; selain admin → null, tak ada data terkirim.
+ * layout): session + role segar dari DB. Selain admin → ScreenGate (ajakan sign in),
+ * TANPA data finalis/angka apa pun.
  * ?demo=1 → edisi demo untuk gladi (sama seperti halaman vote).
  */
 export default async function ScreenPage({
@@ -21,9 +23,9 @@ export default async function ScreenPage({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const session = await auth.getSession();
-  if (!session.address) return null;
+  if (!session.address) return <ScreenGate signedIn={false} />;
   const user = await getUser(db, session.address);
-  if (user?.role !== "admin") return null;
+  if (user?.role !== "admin") return <ScreenGate signedIn />;
 
   const demo = (await searchParams).demo === "1";
   if (demo) await ensureDemoEdition(db, user.address);
