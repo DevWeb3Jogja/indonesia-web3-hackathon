@@ -193,16 +193,17 @@ describe("GET /api/leaderboard — admin-only, apa pun nilai leaderboard_public"
 });
 
 describe("GET /api/screen", () => {
-  it("anon 401; participant & juri 403; admin 200", async () => {
+  it("live publik (anon/participant/juri/admin 200); demo: anon 401, non-admin 403", async () => {
+    for (const who of [null, VOTER, JUDGE, ADMIN]) {
+      login(who);
+      expect((await screen()).status).toBe(200);
+    }
     login(null);
-    expect((await screen()).status).toBe(401);
+    expect((await screen(true)).status).toBe(401);
     for (const who of [VOTER, JUDGE]) {
       login(who);
-      expect((await screen()).status).toBe(403);
       expect((await screen(true)).status).toBe(403);
     }
-    login(ADMIN);
-    expect((await screen()).status).toBe(200);
   });
 
   it("state waiting → open → closed; total benar; TAK ADA angka per project", async () => {
@@ -250,10 +251,21 @@ describe("GET /api/screen", () => {
 });
 
 describe("/screen page (guard di page)", () => {
-  it("non-admin (anon, participant, juri) → null, tanpa data", async () => {
+  it("live publik: anon/participant/juri dapat layar tanpa angka per project", async () => {
     for (const who of [null, VOTER, JUDGE]) {
       login(who);
-      expect(await page()).toBeNull();
+      const el = (await page()) as unknown as {
+        props: { demo: boolean; initial: { finalists: Record<string, unknown>[] } };
+      };
+      expect(el).not.toBeNull();
+      expect(el.props.demo).toBe(false);
+      for (const f of el.props.initial.finalists) expect(f).not.toHaveProperty("votes");
+    }
+  });
+
+  it("?demo=1 non-admin (anon, participant, juri) → null, tanpa data", async () => {
+    for (const who of [null, VOTER, JUDGE]) {
+      login(who);
       expect(await page(true)).toBeNull();
     }
   });
