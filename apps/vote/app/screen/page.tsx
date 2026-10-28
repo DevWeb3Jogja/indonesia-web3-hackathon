@@ -1,6 +1,7 @@
 import { ensureDemoEdition, getUser } from "@iw3h/db";
 import type { Metadata } from "next";
 import BigScreen from "@/components/BigScreen";
+import ScreenGate from "@/components/ScreenGate";
 import { displayUrl, loadScreen, qrDataUri, voteTarget } from "@/lib/screen";
 import { auth } from "@/lib/session";
 import { db } from "@/lib/turso";
@@ -15,7 +16,7 @@ export const metadata: Metadata = { title: "Community Choice — Layar" };
  * cukup buka URL tanpa sign in. Aman karena isinya hanya finalis + QR + TOTAL suara
  * (voteScreen tak pernah membawa angka per project).
  * ?demo=1 → edisi demo untuk gladi, tetap KHUSUS ADMIN (men-seed edisi demo):
- * session + role segar dari DB; selain admin → null, tak ada data terkirim.
+ * session + role segar dari DB; selain admin → ScreenGate (ajakan sign in), tanpa data.
  */
 export default async function ScreenPage({
   searchParams,
@@ -25,9 +26,9 @@ export default async function ScreenPage({
   const demo = (await searchParams).demo === "1";
   if (demo) {
     const session = await auth.getSession();
-    if (!session.address) return null;
+    if (!session.address) return <ScreenGate signedIn={false} />;
     const user = await getUser(db, session.address);
-    if (user?.role !== "admin") return null;
+    if (user?.role !== "admin") return <ScreenGate signedIn />;
     await ensureDemoEdition(db, user.address);
   }
 
