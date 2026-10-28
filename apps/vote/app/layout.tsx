@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Kanit } from "next/font/google";
-import Web3Provider from "@/components/Web3Provider";
+import SignInProvider from "@/components/SignInProvider";
 import "./globals.css";
 
 const kanit = Kanit({
@@ -26,7 +26,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="id" className={kanit.variable}>
       <body className="font-sans">
-        <Web3Provider>{children}</Web3Provider>
+        <SignInProvider>{children}</SignInProvider>
       </body>
     </html>
   );

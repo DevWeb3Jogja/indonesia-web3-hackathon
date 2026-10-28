@@ -46,6 +46,7 @@ export default async function Page({
       <VoteApp
         demo
         signedIn
+        address={address}
         isAdmin
         votingOpen
         canAccess
@@ -74,6 +75,7 @@ export default async function Page({
     <VoteApp
       demo={false}
       signedIn={!!address}
+      address={address}
       isAdmin={isAdmin}
       votingOpen={votingOpen}
       canAccess={canAccess}
