@@ -12,23 +12,25 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Community Choice — Layar" };
 
 /**
- * Layar besar demo day (videotron 16:9). KHUSUS ADMIN — dijaga DI PAGE INI (bukan
- * layout): session + role segar dari DB. Selain admin → ScreenGate (ajakan sign in),
- * TANPA data finalis/angka apa pun.
- * ?demo=1 → edisi demo untuk gladi (sama seperti halaman vote).
+ * Layar besar demo day (videotron 16:9). PUBLIK untuk edisi live: komputer operator
+ * cukup buka URL tanpa sign in. Aman karena isinya hanya finalis + QR + TOTAL suara
+ * (voteScreen tak pernah membawa angka per project).
+ * ?demo=1 → edisi demo untuk gladi, tetap KHUSUS ADMIN (men-seed edisi demo):
+ * session + role segar dari DB; selain admin → ScreenGate (ajakan sign in), tanpa data.
  */
 export default async function ScreenPage({
   searchParams,
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const session = await auth.getSession();
-  if (!session.address) return <ScreenGate signedIn={false} />;
-  const user = await getUser(db, session.address);
-  if (user?.role !== "admin") return <ScreenGate signedIn />;
-
   const demo = (await searchParams).demo === "1";
-  if (demo) await ensureDemoEdition(db, user.address);
+  if (demo) {
+    const session = await auth.getSession();
+    if (!session.address) return <ScreenGate signedIn={false} />;
+    const user = await getUser(db, session.address);
+    if (user?.role !== "admin") return <ScreenGate signedIn />;
+    await ensureDemoEdition(db, user.address);
+  }
 
   const target = voteTarget(demo);
   const [initial, qr] = await Promise.all([loadScreen(demo), qrDataUri(target)]);

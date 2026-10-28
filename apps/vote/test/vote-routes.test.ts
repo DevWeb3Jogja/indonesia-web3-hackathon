@@ -192,16 +192,17 @@ describe("halaman vote: tak ada angka per project untuk SIAPA PUN (termasuk admi
 });
 
 describe("GET /api/screen", () => {
-  it("anon 401; participant & juri 403; admin 200", async () => {
+  it("live publik (anon/participant/juri/admin 200); demo: anon 401, non-admin 403", async () => {
+    for (const who of [null, VOTER, JUDGE, ADMIN]) {
+      login(who);
+      expect((await screen()).status).toBe(200);
+    }
     login(null);
-    expect((await screen()).status).toBe(401);
+    expect((await screen(true)).status).toBe(401);
     for (const who of [VOTER, JUDGE]) {
       login(who);
-      expect((await screen()).status).toBe(403);
       expect((await screen(true)).status).toBe(403);
     }
-    login(ADMIN);
-    expect((await screen()).status).toBe(200);
   });
 
   it("state waiting → open → closed; total benar; TAK ADA angka per project", async () => {
@@ -249,15 +250,23 @@ describe("GET /api/screen", () => {
 });
 
 describe("/screen page (guard di page)", () => {
-  it("non-admin (anon, participant, juri) → gate sign in SAJA, tanpa data apa pun", async () => {
+  it("live publik: anon/participant/juri dapat layar tanpa angka per project", async () => {
     for (const who of [null, VOTER, JUDGE]) {
       login(who);
-      for (const demo of [false, true]) {
-        const el = (await page(demo)) as unknown as { props: Record<string, unknown> };
-        // Satu-satunya prop gate = status sign in; tak ada QR, finalis, atau total.
-        expect(el.props).toEqual({ signedIn: who !== null });
-        expect(JSON.stringify(el.props)).not.toMatch(/finalist|qr|total|initial/i);
-      }
+      const el = (await page()) as unknown as {
+        props: { demo: boolean; initial: { finalists: Record<string, unknown>[] } };
+      };
+      expect(el).not.toBeNull();
+      expect(el.props.demo).toBe(false);
+      for (const f of el.props.initial.finalists) expect(f).not.toHaveProperty("votes");
+    }
+  });
+
+  it("?demo=1 non-admin (anon, participant, juri) → gate sign in SAJA, tanpa data", async () => {
+    for (const who of [null, VOTER, JUDGE]) {
+      login(who);
+      const el = (await page(true)) as unknown as { props: Record<string, unknown> };
+      expect(el.props).toEqual({ signedIn: who !== null });
     }
   });
 
