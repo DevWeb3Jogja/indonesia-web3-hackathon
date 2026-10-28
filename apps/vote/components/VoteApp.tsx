@@ -1,16 +1,16 @@
 "use client";
 
 import type { DemoDayProject, LeaderboardRow } from "@iw3h/db";
-import { useAppKit } from "@reown/appkit/react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useSignIn } from "@/components/SignInProvider";
 import { getTurnstileToken } from "@/lib/turnstile";
-import { useWallet } from "@/lib/use-wallet";
-import { projectId } from "@/lib/web3";
 
 interface Props {
   demo: boolean;
   signedIn: boolean;
+  /** Alamat session server (wallet asli atau wallet embedded Privy). */
+  address?: string | null;
   isAdmin: boolean;
   votingOpen: boolean;
   canAccess: boolean;
@@ -31,7 +31,7 @@ const PILL =
 export default function VoteApp(props: Props) {
   const router = useRouter();
 
-  // SIWE sukses/keluar → siwe.ts kirim event; re-render server (cookie baru) supaya
+  // Login/keluar → SignInProvider kirim event; re-render server (cookie baru) supaya
   // role/myVote/akses ikut ter-update tanpa reload manual.
   useEffect(() => {
     const refresh = () => router.refresh();
@@ -74,7 +74,7 @@ export default function VoteApp(props: Props) {
           </a>
         </div>
       ) : null}
-      <Header signedIn={props.signedIn} />
+      <Header signedIn={props.signedIn} address={props.address ?? null} />
       {props.canAccess ? (
         <VoteBoard {...props} />
       ) : (
@@ -84,28 +84,48 @@ export default function VoteApp(props: Props) {
   );
 }
 
-function Header({ signedIn }: { signedIn: boolean }) {
-  const { open } = useAppKit();
-  const { address, connecting } = useWallet();
+function Header({ signedIn, address }: { signedIn: boolean; address: string | null }) {
+  const { enabled, busy, error, open, signOut } = useSignIn();
   const short = address ? `${address.slice(0, 6)}…${address.slice(-4)}` : null;
   return (
-    <header className="flex items-center justify-between gap-4 py-6">
-      <img src="/logo.png" alt="Indonesia Web3 Hackathon" className="h-8 w-auto sm:h-9" />
-      {projectId ? (
-        <button
-          type="button"
-          onClick={() => open()}
-          className={`${PILL} border-mist/40 text-mist hover:bg-mist/10`}
-        >
-          {connecting ? "…" : short ? short : signedIn ? "Akun" : "Sign in"}
-        </button>
+    <header className="flex flex-col gap-2 py-6">
+      <div className="flex items-center justify-between gap-4">
+        <img src="/logo.png" alt="Indonesia Web3 Hackathon" className="h-8 w-auto sm:h-9" />
+        {enabled ? (
+          signedIn ? (
+            <div className="flex items-center gap-3">
+              {short ? <span className="text-sm text-mist/70">{short}</span> : null}
+              <button
+                type="button"
+                onClick={() => signOut()}
+                className={`${PILL} border-mist/40 text-mist hover:bg-mist/10`}
+              >
+                Keluar
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => open()}
+              className={`${PILL} border-mist/40 text-mist hover:bg-mist/10 disabled:opacity-50`}
+            >
+              {busy ? "…" : "Sign in"}
+            </button>
+          )
+        ) : null}
+      </div>
+      {error ? (
+        <p role="alert" className="text-right text-sm text-red-300">
+          {error}
+        </p>
       ) : null}
     </header>
   );
 }
 
 function ClosedGate({ signedIn, closed }: { signedIn: boolean; closed: boolean }) {
-  const { open } = useAppKit();
+  const { enabled, open } = useSignIn();
   return (
     <section className="flex flex-col items-center gap-6 py-24 text-center fade-in">
       <h1 className="hero-heading text-[clamp(3rem,16vw,9rem)] font-black uppercase leading-none tracking-tight">
@@ -116,7 +136,7 @@ function ClosedGate({ signedIn, closed }: { signedIn: boolean; closed: boolean }
           ? "Voting Community Choice sudah ditutup. Terima kasih sudah ikut memilih — pemenang diumumkan di panggung."
           : "Voting Community Choice belum dibuka. Halaman ini terbuka setelah semua finalis selesai demo — sign in dulu supaya nanti tinggal pilih."}
       </p>
-      {projectId && !signedIn && !closed ? (
+      {enabled && !signedIn && !closed ? (
         <button
           type="button"
           onClick={() => open()}
@@ -138,7 +158,7 @@ function VoteBoard({
   ownIds,
   leaderboard: initialLb,
 }: Props) {
-  const { open } = useAppKit();
+  const { open } = useSignIn();
   const router = useRouter();
   const [myVote, setMyVote] = useState(initialVote);
   const [leaderboard, setLeaderboard] = useState(initialLb);
