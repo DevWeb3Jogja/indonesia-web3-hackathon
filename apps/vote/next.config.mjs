@@ -1,7 +1,7 @@
 import path from "node:path";
 
-// CSP: connect-src masih https:/wss: menyeluruh karena WalletConnect/RPC memakai banyak
-// endpoint. Sama seperti apps/web.
+// CSP: connect-src masih https:/wss: menyeluruh karena Privy/WalletConnect/RPC memakai
+// banyak endpoint. Sama seperti apps/web.
 const csp = [
   "default-src 'self'",
   "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://challenges.cloudflare.com",
@@ -9,7 +9,10 @@ const csp = [
   "font-src 'self' data: https://fonts.gstatic.com https://fonts.reown.com",
   "img-src * data: blob:",
   "connect-src 'self' https: wss:",
-  "frame-src https://challenges.cloudflare.com https://verify.walletconnect.com https://verify.walletconnect.org https://secure.walletconnect.com https://secure.reown.com",
+  // Privy: iframe auth/wallet embedded di auth.privy.io; WalletConnect untuk login wallet.
+  "child-src https://auth.privy.io https://verify.walletconnect.com https://verify.walletconnect.org",
+  "frame-src https://challenges.cloudflare.com https://auth.privy.io https://verify.walletconnect.com https://verify.walletconnect.org",
+  "worker-src 'self'",
   "frame-ancestors 'none'",
   "base-uri 'self'",
   "form-action 'self'",

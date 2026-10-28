@@ -1,6 +1,6 @@
 /**
- * Klien Cloudflare Turnstile (invisible/managed). Dipakai di flow SIWE: sebelum
- * ambil nonce, kita minta token lalu kirim sebagai header ke /api/auth/nonce.
+ * Klien Cloudflare Turnstile (invisible/managed). Dipakai sebelum POST /api/vote:
+ * kita minta token lalu kirim sebagai header x-turnstile-token.
  * Kalau NEXT_PUBLIC_TURNSTILE_SITE_KEY tak diset → return "" (proteksi nonaktif).
  */
 const SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
